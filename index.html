@@ -18,7 +18,13 @@
   #err { color: #e03131; min-height: 1.2em; }
   /* 대화 화면 */
   #main { flex: 1; flex-direction: column; min-height: 0; }
-  #top { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 12px; background: #fff9db; }
+  #top { display: flex; justify-content: flex-end; align-items: center; gap: 8px;
+         padding: 8px 12px; background: #fff9db; }
+  #langsw { display: inline-flex; align-items: center; overflow: hidden;
+            border: 1px solid #d4c26a; border-radius: 14px; font-size: 13px; }
+  #langsw small { padding: 0 6px 0 10px; color: #777; }
+  #langsw button { border: 0; background: none; padding: 5px 10px; font-size: 13px; }
+  #langsw button.sel { background: #ffd43b; font-weight: bold; }
   #chat { flex: 1; overflow-y: auto; padding: 12px; }
   .msg { max-width: 80%; margin: 8px 0; padding: 10px 14px;
          border-radius: 16px; white-space: pre-wrap; }
@@ -26,15 +32,20 @@
   .ai { background: #eee; }
   .ko { background: #e7f5ff; font-size: 14px; }
   /* 입력 막대 */
-  #bar { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid #eee; }
-  #lang { padding: 0 12px; font-size: 14px; border: 1px solid #ccc; border-radius: 24px; background: #fff; }
-  #inp { flex: 1; min-width: 0; padding: 12px 16px; font-size: 16px;
-         border: 1px solid #ccc; border-radius: 24px; }
-  #act { width: 48px; height: 48px; font-size: 20px; border: 0; border-radius: 24px;
-         background: #333; color: #fff; }
-  #act.on { background: #e03131; }
-  #bar.listening #inp, #bar.listening #lang { display: none; }
-  #bar.listening #act { flex: 1; }
+  #bar { display: flex; align-items: center; gap: 8px; margin: 10px 12px;
+         padding: 6px 6px 6px 18px; border: 1px solid #ddd; border-radius: 28px; background: #fff; }
+  #bar.listening { padding-left: 6px; }
+  #inp { flex: 1; min-width: 0; padding: 10px 0; font-size: 16px; border: 0; outline: 0; background: transparent; }
+  #act, #cancel { flex: none; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%;
+                  display: flex; align-items: center; justify-content: center; }
+  #act svg, #cancel svg { display: block; }
+  #act { background: #ffd43b; color: #222; }
+  #cancel { display: none; background: #f1f3f5; color: #555; }
+  #wave { display: none; flex: 1; justify-content: center; }
+  #bar.listening #inp { display: none; }
+  #bar.listening #cancel, #bar.listening #wave { display: flex; }
+  .notice { background: #fff4e6; border: 1px solid #ffd8a8; font-size: 14px; }
+  .notice b { display: block; margin-bottom: 4px; }
   /* 기록 화면 */
   #hist { flex: 1; overflow-y: auto; padding: 16px; }
   #hback { width: 100%; padding: 12px; font-size: 16px; }
@@ -60,16 +71,11 @@
   .vsec { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #d4c26a; }
   #ver { margin-right: auto; align-self: center; font-size: 12px; color: #999; }
   .vw { font-size: 18px; font-weight: bold; }
-  /* 듣는 중 막대 */
-  .bars { display: inline-flex; align-items: center; gap: 3px; height: 20px;
-          vertical-align: middle; }
-  .bars i { width: 4px; height: 100%; border-radius: 2px; background: #fff;
+  /* 듣는 중 파형 */
+  .bars { display: flex; align-items: center; gap: 4px; height: 28px; }
+  .bars i { width: 4px; height: 100%; border-radius: 2px; background: #f59f00;
             animation: wave .9s ease-in-out infinite; }
-  .bars i:nth-child(2) { animation-delay: .15s; }
-  .bars i:nth-child(3) { animation-delay: .3s; }
-  .bars i:nth-child(4) { animation-delay: .45s; }
-  .bars i:nth-child(5) { animation-delay: .6s; }
-  @keyframes wave { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+  @keyframes wave { 0%, 100% { transform: scaleY(.25); } 50% { transform: scaleY(1); } }
   /* 답변 기다리는 중 점 */
   .wait i { display: inline-block; width: 5px; height: 5px; margin-left: 4px;
             border-radius: 50%; background: #888; animation: blink 1.2s infinite; }
@@ -109,12 +115,15 @@
 </div>
 
 <div id="main">
-  <div id="top"><span id="ver">v12</span><button id="vocabbtn">단어장</button><button id="histbtn">기록</button><button id="settings">설정</button></div>
+  <div id="top"><span id="ver">v13</span>
+    <span id="langsw"><small>말하기</small><button type="button" data-l="en-US" class="sel">EN</button><button type="button" data-l="ko-KR">한</button></span>
+    <button id="vocabbtn">단어장</button><button id="histbtn">기록</button><button id="settings">설정</button></div>
   <div id="chat"></div>
   <form id="bar">
-    <button type="button" id="lang"></button>
-    <input id="inp" placeholder="영어·한글로 입력하세요" enterkeyhint="send" autocomplete="off">
-    <button type="button" id="act"></button>
+    <button type="button" id="cancel" aria-label="취소"></button>
+    <input id="inp" placeholder="영어나 한글로 입력하세요" enterkeyhint="send" autocomplete="off">
+    <div id="wave"></div>
+    <button type="button" id="act" aria-label="말하기 또는 보내기"></button>
   </form>
 </div>
 
@@ -136,6 +145,7 @@
 const MODEL = 'gemini-3.5-flash';  // 모델명
 const MAX_TURNS = 6;               // API로 보낼 최근 대화 횟수
 const SILENCE_MS = 5000;           // 이 시간 동안 말이 없으면 마이크 자동 종료
+const LITE_MODEL = 'gemini-3.5-flash-lite';  // 단어 조회용 가벼운 모델
 const BASE_SYSTEM = `You are a friendly English tutor for a Korean learner. Reply in 1-2 short English sentences and end with a simple question. Be perceptive: use the conversation so far and the learner's field of interest to guess what they most likely meant, and answer that.
 The user's text may come from speech recognition: never comment on repeated words, fillers, capitalization, punctuation or apostrophes.
 If the user asks in Korean how to say something in English: reply with only the natural English sentence (no extra question), then a new line "KO:" followed by "이렇게 말하면 돼요." and, if useful, one short note on a key word.
@@ -243,9 +253,9 @@ function el(tag, cls, text) {
 }
 
 // 제미나이 호출 공통 함수: 답변 글자만 돌려줌
-async function gemini(body) {
+async function gemini(body, model = MODEL) {
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
@@ -253,10 +263,47 @@ async function gemini(body) {
     }
   );
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error?.message || res.status);
+  if (!res.ok) {
+    const err = new Error(data.error?.message || res.status);
+    err.code = res.status;
+    throw err;
+  }
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error('빈 응답');
   return text;
+}
+
+// 가벼운 작업(단어 조회 등)은 가벼운 모델로: 한도가 따로 계산됨. 없거나 한도 초과면 기본 모델로 재시도
+async function lite(body) {
+  try { return await gemini(body, LITE_MODEL); }
+  catch (e) { if ((e.code === 404 || e.code === 429) && LITE_MODEL !== MODEL) return gemini(body); throw e; }
+}
+
+// 오류를 알아보기 쉬운 말로 바꾸기
+function friendly(e) {
+  const m = String(e.message || '');
+  if (e.code === 429 || /quota|exhausted/i.test(m))
+    return { key: true, title: 'AI 사용 한도에 도달했어요',
+      body: 'API 키의 무료 사용량을 모두 썼거나 결제 금액이 소진됐어요. 잠시 뒤에 다시 시도하거나 다른 키로 바꿔 보세요.' };
+  if (e.code === 403 || (e.code === 400 && /api key/i.test(m)))
+    return { key: true, title: 'API 키를 확인해 주세요', body: '키가 올바르지 않거나 사용할 수 없는 상태예요.' };
+  if (e.code === 503) return { title: '지금 AI가 붐벼요', body: '잠시 뒤에 다시 시도해 주세요.' };
+  if (e instanceof TypeError) return { title: '인터넷 연결을 확인해 주세요', body: '서버에 연결하지 못했어요.' };
+  return { title: '잠시 문제가 생겼어요', body: m };
+}
+
+// 대화창에 안내 카드 표시 (키 문제면 설정으로 가는 버튼 포함)
+function addNotice(e) {
+  const f = friendly(e);
+  const n = el('div', 'msg notice');
+  n.append(el('b', '', f.title), el('div', '', f.body));
+  if (f.key) {
+    const b = el('button', 'vsave', '다른 키로 바꾸기');
+    b.onclick = () => { fillForm(); show('setup'); };
+    n.append(b);
+  }
+  $('chat').append(n);
+  $('chat').scrollTop = $('chat').scrollHeight;
 }
 
 // 응답을 줄 단위로 나누기 (번호 제거)
@@ -264,7 +311,7 @@ const lines = t => t.split('\n').map(l => l.replace(/^\s*[1-4][.)]\s*/, '').trim
 
 // 단어 뜻 조회: 눌렀을 때만 짧게 호출
 async function lookup(word, context) {
-  const text = await gemini({
+  const text = await lite({
     contents: [{ role: 'user', parts: [{ text:
       `Word: "${word}"\nSentence: "${context}"\nAnswer in exactly 4 lines, no labels, no numbering, no markdown:\nline 1: base form of the word (the word itself if already base)\nline 2: Korean meaning as "ⓝ 뜻" (noun), "ⓥ 뜻" (verb), "ⓐ 뜻" (adjective), "ⓓ 뜻" (adverb) or "ⓞ 뜻" (other). Put the sense used in the sentence first, at most 2 parts of speech joined by " · ", verbs in dictionary form like "ⓥ 달리다"\nline 3: one short English example sentence using the word\nline 4: Korean translation of line 3` }] }],
     generationConfig: { temperature: 0.1, maxOutputTokens: 1000 }
@@ -279,7 +326,7 @@ const exsOf = v => v.exs || (v.ex ? [{ ex: v.ex, exko: v.exko }] : []);
 
 // 저장한 단어로 새 예문 하나 더 만들기
 async function moreEx(v) {
-  const text = await gemini({
+  const text = await lite({
     contents: [{ role: 'user', parts: [{ text:
       `Word: "${v.w}" (${v.meaning})\nExisting sentences: ${exsOf(v).map(e => e.ex).join(' | ') || 'none'}\nWrite one new short English sentence using the word, different from the existing ones. Answer in exactly 2 lines, no labels, no numbering, no markdown:\nline 1: the sentence\nline 2: Korean translation` }] }],
     generationConfig: { temperature: 0.5, maxOutputTokens: 1000 }
@@ -362,7 +409,9 @@ async function onWord(bubble, word, context) {
     }
     card.append(btn);
   } catch (e) {
-    card.textContent = '오류: ' + e.message;
+    const f = friendly(e);
+    card.textContent = '';
+    card.append(el('b', '', f.title), el('div', 'vex', f.body));
   }
 }
 
@@ -413,7 +462,7 @@ function renderVocab() {
           drawDet();
         } catch (err) {
           more.disabled = false;
-          more.textContent = '오류: ' + err.message + ' (다시 누르기)';
+          more.textContent = friendly(err).title + ' (다시 누르기)';
         }
       };
       det.append(more);
@@ -535,17 +584,19 @@ async function send(text) {
     speak(reply.split('KO:')[0]);
   } catch (e) {
     history.pop();  // 실패한 질문은 기록에서 제거
-    addMsg('오류: ' + e.message, 'ai');
+    addNotice(e);
   } finally {
     wait.remove();
   }
 }
 
-// 입력 막대: 글자 입력 + 말하기(한/EN)를 버튼 하나로
-const bar = $('bar'), inp = $('inp'), act = $('act'), langBtn = $('lang');
-const BARS = '<span class="bars"><i></i><i></i><i></i><i></i><i></i></span>';
+// 입력 막대: 글자 입력 + 말하기를 버튼 하나로 (말하기 언어는 위쪽 EN | 한 스위치)
+const bar = $('bar'), inp = $('inp'), act = $('act');
+$('cancel').innerHTML = icon('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>');
+$('wave').innerHTML = '<span class="bars">'
+  + Array.from({ length: 9 }, (_, k) => `<i style="animation-delay:${(k * 0.11).toFixed(2)}s"></i>`).join('') + '</span>';
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-let lang = localStorage.getItem('lang') || 'en-US';  // 말하기 언어
+let lang = 'en-US';     // 말하기 언어 (한국어는 한 번 말하면 EN으로 자동 복귀)
 let listening = false;  // 듣는 중 여부
 let heard = '';         // 확정된 말
 let pending = '';       // 확정 전인 말
@@ -553,18 +604,18 @@ let silence;            // 무음 타이머
 
 const closeCards = () => document.querySelectorAll('.card').forEach(c => c.remove());
 
-// 상태에 맞게 버튼 모양 바꾸기: 빈 칸이면 마이크, 글자가 있으면 전송, 듣는 중이면 막대
-function paint() {
-  langBtn.textContent = lang === 'en-US' ? 'EN' : '한';
-  bar.classList.toggle('listening', listening);
-  act.classList.toggle('on', listening);
-  act.innerHTML = listening ? BARS : (inp.value.trim() ? I_SEND : I_MIC);
-}
-langBtn.onclick = () => {
-  lang = lang === 'en-US' ? 'ko-KR' : 'en-US';
-  localStorage.setItem('lang', lang);
-  paint();
+// 말하기 언어 스위치
+const setLang = l => {
+  lang = l;
+  document.querySelectorAll('#langsw button').forEach(b => b.classList.toggle('sel', b.dataset.l === l));
 };
+document.querySelectorAll('#langsw button').forEach(b => b.onclick = () => setLang(b.dataset.l));
+
+// 상태에 맞게 버튼 모양 바꾸기: 비어 있으면 마이크, 글자가 있거나 듣는 중이면 보내기
+function paint() {
+  bar.classList.toggle('listening', listening);
+  act.innerHTML = listening || inp.value.trim() ? I_SEND : I_MIC;
+}
 inp.oninput = paint;
 
 // 무음이 계속되면 자동으로 듣기 끝내기
@@ -588,10 +639,13 @@ if (rec) {
   rec.onend = () => {
     heard += ' ' + pending;  // 확정 전 말도 포함
     pending = '';
-    if (listening) return rec.start();  // 말이 멈춰 끊겨도 계속 듣기
+    if (listening) { rec.lang = lang; return rec.start(); }  // 말이 멈춰 끊겨도 계속 듣기
     clearTimeout(silence);
     paint();
-    if (heard.trim()) send(heard.trim());
+    if (heard.trim()) {
+      send(heard.trim());
+      if (lang === 'ko-KR') setLang('en-US');  // 한국어는 한 번만
+    }
     heard = '';
   };
   rec.onerror = e => {
@@ -599,8 +653,15 @@ if (rec) {
     listening = false;
     addMsg('마이크 오류: ' + e.error, 'ai');
   };
+  // 취소: 말한 내용을 버리고 끝내기
+  $('cancel').onclick = () => {
+    heard = '';
+    pending = '';
+    listening = false;
+    rec.abort();
+  };
 } else {
-  langBtn.style.display = 'none';
+  $('langsw').style.display = 'none';
 }
 
 // 버튼: 듣는 중이면 끝내고 전송 / 글자가 있으면 전송 / 비어 있으면 듣기 시작
