@@ -52,33 +52,52 @@
   .title b { color: var(--accent-text); }
 
   /* 시작 화면 */
-  #home { flex: 1; overflow-y: auto; flex-direction: column; align-items: center; padding: 22px 20px 26px; text-align: center;
-          background: radial-gradient(ellipse 80% 38% at 50% 40%, rgba(255, 212, 59, .14), transparent 70%); }
+  #home { flex: 1; overflow-y: auto; flex-direction: column; align-items: center; text-align: center;
+          padding: max(26px, env(safe-area-inset-top)) 22px max(30px, env(safe-area-inset-bottom)); }
   #home .brand { margin-top: auto; }
-  #home h1 { margin: 16px 0 8px; font-size: 30px; line-height: 1.18; font-weight: 800; letter-spacing: -.6px; }
+  #home h1 { margin: 22px 0 8px; font-size: 27px; line-height: 1.2; font-weight: 800; letter-spacing: -.5px; }
   #home h1 b { color: var(--accent-text); }
   #home .sub { margin: 0; color: var(--sub); font-size: 14px; line-height: 1.55; }
-  #stage { margin: 10px 0 18px; padding: 8px 26px 4px; border-radius: 32px; }
-  :root[data-theme="light"] #stage { background: radial-gradient(ellipse at 50% 48%, #2b2510 0%, #0b0b0c 74%); }
-  #mascot { display: block; width: 250px; max-width: 60vw; height: auto;
-            filter: drop-shadow(0 12px 28px rgba(255, 212, 59, .22)); }
-  #start { width: 100%; max-width: 420px; height: 58px; padding: 0 22px; border: 0; border-radius: 16px; margin-bottom: auto;
-           display: flex; align-items: center; justify-content: space-between;
-           background: var(--accent); color: var(--on-accent); font-size: 18px; font-weight: 800; }
+  #stage { position: relative; flex: 1 1 auto; width: 100%; max-width: 400px; min-height: 230px; max-height: 340px;
+           margin: 22px 0 24px; border-radius: 32px; border: 1px solid var(--line); overflow: hidden;
+           background: radial-gradient(ellipse at 50% 58%, rgba(255, 212, 59, .18), #0f0f10 68%); }
+  :root[data-theme="light"] #stage { border-color: transparent; background: radial-gradient(ellipse at 50% 58%, #2b2510 0%, #0b0b0c 76%); }
+  #mascot { position: absolute; top: 9%; left: 50%; height: 82%; width: auto; transform: translateX(-50%);
+            filter: drop-shadow(0 10px 24px rgba(255, 212, 59, .2)); }
+  #start { display: flex; align-items: center; justify-content: center; gap: 10px; width: min(100%, 260px); height: 52px;
+           margin-bottom: auto; padding: 0 22px; border: 0; border-radius: 26px;
+           background: var(--accent); color: var(--on-accent); font-size: 17px; font-weight: 800; }
   #start svg { display: block; }
 
-  /* 메뉴 화면: 네모 카드, 기능이 늘면 아래로 한 줄씩 추가 */
+  /* 메뉴 화면: 아이콘 칩 + 제목 + 동그란 화살표 카드, 기능이 늘면 아래로 한 줄씩 추가 */
+  #menu { background: radial-gradient(ellipse 90% 26% at 88% 0%, rgba(255, 212, 59, .13), transparent 72%); }
+  .eyebrow { margin: 2px 0 0; color: var(--sub); font-size: 13px; font-weight: 600; }
+  #menu .pg { margin: 2px 0 18px; }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .mcard { position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between;
-           gap: 18px; min-height: 128px; padding: 16px; border: 1px solid var(--line); border-radius: 22px;
-           background: var(--surface); text-align: left; font-size: 17px; font-weight: 800; }
-  .mcard .ic { color: var(--accent-text); line-height: 0; }
-  .mcard small { display: block; margin-top: 3px; font-size: 12px; font-weight: 400; color: var(--sub); }
+  .mcard { --tint: #a1a1aa; --tint-bg: rgba(161, 161, 170, .16);
+           position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 22px;
+           min-height: 138px; padding: 14px; border: 1px solid var(--line); border-radius: 24px;
+           background: var(--surface); text-align: left; }
+  .chip, .go { display: flex; align-items: center; justify-content: center; background: var(--tint-bg); color: var(--tint); line-height: 0; }
+  .chip { width: 44px; height: 44px; border-radius: 14px; }
+  .go { flex: none; width: 34px; height: 34px; border-radius: 50%; }
+  .mrow { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
+  .mt { font-size: 16px; font-weight: 800; line-height: 1.25; }
+  .mt small { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; color: var(--sub); }
   .mcard:disabled { opacity: .55; cursor: default; }
-  .mcard.primary { grid-column: 1 / -1; min-height: 140px; background: var(--accent); border-color: transparent; color: var(--on-accent); }
-  .mcard.primary .ic { color: var(--on-accent); }
-  .mcard.primary small { color: rgba(0, 0, 0, .62); }
-  .mcard.primary::after { content: ''; position: absolute; right: 16px; top: 16px; width: 72px; height: 72px; border-radius: 50%;
+  .mcard:disabled .go { display: none; }
+  :root[data-theme="light"] .mcard { --tint: #6b7280; --tint-bg: rgba(107, 114, 128, .12); }
+  .c-blue { --tint: #5aa9ff; --tint-bg: rgba(90, 169, 255, .16); }
+  .c-green { --tint: #3fd6a0; --tint-bg: rgba(63, 214, 160, .16); }
+  .c-purple { --tint: #c084fc; --tint-bg: rgba(192, 132, 252, .16); }
+  :root[data-theme="light"] .c-blue { --tint: #1c7ed6; --tint-bg: rgba(28, 126, 214, .12); }
+  :root[data-theme="light"] .c-green { --tint: #0ca678; --tint-bg: rgba(12, 166, 120, .12); }
+  :root[data-theme="light"] .c-purple { --tint: #9c36b5; --tint-bg: rgba(156, 54, 181, .12); }
+  :root .mcard.primary { grid-column: 1 / -1; min-height: 150px; border-color: transparent; background: var(--accent);
+                         color: var(--on-accent); --tint: var(--on-accent); --tint-bg: rgba(0, 0, 0, .1); }
+  .mcard.primary .go { background: #111; color: var(--accent); }
+  .mcard.primary .mt small { color: rgba(0, 0, 0, .62); }
+  .mcard.primary::after { content: ''; position: absolute; right: 14px; top: 14px; width: 68px; height: 68px; border-radius: 50%;
                           background: var(--avatar) center / cover no-repeat, #ffd43b; box-shadow: 0 0 0 4px rgba(0, 0, 0, .12); }
 
   
@@ -185,13 +204,29 @@
 <div id="menu" class="screen">
   <div class="hd"><span class="sp"></span><div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div><span class="sp"></span></div>
   <div class="pad">
-    <h2 class="pg">오늘은 뭘 할까요?</h2>
+    <p class="eyebrow" id="today"></p>
+    <h2 class="pg">오늘의 학습</h2>
     <div class="grid">
-      <button class="mcard primary" id="m-chat"><span class="ic"></span><span>대화하기<small id="m-chat-sub"></small></span></button>
-      <button class="mcard" id="m-vocab"><span class="ic"></span><span>단어장</span></button>
-      <button class="mcard" id="m-hist"><span class="ic"></span><span>기록</span></button>
-      <button class="mcard" id="m-pron" disabled><span class="ic"></span><span>발음 연습<small>준비 중</small></span></button>
-      <button class="mcard" id="m-set"><span class="ic"></span><span>설정</span></button>
+      <button class="mcard primary" id="m-chat">
+        <span class="chip"><span class="ic"></span></span>
+        <span class="mrow"><span class="mt">대화하기<small id="m-chat-sub"></small></span><span class="go"></span></span>
+      </button>
+      <button class="mcard c-blue" id="m-vocab">
+        <span class="chip"><span class="ic"></span></span>
+        <span class="mrow"><span class="mt">단어장<small id="m-vocab-sub"></small></span><span class="go"></span></span>
+      </button>
+      <button class="mcard c-green" id="m-hist">
+        <span class="chip"><span class="ic"></span></span>
+        <span class="mrow"><span class="mt">기록<small id="m-hist-sub"></small></span><span class="go"></span></span>
+      </button>
+      <button class="mcard c-purple" id="m-pron" disabled>
+        <span class="chip"><span class="ic"></span></span>
+        <span class="mrow"><span class="mt">발음 연습<small>준비 중</small></span><span class="go"></span></span>
+      </button>
+      <button class="mcard" id="m-set">
+        <span class="chip"><span class="ic"></span></span>
+        <span class="mrow"><span class="mt">설정<small>화면 · 프로필</small></span><span class="go"></span></span>
+      </button>
     </div>
   </div>
 </div>
@@ -226,7 +261,7 @@
     <label>알림시각<input id="f-time" type="time"></label>
     <p id="err"></p>
     <button id="save">저장</button>
-    <p id="ver">버전 v19</p>
+    <p id="ver">버전 v20</p>
   </div>
 </div>
 
@@ -860,16 +895,21 @@ $('themesw').onclick = () => {
 const LOGO = '<svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><path d="M6 4H26A4 4 0 0 1 30 8V20A4 4 0 0 1 26 24H14L8 29V24H6A4 4 0 0 1 2 20V8A4 4 0 0 1 6 4Z" fill="#ffd43b"/><ellipse cx="12" cy="14" rx="1.8" ry="2.6" fill="#222"/><ellipse cx="20" cy="14" rx="1.8" ry="2.6" fill="#222"/></svg>';
 document.querySelectorAll('.logo').forEach(e => e.innerHTML = LOGO);
 document.querySelectorAll('.back').forEach(b => b.innerHTML = I_BACK);
-const big = svg => svg.replace(/width="\d+" height="\d+"/, 'width="30" height="30"');
+const sz = (svg, n) => svg.replace(/width="\d+" height="\d+"/, `width="${n}" height="${n}"`);
 [['m-chat', I_CHAT], ['m-vocab', I_BOOK], ['m-hist', I_CLOCK], ['m-pron', I_MIC], ['m-set', I_SLIDERS]]
-  .forEach(([id, svg]) => $(id).querySelector('.ic').innerHTML = big(svg));
-$('start').querySelector('.arrow').innerHTML = I_ARROW;
+  .forEach(([id, svg]) => $(id).querySelector('.ic').innerHTML = sz(svg, 24));
+document.querySelectorAll('.mcard .go').forEach(g => g.innerHTML = sz(I_ARROW, 18));
+$('start').querySelector('.arrow').innerHTML = sz(I_ARROW, 20);
 document.querySelectorAll('#themesw .ti')[0].innerHTML = I_SUN;
 document.querySelectorAll('#themesw .ti')[1].innerHTML = I_MOON;
 
 // 시작 화면 -> 메뉴 화면 -> 각 기능
 function paintMenu() {
+  const days = Object.keys(chats).filter(d => chats[d].length).length;
+  $('today').textContent = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' });
   $('m-chat-sub').textContent = (chats[dayKey] || []).length ? '오늘 대화 이어서 하기' : '새 대화 시작하기';
+  $('m-vocab-sub').textContent = vocab.length ? `${vocab.length}개 저장됨` : '아직 비어 있어요';
+  $('m-hist-sub').textContent = days ? `${days}일 기록` : '아직 없어요';
 }
 $('start').onclick = () => show('menu');
 $('m-chat').onclick = () => show('main');
