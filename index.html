@@ -120,7 +120,7 @@
   <p id="err"></p>
   <button id="save">저장하고 시작</button>
   <button id="back">돌아가기</button>
-  <p id="ver">버전 v15</p>
+  <p id="ver">버전 v16</p>
 </div>
 
 <div id="main">
@@ -397,7 +397,8 @@ async function onWord(bubble, word, context) {
   speak(w);
   if (bubble.card) bubble.card.remove();
   const card = el('div', 'card', '찾는 중...');
-  bubble.after(card);
+  const next = bubble.nextElementSibling;
+  (next && next.classList.contains('ko') ? next : bubble).after(card);  // 파란 설명 말풍선이 있으면 그 아래에
   bubble.card = card;
   try {
     const sv = findWord(w);
