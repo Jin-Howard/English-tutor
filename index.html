@@ -7,17 +7,25 @@
 <style>
   body { margin: 0; height: 100dvh; display: flex; flex-direction: column;
          font-family: sans-serif; background: #fff; color: #222; }
+  #keybox { display: flex; gap: 8px; padding: 12px; background: #fff9db; }
+  #keyin { flex: 1; padding: 10px; font-size: 16px; }
+  #keysave { padding: 10px 14px; font-size: 16px; }
   #chat { flex: 1; overflow-y: auto; padding: 12px; }
   .msg { max-width: 80%; margin: 8px 0; padding: 10px 14px;
          border-radius: 16px; white-space: pre-wrap; }
   .user { background: #ffe066; margin-left: auto; }
   .ai { background: #eee; }
+  .ko { background: #e7f5ff; font-size: 14px; }
   #mic { margin: 12px; padding: 16px; font-size: 18px; border: 0;
          border-radius: 12px; background: #333; color: #fff; }
   #mic.on { background: #e03131; }
 </style>
 </head>
 <body>
+<div id="keybox">
+  <input id="keyin" placeholder="API 키 붙여넣기">
+  <button id="keysave">저장</button>
+</div>
 <div id="chat"></div>
 <button id="mic">말하기</button>
 
@@ -25,18 +33,25 @@
 // 설정값: 여기만 고치면 됨
 const MODEL = 'gemini-3.5-flash';  // 모델명
 const MAX_TURNS = 6;               // API로 보낼 최근 대화 횟수
-const SYSTEM = 'You are a friendly English tutor. Reply in 1-3 short English sentences. If the user made a grammar mistake, give one short correction first, then continue with a simple question.';
+const SYSTEM = `You are a friendly English tutor. Reply in 1-2 short English sentences and end with a simple question.
+If the user made a mistake or used an unnatural word, add a new line starting with "KO:" and explain in Korean in 1-2 short sentences: when the right word is used, why the user's word is wrong, and the corrected sentence.
+If there is no mistake, do not write KO:. If the user asks something in Korean, answer in Korean after "KO:".`;
 
 const chat = document.getElementById('chat');
 const mic = document.getElementById('mic');
+const keybox = document.getElementById('keybox');
 let history = [];  // 대화 기록
 
-// API 키: 처음 한 번만 입력, 폰에 저장
+// API 키: 화면 입력칸에 붙여넣고 저장, 폰에 보관
 let apiKey = localStorage.getItem('gkey') || '';
-if (!apiKey) {
-  apiKey = (prompt('Gemini API 키를 입력하세요') || '').trim();
-  if (apiKey) localStorage.setItem('gkey', apiKey);
-}
+if (apiKey) keybox.style.display = 'none';
+document.getElementById('keysave').onclick = () => {
+  const k = document.getElementById('keyin').value.trim();
+  if (!k) return;
+  apiKey = k;
+  localStorage.setItem('gkey', k);
+  keybox.style.display = 'none';
+};
 
 // 말풍선 추가
 function addMsg(text, cls) {
@@ -47,7 +62,7 @@ function addMsg(text, cls) {
   chat.scrollTop = chat.scrollHeight;
 }
 
-// 답변 읽어주기
+// 답변 읽어주기 (영어만)
 function speak(text) {
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
@@ -68,7 +83,7 @@ async function send(text) {
         body: JSON.stringify({
           system_instruction: { parts: [{ text: SYSTEM }] },
           contents: history.slice(-(MAX_TURNS * 2 - 1)),
-          generationConfig: { temperature: 0.7, maxOutputTokens: 400 }
+          generationConfig: { temperature: 0.7, maxOutputTokens: 600 }
         })
       }
     );
@@ -77,15 +92,17 @@ async function send(text) {
     const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!reply) throw new Error('빈 응답');
     history.push({ role: 'model', parts: [{ text: reply }] });
-    addMsg(reply, 'ai');
-    speak(reply);
+    // KO: 앞은 영어 답변, 뒤는 한국어 설명
+    const [en, ko] = reply.split('KO:');
+    if (en.trim()) { addMsg(en.trim(), 'ai'); speak(en); }
+    if (ko) addMsg(ko.trim(), 'ko');
   } catch (e) {
     history.pop();  // 실패한 질문은 기록에서 제거
     addMsg('오류: ' + e.message, 'ai');
   }
 }
 
-// 마이크 (음성 -> 글자)
+// 마이크: 누르면 듣기 시작, 다시 누르면 끝내고 전송
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (!SR) {
   mic.disabled = true;
@@ -93,15 +110,30 @@ if (!SR) {
 } else {
   const rec = new SR();
   rec.lang = 'en-US';
-  rec.onresult = e => send(e.results[0][0].transcript);
-  rec.onend = () => { mic.classList.remove('on'); mic.textContent = '말하기'; };
-  rec.onerror = e => { if (e.error !== 'no-speech') addMsg('마이크 오류: ' + e.error, 'ai'); };
+  let listening = false;  // 듣는 중 여부
+  let heard = '';         // 말한 내용 누적
+  rec.onresult = e => { heard += ' ' + e.results[0][0].transcript; };
+  rec.onend = () => {
+    if (listening) return rec.start();  // 말이 멈춰 끊겨도 계속 듣기
+    mic.classList.remove('on');
+    mic.textContent = '말하기';
+    if (heard.trim()) send(heard.trim());
+    heard = '';
+  };
+  rec.onerror = e => {
+    if (e.error === 'no-speech' || e.error === 'aborted') return;
+    listening = false;
+    addMsg('마이크 오류: ' + e.error, 'ai');
+  };
   mic.onclick = () => {
-    if (mic.classList.contains('on')) return rec.stop();
+    if (!apiKey) return addMsg('위쪽에 API 키를 먼저 저장하세요', 'ai');
+    if (listening) { listening = false; return rec.stop(); }
     speechSynthesis.cancel();
+    heard = '';
+    listening = true;
     rec.start();
     mic.classList.add('on');
-    mic.textContent = '듣는 중...';
+    mic.textContent = '듣는 중... 다 말하면 다시 누르기';
   };
 }
 </script>
