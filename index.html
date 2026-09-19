@@ -33,12 +33,32 @@
   .card { max-width: 80%; margin: -2px 0 10px; padding: 10px 14px; border-radius: 12px;
           background: #fff9db; border: 1px solid #ffe066; font-size: 14px; }
   .vex { color: #555; font-size: 13px; margin-top: 2px; }
-  .vsave, .vdel { margin-top: 8px; padding: 6px 12px; font-size: 14px; }
+  .vsave { margin-top: 8px; padding: 6px 12px; font-size: 14px; }
+  .vdel { padding: 6px 12px; font-size: 14px; }
+  .vspk { border: 0; background: none; font-size: 16px; padding: 0 6px 0 0; }
   /* 단어장 화면 */
   #vocab { flex: 1; overflow-y: auto; padding: 16px; }
   #vback { width: 100%; padding: 12px; font-size: 16px; }
-  .vitem { padding: 12px 0; border-bottom: 1px solid #eee; }
+  .vitem { display: flex; align-items: center; gap: 8px; padding: 10px 0;
+           border-bottom: 1px solid #eee; }
+  .vtxt { flex: 1; }
   .vw { font-size: 18px; font-weight: bold; }
+  /* 듣는 중 막대 */
+  .bars { display: inline-flex; align-items: center; gap: 3px; height: 20px;
+          margin-right: 8px; vertical-align: middle; }
+  .bars i { width: 4px; height: 100%; border-radius: 2px; background: #fff;
+            animation: wave .9s ease-in-out infinite; }
+  .bars i:nth-child(2) { animation-delay: .15s; }
+  .bars i:nth-child(3) { animation-delay: .3s; }
+  .bars i:nth-child(4) { animation-delay: .45s; }
+  .bars i:nth-child(5) { animation-delay: .6s; }
+  @keyframes wave { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+  /* 답변 기다리는 중 점 */
+  .wait i { display: inline-block; width: 5px; height: 5px; margin-left: 4px;
+            border-radius: 50%; background: #888; animation: blink 1.2s infinite; }
+  .wait i:nth-child(2) { animation-delay: .2s; }
+  .wait i:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: .2; } 40% { opacity: 1; } }
 </style>
 </head>
 <body>
@@ -198,10 +218,13 @@ async function gemini(body) {
 async function lookup(word, context) {
   const text = await gemini({
     contents: [{ role: 'user', parts: [{ text:
-      `Word: "${word}"\nSentence: "${context}"\nReturn JSON with keys: meaning (Korean meaning as used in the sentence, max 10 words), ex (one short English example sentence), exko (Korean translation of ex).` }] }],
-    generationConfig: { temperature: 0.1, maxOutputTokens: 500, responseMimeType: 'application/json' }
+      `Word: "${word}"\nSentence: "${context}"\nAnswer in exactly 4 lines, no labels, no numbering, no markdown:\nline 1: base form of the word (the word itself if already base)\nline 2: Korean meaning as "ⓝ 뜻" (noun), "ⓥ 뜻" (verb), "ⓐ 뜻" (adjective), "ⓓ 뜻" (adverb) or "ⓞ 뜻" (other). Put the sense used in the sentence first, at most 2 parts of speech joined by " · ", verbs in dictionary form like "ⓥ 달리다"\nline 3: one short English example sentence using the word\nline 4: Korean translation of line 3` }] }],
+    generationConfig: { temperature: 0.1, maxOutputTokens: 500 }
   });
-  return JSON.parse(text);
+  const [base, meaning, ex, exko] = text.split('\n')
+    .map(l => l.replace(/^\s*[1-4][.)]\s*/, '').trim()).filter(Boolean);
+  if (!exko) throw new Error('응답 형식 오류');
+  return { base: base.toLowerCase(), meaning, ex, exko };
 }
 
 // 단어 저장/찾기
@@ -222,14 +245,21 @@ async function onWord(bubble, word, context) {
     const btn = el('button', 'vsave', findWord(w) ? '저장됨' : '저장');
     btn.disabled = !!findWord(w);
     btn.onclick = () => {
-      vocab.push({ w, meaning: d.meaning, ex: d.ex, exko: d.exko });
+      vocab.push({ w, base: d.base && d.base !== w ? d.base : '', meaning: d.meaning });
       saveVocab();
       btn.textContent = '저장됨';
       btn.disabled = true;
     };
     card.textContent = '';
-    card.append(el('b', '', w), el('div', '', d.meaning),
-                el('div', 'vex', d.ex), el('div', 'vex', d.exko), btn);
+    card.append(el('b', '', d.base && d.base !== w ? `${w} (${d.base})` : w), el('div', '', d.meaning));
+    if (d.ex) {  // 저장된 단어는 예문 없이 뜻만
+      const row = el('div', 'vex');
+      const spk = el('button', 'vspk', '🔊');
+      spk.onclick = () => speak(d.ex);
+      row.append(spk, d.ex);
+      card.append(row, el('div', 'vex', d.exko));
+    }
+    card.append(btn);
   } catch (e) {
     card.textContent = '오류: ' + e.message;
   }
@@ -253,7 +283,7 @@ function renderVocab() {
   const box = $('vlist');
   box.textContent = vocab.length ? '' : '저장한 단어가 없어요';
   [...vocab].reverse().forEach(v => {
-    const w = el('div', 'vw', v.w);
+    const w = el('span', 'vw', v.w);
     w.onclick = () => speak(v.w);
     const del = el('button', 'vdel', '삭제');
     del.onclick = () => {
@@ -262,8 +292,10 @@ function renderVocab() {
       saveVocab();
       renderVocab();
     };
+    const line = el('div', 'vtxt');
+    line.append(w, `${v.base ? ` (${v.base})` : ''} : ${v.meaning}`);
     const item = el('div', 'vitem');
-    item.append(w, el('div', '', v.meaning), el('div', 'vex', v.ex), el('div', 'vex', v.exko), del);
+    item.append(line, del);
     box.append(item);
   });
 }
@@ -274,6 +306,10 @@ $('vback').onclick = () => show('main');
 async function send(text) {
   addMsg(text, 'user');
   history.push({ role: 'user', parts: [{ text }] });
+  const wait = el('div', 'msg ai wait');  // 답변 기다리는 표시
+  wait.innerHTML = '답변 정리하는 중<i></i><i></i><i></i>';
+  $('chat').append(wait);
+  $('chat').scrollTop = $('chat').scrollHeight;
   try {
     const reply = await gemini({
       system_instruction: { parts: [{ text: buildSystem() }] },
@@ -288,6 +324,8 @@ async function send(text) {
   } catch (e) {
     history.pop();  // 실패한 질문은 기록에서 제거
     addMsg('오류: ' + e.message, 'ai');
+  } finally {
+    wait.remove();
   }
 }
 
@@ -322,7 +360,7 @@ if (!SR) {
     listening = true;
     rec.start();
     mic.classList.add('on');
-    mic.textContent = '듣는 중... 다 말하면 다시 누르기';
+    mic.innerHTML = '<span class="bars"><i></i><i></i><i></i><i></i><i></i></span>듣는 중... 다 말하면 다시 누르기';
   };
 }
 
