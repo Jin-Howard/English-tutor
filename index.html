@@ -60,6 +60,11 @@
   .vex { color: #555; font-size: 13px; margin-top: 2px; }
   .vsave { margin-top: 8px; padding: 6px 12px; font-size: 14px; }
   .vdel { padding: 6px 12px; font-size: 14px; }
+  .srow { display: flex; align-items: center; gap: 2px; }
+  .srow > span { min-width: 0; overflow-wrap: anywhere; }
+  .vex.srow { align-items: flex-start; justify-content: space-between; }
+  .vex.srow > span { flex: 1; }
+  .vex.srow .vspk { flex: none; padding: 0 0 0 6px; }
   .vspk { border: 0; background: none; padding: 0 6px; color: #555; line-height: 0; vertical-align: middle; }
   /* 단어장 화면 */
   #vocab { flex: 1; overflow-y: auto; padding: 16px; }
@@ -115,7 +120,7 @@
   <p id="err"></p>
   <button id="save">저장하고 시작</button>
   <button id="back">돌아가기</button>
-  <p id="ver">버전 v14</p>
+  <p id="ver">버전 v15</p>
 </div>
 
 <div id="main">
@@ -381,8 +386,8 @@ function spkBtn(spoken) {
 
 // 글자 한 줄 + 오른쪽 스피커
 function speakRow(shown, spoken, cls) {
-  const row = el('div', cls);
-  row.append(shown, spkBtn(spoken));
+  const row = el('div', cls + ' srow');
+  row.append(el('span', '', shown), spkBtn(spoken));
   return row;
 }
 
