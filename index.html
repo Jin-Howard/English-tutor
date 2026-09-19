@@ -39,9 +39,13 @@
   /* 단어장 화면 */
   #vocab { flex: 1; overflow-y: auto; padding: 16px; }
   #vback { width: 100%; padding: 12px; font-size: 16px; }
-  .vitem { display: flex; align-items: center; gap: 8px; padding: 10px 0;
-           border-bottom: 1px solid #eee; }
-  .vtxt { flex: 1; }
+  .vitem { padding: 10px 0; border-bottom: 1px solid #eee; }
+  .vrow { display: flex; align-items: center; gap: 8px; }
+  .vtxt { flex: 1; cursor: pointer; }
+  .vdet { margin-top: 8px; padding-left: 8px; }
+  .vmore { margin-top: 8px; padding: 6px 12px; font-size: 14px; }
+  .vtitle { font-weight: bold; }
+  #ver { margin-right: auto; align-self: center; font-size: 12px; color: #999; }
   .vw { font-size: 18px; font-weight: bold; }
   /* 듣는 중 막대 */
   .bars { display: inline-flex; align-items: center; gap: 3px; height: 20px;
@@ -92,7 +96,7 @@
 </div>
 
 <div id="main">
-  <div id="top"><button id="vocabbtn">단어장</button><button id="settings">설정</button></div>
+  <div id="top"><span id="ver">v7</span><button id="vocabbtn">단어장</button><button id="settings">설정</button></div>
   <div id="chat"></div>
   <button id="mic">말하기</button>
 </div>
@@ -214,22 +218,48 @@ async function gemini(body) {
   return text;
 }
 
+// 응답을 줄 단위로 나누기 (번호 제거)
+const lines = t => t.split('\n').map(l => l.replace(/^\s*[1-4][.)]\s*/, '').trim()).filter(Boolean);
+
 // 단어 뜻 조회: 눌렀을 때만 짧게 호출
 async function lookup(word, context) {
   const text = await gemini({
     contents: [{ role: 'user', parts: [{ text:
       `Word: "${word}"\nSentence: "${context}"\nAnswer in exactly 4 lines, no labels, no numbering, no markdown:\nline 1: base form of the word (the word itself if already base)\nline 2: Korean meaning as "ⓝ 뜻" (noun), "ⓥ 뜻" (verb), "ⓐ 뜻" (adjective), "ⓓ 뜻" (adverb) or "ⓞ 뜻" (other). Put the sense used in the sentence first, at most 2 parts of speech joined by " · ", verbs in dictionary form like "ⓥ 달리다"\nline 3: one short English example sentence using the word\nline 4: Korean translation of line 3` }] }],
-    generationConfig: { temperature: 0.1, maxOutputTokens: 500 }
+    generationConfig: { temperature: 0.1, maxOutputTokens: 1000 }
   });
-  const [base, meaning, ex, exko] = text.split('\n')
-    .map(l => l.replace(/^\s*[1-4][.)]\s*/, '').trim()).filter(Boolean);
+  const [base, meaning, ex, exko] = lines(text);
   if (!exko) throw new Error('응답 형식 오류');
   return { base: base.toLowerCase(), meaning, ex, exko };
+}
+
+// 저장한 단어의 예문 목록 (옛 저장 형식도 읽기)
+const exsOf = v => v.exs || (v.ex ? [{ ex: v.ex, exko: v.exko }] : []);
+
+// 저장한 단어로 새 예문 하나 더 만들기
+async function moreEx(v) {
+  const text = await gemini({
+    contents: [{ role: 'user', parts: [{ text:
+      `Word: "${v.w}" (${v.meaning})\nExisting sentences: ${exsOf(v).map(e => e.ex).join(' | ') || 'none'}\nWrite one new short English sentence using the word, different from the existing ones. Answer in exactly 2 lines, no labels, no numbering, no markdown:\nline 1: the sentence\nline 2: Korean translation` }] }],
+    generationConfig: { temperature: 0.5, maxOutputTokens: 1000 }
+  });
+  const [ex, exko] = lines(text);
+  if (!exko) throw new Error('응답 형식 오류');
+  return { ex, exko };
 }
 
 // 단어 저장/찾기
 const findWord = w => vocab.find(v => v.w === w);
 const saveVocab = () => localStorage.setItem('vocab', JSON.stringify(vocab));
+
+// 소리 버튼 + 글자 한 줄
+function speakRow(shown, spoken, cls) {
+  const row = el('div', cls);
+  const spk = el('button', 'vspk', '🔊');
+  spk.onclick = () => speak(spoken);
+  row.append(spk, shown);
+  return row;
+}
 
 // 단어를 눌렀을 때: 읽어주기 + 뜻 카드
 async function onWord(bubble, word, context) {
@@ -240,25 +270,20 @@ async function onWord(bubble, word, context) {
   bubble.after(card);
   bubble.card = card;
   try {
-    let d = findWord(w) || cache.get(w);
+    const sv = findWord(w);
+    let d = sv ? { base: sv.base, meaning: sv.meaning } : cache.get(w);  // 저장된 단어는 호출 없이 뜻만
     if (!d) { d = await lookup(w, context); cache.set(w, d); }
-    const btn = el('button', 'vsave', findWord(w) ? '저장됨' : '저장');
-    btn.disabled = !!findWord(w);
+    const btn = el('button', 'vsave', sv ? '저장됨' : '저장');
+    btn.disabled = !!sv;
     btn.onclick = () => {
-      vocab.push({ w, base: d.base && d.base !== w ? d.base : '', meaning: d.meaning });
+      vocab.push({ w, base: d.base !== w ? d.base : '', meaning: d.meaning, exs: [{ ex: d.ex, exko: d.exko }] });
       saveVocab();
       btn.textContent = '저장됨';
       btn.disabled = true;
     };
     card.textContent = '';
-    card.append(el('b', '', d.base && d.base !== w ? `${w} (${d.base})` : w), el('div', '', d.meaning));
-    if (d.ex) {  // 저장된 단어는 예문 없이 뜻만
-      const row = el('div', 'vex');
-      const spk = el('button', 'vspk', '🔊');
-      spk.onclick = () => speak(d.ex);
-      row.append(spk, d.ex);
-      card.append(row, el('div', 'vex', d.exko));
-    }
+    card.append(speakRow(d.base && d.base !== w ? `${w} (${d.base})` : w, w, 'vtitle'), el('div', '', d.meaning));
+    if (d.ex) card.append(speakRow(d.ex, d.ex, 'vex'), el('div', 'vex', d.exko));
     card.append(btn);
   } catch (e) {
     card.textContent = '오류: ' + e.message;
@@ -278,13 +303,38 @@ function addAiMsg(text) {
   $('chat').scrollTop = $('chat').scrollHeight;
 }
 
-// 단어장 목록 그리기 (최근 저장이 위)
+// 단어장 목록 그리기 (최근 저장이 위, 누르면 예문 펼침)
 function renderVocab() {
   const box = $('vlist');
   box.textContent = vocab.length ? '' : '저장한 단어가 없어요';
   [...vocab].reverse().forEach(v => {
-    const w = el('span', 'vw', v.w);
-    w.onclick = () => speak(v.w);
+    const det = el('div', 'vdet');
+    det.style.display = 'none';
+    const drawDet = () => {  // 예문 목록 + 더 보기 버튼
+      det.textContent = '';
+      exsOf(v).forEach(e => det.append(speakRow(e.ex, e.ex, 'vex'), el('div', 'vex', e.exko)));
+      const more = el('button', 'vmore', '예문 더 보기');
+      more.onclick = async () => {
+        more.disabled = true;
+        more.textContent = '만드는 중...';
+        try {
+          v.exs = [...exsOf(v), await moreEx(v)];
+          saveVocab();
+          drawDet();
+        } catch (err) {
+          more.disabled = false;
+          more.textContent = '오류: ' + err.message + ' (다시 누르기)';
+        }
+      };
+      det.append(more);
+    };
+    const line = el('div', 'vtxt');
+    line.append(el('span', 'vw', v.w), `${v.base ? ` (${v.base})` : ''} : ${v.meaning}`);
+    line.onclick = () => {
+      const open = det.style.display === 'none';
+      det.style.display = open ? 'block' : 'none';
+      if (open) { drawDet(); speak(v.w); }
+    };
     const del = el('button', 'vdel', '삭제');
     del.onclick = () => {
       if (!confirm(`'${v.w}' 삭제할까요?`)) return;
@@ -292,10 +342,10 @@ function renderVocab() {
       saveVocab();
       renderVocab();
     };
-    const line = el('div', 'vtxt');
-    line.append(w, `${v.base ? ` (${v.base})` : ''} : ${v.meaning}`);
+    const row = el('div', 'vrow');
+    row.append(line, del);
     const item = el('div', 'vitem');
-    item.append(line, del);
+    item.append(row, det);
     box.append(item);
   });
 }
