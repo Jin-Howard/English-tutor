@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI English Tutor</title>
+<style>
+  body { margin: 0; height: 100dvh; display: flex; flex-direction: column;
+         font-family: sans-serif; background: #fff; color: #222; }
+  #chat { flex: 1; overflow-y: auto; padding: 12px; }
+  .msg { max-width: 80%; margin: 8px 0; padding: 10px 14px;
+         border-radius: 16px; white-space: pre-wrap; }
+  .user { background: #ffe066; margin-left: auto; }
+  .ai { background: #eee; }
+  #mic { margin: 12px; padding: 16px; font-size: 18px; border: 0;
+         border-radius: 12px; background: #333; color: #fff; }
+  #mic.on { background: #e03131; }
+</style>
+</head>
+<body>
+<div id="chat"></div>
+<button id="mic">말하기</button>
+
+<script>
+// 설정값: 여기만 고치면 됨
+const MODEL = 'gemini-3.5-flash';  // 모델명
+const MAX_TURNS = 6;               // API로 보낼 최근 대화 횟수
+const SYSTEM = 'You are a friendly English tutor. Reply in 1-3 short English sentences. If the user made a grammar mistake, give one short correction first, then continue with a simple question.';
+
+const chat = document.getElementById('chat');
+const mic = document.getElementById('mic');
+let history = [];  // 대화 기록
+
+// API 키: 처음 한 번만 입력, 폰에 저장
+let apiKey = localStorage.getItem('gkey') || '';
+if (!apiKey) {
+  apiKey = (prompt('Gemini API 키를 입력하세요') || '').trim();
+  if (apiKey) localStorage.setItem('gkey', apiKey);
+}
+
+// 말풍선 추가
+function addMsg(text, cls) {
+  const d = document.createElement('div');
+  d.className = 'msg ' + cls;
+  d.textContent = text;
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// 답변 읽어주기
+function speak(text) {
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  speechSynthesis.speak(u);
+}
+
+// 제미나이에게 보내고 답 받기
+async function send(text) {
+  addMsg(text, 'user');
+  history.push({ role: 'user', parts: [{ text }] });
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: SYSTEM }] },
+          contents: history.slice(-(MAX_TURNS * 2 - 1)),
+          generationConfig: { temperature: 0.7, maxOutputTokens: 400 }
+        })
+      }
+    );
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || res.status);
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!reply) throw new Error('빈 응답');
+    history.push({ role: 'model', parts: [{ text: reply }] });
+    addMsg(reply, 'ai');
+    speak(reply);
+  } catch (e) {
+    history.pop();  // 실패한 질문은 기록에서 제거
+    addMsg('오류: ' + e.message, 'ai');
+  }
+}
+
+// 마이크 (음성 -> 글자)
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (!SR) {
+  mic.disabled = true;
+  mic.textContent = '음성 인식 미지원 브라우저';
+} else {
+  const rec = new SR();
+  rec.lang = 'en-US';
+  rec.onresult = e => send(e.results[0][0].transcript);
+  rec.onend = () => { mic.classList.remove('on'); mic.textContent = '말하기'; };
+  rec.onerror = e => { if (e.error !== 'no-speech') addMsg('마이크 오류: ' + e.error, 'ai'); };
+  mic.onclick = () => {
+    if (mic.classList.contains('on')) return rec.stop();
+    speechSynthesis.cancel();
+    rec.start();
+    mic.classList.add('on');
+    mic.textContent = '듣는 중...';
+  };
+}
+</script>
+</body>
+</html>
