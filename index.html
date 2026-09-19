@@ -18,7 +18,7 @@
   #err { color: #e03131; min-height: 1.2em; }
   /* 대화 화면 */
   #main { flex: 1; flex-direction: column; min-height: 0; }
-  #top { display: flex; justify-content: flex-end; padding: 8px 12px; background: #fff9db; }
+  #top { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 12px; background: #fff9db; }
   #chat { flex: 1; overflow-y: auto; padding: 12px; }
   .msg { max-width: 80%; margin: 8px 0; padding: 10px 14px;
          border-radius: 16px; white-space: pre-wrap; }
@@ -28,6 +28,17 @@
   #mic { margin: 12px; padding: 16px; font-size: 18px; border: 0;
          border-radius: 12px; background: #333; color: #fff; }
   #mic.on { background: #e03131; }
+  /* 단어 카드 */
+  .w { text-decoration: underline dotted #999; }
+  .card { max-width: 80%; margin: -2px 0 10px; padding: 10px 14px; border-radius: 12px;
+          background: #fff9db; border: 1px solid #ffe066; font-size: 14px; }
+  .vex { color: #555; font-size: 13px; margin-top: 2px; }
+  .vsave, .vdel { margin-top: 8px; padding: 6px 12px; font-size: 14px; }
+  /* 단어장 화면 */
+  #vocab { flex: 1; overflow-y: auto; padding: 16px; }
+  #vback { width: 100%; padding: 12px; font-size: 16px; }
+  .vitem { padding: 12px 0; border-bottom: 1px solid #eee; }
+  .vw { font-size: 18px; font-weight: bold; }
 </style>
 </head>
 <body>
@@ -61,9 +72,15 @@
 </div>
 
 <div id="main">
-  <div id="top"><button id="settings">설정</button></div>
+  <div id="top"><button id="vocabbtn">단어장</button><button id="settings">설정</button></div>
   <div id="chat"></div>
   <button id="mic">말하기</button>
+</div>
+
+<div id="vocab">
+  <button id="vback">돌아가기</button>
+  <h2>단어장</h2>
+  <div id="vlist"></div>
 </div>
 
 <script>
@@ -80,11 +97,14 @@ const NONE = '초등회화 미만';
 let history = [];  // 대화 기록
 let apiKey = localStorage.getItem('gkey') || '';
 let profile = JSON.parse(localStorage.getItem('profile') || 'null');
+let vocab = JSON.parse(localStorage.getItem('vocab') || '[]');  // 저장한 단어
+const cache = new Map();  // 이번 접속 중 조회한 단어
 
 // 화면 전환
 function show(screen) {
-  $('setup').style.display = screen === 'setup' ? 'block' : 'none';
-  $('main').style.display = screen === 'main' ? 'flex' : 'none';
+  ['setup', 'main', 'vocab'].forEach(s => {
+    $(s).style.display = s !== screen ? 'none' : (s === 'main' ? 'flex' : 'block');
+  });
 }
 
 // 점수칸: 초등회화 미만이면 숨김
@@ -149,31 +169,121 @@ function speak(text) {
   speechSynthesis.speak(u);
 }
 
+// 요소 만들기
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text) e.textContent = text;
+  return e;
+}
+
+// 제미나이 호출 공통 함수: 답변 글자만 돌려줌
+async function gemini(body) {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+      body: JSON.stringify(body)
+    }
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || res.status);
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('빈 응답');
+  return text;
+}
+
+// 단어 뜻 조회: 눌렀을 때만 짧게 호출
+async function lookup(word, context) {
+  const text = await gemini({
+    contents: [{ role: 'user', parts: [{ text:
+      `Word: "${word}"\nSentence: "${context}"\nReturn JSON with keys: meaning (Korean meaning as used in the sentence, max 10 words), ex (one short English example sentence), exko (Korean translation of ex).` }] }],
+    generationConfig: { temperature: 0.1, maxOutputTokens: 500, responseMimeType: 'application/json' }
+  });
+  return JSON.parse(text);
+}
+
+// 단어 저장/찾기
+const findWord = w => vocab.find(v => v.w === w);
+const saveVocab = () => localStorage.setItem('vocab', JSON.stringify(vocab));
+
+// 단어를 눌렀을 때: 읽어주기 + 뜻 카드
+async function onWord(bubble, word, context) {
+  const w = word.toLowerCase();
+  speak(w);
+  if (bubble.card) bubble.card.remove();
+  const card = el('div', 'card', '찾는 중...');
+  bubble.after(card);
+  bubble.card = card;
+  try {
+    let d = findWord(w) || cache.get(w);
+    if (!d) { d = await lookup(w, context); cache.set(w, d); }
+    const btn = el('button', 'vsave', findWord(w) ? '저장됨' : '저장');
+    btn.disabled = !!findWord(w);
+    btn.onclick = () => {
+      vocab.push({ w, meaning: d.meaning, ex: d.ex, exko: d.exko });
+      saveVocab();
+      btn.textContent = '저장됨';
+      btn.disabled = true;
+    };
+    card.textContent = '';
+    card.append(el('b', '', w), el('div', '', d.meaning),
+                el('div', 'vex', d.ex), el('div', 'vex', d.exko), btn);
+  } catch (e) {
+    card.textContent = '오류: ' + e.message;
+  }
+}
+
+// 튜터 영어 답변: 단어마다 누를 수 있게 나눠서 표시
+function addAiMsg(text) {
+  const d = el('div', 'msg ai');
+  text.split(/([A-Za-z'’]+)/).forEach((part, i) => {
+    if (i % 2 === 0) return d.append(part);  // 단어가 아닌 부분
+    const s = el('span', 'w', part);
+    s.onclick = () => onWord(d, part, text);
+    d.append(s);
+  });
+  $('chat').append(d);
+  $('chat').scrollTop = $('chat').scrollHeight;
+}
+
+// 단어장 목록 그리기 (최근 저장이 위)
+function renderVocab() {
+  const box = $('vlist');
+  box.textContent = vocab.length ? '' : '저장한 단어가 없어요';
+  [...vocab].reverse().forEach(v => {
+    const w = el('div', 'vw', v.w);
+    w.onclick = () => speak(v.w);
+    const del = el('button', 'vdel', '삭제');
+    del.onclick = () => {
+      if (!confirm(`'${v.w}' 삭제할까요?`)) return;
+      vocab = vocab.filter(x => x.w !== v.w);
+      saveVocab();
+      renderVocab();
+    };
+    const item = el('div', 'vitem');
+    item.append(w, el('div', '', v.meaning), el('div', 'vex', v.ex), el('div', 'vex', v.exko), del);
+    box.append(item);
+  });
+}
+$('vocabbtn').onclick = () => { renderVocab(); show('vocab'); };
+$('vback').onclick = () => show('main');
+
 // 제미나이에게 보내고 답 받기
 async function send(text) {
   addMsg(text, 'user');
   history.push({ role: 'user', parts: [{ text }] });
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: buildSystem() }] },
-          contents: history.slice(-(MAX_TURNS * 2 - 1)),
-          generationConfig: { temperature: 0.7, maxOutputTokens: 600 }
-        })
-      }
-    );
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || res.status);
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!reply) throw new Error('빈 응답');
+    const reply = await gemini({
+      system_instruction: { parts: [{ text: buildSystem() }] },
+      contents: history.slice(-(MAX_TURNS * 2 - 1)),
+      generationConfig: { temperature: 0.7, maxOutputTokens: 600 }
+    });
     history.push({ role: 'model', parts: [{ text: reply }] });
     // KO: 앞은 영어 답변, 뒤는 한국어 설명
     const [en, ko] = reply.split('KO:');
-    if (en.trim()) { addMsg(en.trim(), 'ai'); speak(en); }
+    if (en.trim()) { addAiMsg(en.trim()); speak(en); }
     if (ko) addMsg(ko.trim(), 'ko');
   } catch (e) {
     history.pop();  // 실패한 질문은 기록에서 제거
