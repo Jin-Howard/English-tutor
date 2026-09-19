@@ -35,41 +35,54 @@
   input, select { font: inherit; color: var(--text); }
 
   /* 공통: 화면, 헤더, 뒤로가기 */
-  .screen { flex: 1; overflow-y: auto; }
-  .hd { flex: none; display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 0 12px; box-sizing: border-box; }
-  .hd h2 { margin: 0; font-size: 19px; font-weight: 800; }
+  .screen { flex: 1; flex-direction: column; min-height: 0; }
+  .screen > .pad { flex: 1; overflow-y: auto; }
+  .hd { flex: none; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; gap: 8px;
+        min-height: 60px; padding: 0 12px; box-sizing: border-box; border-bottom: 1px solid var(--line); }
+  .hd .brand { justify-self: center; }
+  .sp { width: 40px; height: 40px; }
+  .brand { display: flex; align-items: center; gap: 8px; }
+  .pg { margin: 6px 0 16px; font-size: 24px; font-weight: 800; letter-spacing: -.4px; }
   .back { flex: none; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%;
           display: flex; align-items: center; justify-content: center; background: var(--surface); color: var(--text); }
-  .back svg, .tile svg { display: block; }
-  .pad { padding: 4px 16px 28px; }
+  .back svg, .mcard svg { display: block; }
+  .pad { padding: 16px 16px 28px; }
   .logo svg { display: block; }
   .title { font-size: 19px; font-weight: 800; letter-spacing: -.3px; }
   .title b { color: var(--accent-text); }
 
-  /* 홈 화면 */
+  /* 시작 화면 */
   #home { flex: 1; overflow-y: auto; flex-direction: column; align-items: center; padding: 22px 20px 26px; text-align: center;
           background: radial-gradient(ellipse 80% 38% at 50% 40%, rgba(255, 212, 59, .14), transparent 70%); }
-  .hbrand { display: flex; align-items: center; gap: 8px; margin-top: auto; }
+  #home .brand { margin-top: auto; }
   #home h1 { margin: 16px 0 8px; font-size: 30px; line-height: 1.18; font-weight: 800; letter-spacing: -.6px; }
   #home h1 b { color: var(--accent-text); }
   #home .sub { margin: 0; color: var(--sub); font-size: 14px; line-height: 1.55; }
-  #stage { margin: 8px 0 12px; padding: 8px 26px 4px; border-radius: 32px; }
+  #stage { margin: 10px 0 18px; padding: 8px 26px 4px; border-radius: 32px; }
   :root[data-theme="light"] #stage { background: radial-gradient(ellipse at 50% 48%, #2b2510 0%, #0b0b0c 74%); }
-  #mascot { display: block; width: 230px; max-width: 54vw; height: auto;
+  #mascot { display: block; width: 250px; max-width: 60vw; height: auto;
             filter: drop-shadow(0 12px 28px rgba(255, 212, 59, .22)); }
-  #start { width: 100%; max-width: 420px; height: 58px; padding: 0 22px; border: 0; border-radius: 16px;
+  #start { width: 100%; max-width: 420px; height: 58px; padding: 0 22px; border: 0; border-radius: 16px; margin-bottom: auto;
            display: flex; align-items: center; justify-content: space-between;
            background: var(--accent); color: var(--on-accent); font-size: 18px; font-weight: 800; }
   #start svg { display: block; }
-  .tiles { width: 100%; max-width: 420px; margin-top: 12px; margin-bottom: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-          min-height: 84px; padding: 10px 2px; border: 1px solid var(--line); border-radius: 16px;
-          background: var(--surface); font-size: 13px; font-weight: 700; }
-  .tile .ic { color: var(--accent-text); line-height: 0; }
-  .tile small { margin-top: -3px; font-size: 11px; font-weight: 400; color: var(--sub); }
-  .tile:disabled { opacity: .55; cursor: default; }
 
-  /* 설정 화면 */
+  /* 메뉴 화면: 네모 카드, 기능이 늘면 아래로 한 줄씩 추가 */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .mcard { position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between;
+           gap: 18px; min-height: 128px; padding: 16px; border: 1px solid var(--line); border-radius: 22px;
+           background: var(--surface); text-align: left; font-size: 17px; font-weight: 800; }
+  .mcard .ic { color: var(--accent-text); line-height: 0; }
+  .mcard small { display: block; margin-top: 3px; font-size: 12px; font-weight: 400; color: var(--sub); }
+  .mcard:disabled { opacity: .55; cursor: default; }
+  .mcard.primary { grid-column: 1 / -1; min-height: 140px; background: var(--accent); border-color: transparent; color: var(--on-accent); }
+  .mcard.primary .ic { color: var(--on-accent); }
+  .mcard.primary small { color: rgba(0, 0, 0, .62); }
+  .mcard.primary::after { content: ''; position: absolute; right: 16px; top: 16px; width: 72px; height: 72px; border-radius: 50%;
+                          background: var(--avatar) center / cover no-repeat, #ffd43b; box-shadow: 0 0 0 4px rgba(0, 0, 0, .12); }
+
+  
+/* 설정 화면 */
   #setup label { display: block; margin-bottom: 14px; font-weight: 700; }
   #setup input, #setup select { display: block; width: 100%; box-sizing: border-box; margin-top: 6px; padding: 12px 14px;
          font-size: 16px; font-weight: 400; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
@@ -90,20 +103,19 @@
 
   /* 대화 화면 */
   #main { flex: 1; flex-direction: column; min-height: 0; }
-  #top { border-bottom: 1px solid var(--line); }
-  #brand { display: flex; align-items: center; gap: 8px; }
   #chat { flex: 1; overflow-y: auto; padding: 12px 14px; }
   .msg { box-sizing: border-box; max-width: 82%; margin: 8px 0; padding: 10px 14px; border-radius: 18px; white-space: pre-wrap;
          line-height: 1.45; word-break: keep-all; overflow-wrap: anywhere; }
-  .msg.user { background: var(--user); color: var(--on-user); margin-left: auto; border-bottom-right-radius: 6px; }
-  .msg.ai { position: relative; min-height: 44px; padding-left: 46px; background: var(--surface); border-top-left-radius: 6px; }
+  .msg.user { background: var(--user); color: var(--on-user); margin-left: auto; }
+  .msg.ai { position: relative; min-height: 44px; padding-left: 46px; background: var(--surface); }
   .msg.ai::before { content: ''; position: absolute; left: 9px; top: 9px; width: 28px; height: 28px; border-radius: 50%;
                     background: var(--avatar) center / cover no-repeat, #ffd43b; }
   .msg.ko { background: var(--ko); color: var(--on-ko); font-size: 14px; }
   .msg.notice { background: var(--notice); border: 1px solid var(--notice-line); font-size: 14px; }
   .msg.notice b { display: block; margin-bottom: 4px; }
 
-  /* 입력 막대 */
+  
+/* 입력 막대 */
   #bar { display: flex; align-items: center; gap: 8px; margin: 10px 12px 14px; padding: 6px 6px 6px 18px;
          border: 1px solid var(--line); border-radius: 28px; background: var(--surface); }
   #bar.listening { padding-left: 6px; }
@@ -163,22 +175,31 @@
 <body>
 
 <div id="home">
-  <div class="hbrand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div>
+  <div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div>
   <h1>Your English,<br><b>Level Up with AI</b></h1>
   <p class="sub">AI 튜터와 함께 즐겁게 배우고,<br>자신있게 말해보세요!</p>
   <div id="stage"><img id="mascot" alt="AI 튜터 캐릭터"></div>
-  <button id="start"><span id="start-label">대화 시작하기</span><span class="arrow"></span></button>
-  <div class="tiles">
-    <button class="tile" id="t-vocab"><span class="ic"></span>단어장</button>
-    <button class="tile" id="t-hist"><span class="ic"></span>기록</button>
-    <button class="tile" id="t-pron" disabled><span class="ic"></span>발음 연습<small>준비 중</small></button>
-    <button class="tile" id="t-set"><span class="ic"></span>설정</button>
+  <button id="start"><span>시작하기</span><span class="arrow"></span></button>
+</div>
+
+<div id="menu" class="screen">
+  <div class="hd"><span class="sp"></span><div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div><span class="sp"></span></div>
+  <div class="pad">
+    <h2 class="pg">오늘은 뭘 할까요?</h2>
+    <div class="grid">
+      <button class="mcard primary" id="m-chat"><span class="ic"></span><span>대화하기<small id="m-chat-sub"></small></span></button>
+      <button class="mcard" id="m-vocab"><span class="ic"></span><span>단어장</span></button>
+      <button class="mcard" id="m-hist"><span class="ic"></span><span>기록</span></button>
+      <button class="mcard" id="m-pron" disabled><span class="ic"></span><span>발음 연습<small>준비 중</small></span></button>
+      <button class="mcard" id="m-set"><span class="ic"></span><span>설정</span></button>
+    </div>
   </div>
 </div>
 
 <div id="setup" class="screen">
-  <div class="hd"><button id="back" class="back" aria-label="뒤로"></button><h2 id="setuptitle">설정</h2></div>
+  <div class="hd"><button id="back" class="back" aria-label="메뉴로"></button><div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div><span class="sp"></span></div>
   <div class="pad">
+    <h2 class="pg" id="setuptitle">설정</h2>
     <div class="setrow"><span>화면 모드</span>
       <button type="button" id="themesw" class="tsw" aria-label="라이트, 다크 전환"><span class="ti"></span><span class="ti"></span><span class="thumb"></span></button>
     </div>
@@ -205,14 +226,15 @@
     <label>알림시각<input id="f-time" type="time"></label>
     <p id="err"></p>
     <button id="save">저장</button>
-    <p id="ver">버전 v18</p>
+    <p id="ver">버전 v19</p>
   </div>
 </div>
 
 <div id="main">
   <div id="top" class="hd">
-    <button id="chatback" class="back" aria-label="홈으로"></button>
-    <div id="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div>
+    <button id="chatback" class="back" aria-label="메뉴로"></button>
+    <div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div>
+    <span class="sp"></span>
   </div>
   <div id="chat"></div>
   <form id="bar">
@@ -225,13 +247,13 @@
 </div>
 
 <div id="vocab" class="screen">
-  <div class="hd"><button id="vback" class="back" aria-label="홈으로"></button><h2>단어장</h2></div>
-  <div class="pad"><div id="vlist"></div></div>
+  <div class="hd"><button id="vback" class="back" aria-label="메뉴로"></button><div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div><span class="sp"></span></div>
+  <div class="pad"><h2 class="pg">단어장</h2><div id="vlist"></div></div>
 </div>
 
 <div id="hist" class="screen">
-  <div class="hd"><button id="hback" class="back" aria-label="뒤로"></button><h2 id="htitle">기록</h2></div>
-  <div class="pad"><div id="hlist"></div><div id="hview"></div></div>
+  <div class="hd"><button id="hback" class="back" aria-label="뒤로"></button><div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div><span class="sp"></span></div>
+  <div class="pad"><h2 class="pg" id="htitle">기록</h2><div id="hlist"></div><div id="hview"></div></div>
 </div>
 
 <script>
@@ -271,17 +293,18 @@ const I_BOOK = icon('<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d
 const I_CLOCK = icon('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>', 24);
 const I_SLIDERS = icon('<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>', 24);
 const I_ARROW = icon('<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>');
+const I_CHAT = icon('<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>');
 const I_SUN = icon('<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>', 20);
 const I_MOON = icon('<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>', 20);
 const I_SPK = icon('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>', 18);
 
 // 화면 전환
 function show(screen) {
-  ['home', 'setup', 'main', 'vocab', 'hist'].forEach(s => {
-    $(s).style.display = s !== screen ? 'none' : (s === 'main' || s === 'home' ? 'flex' : 'block');
+  ['home', 'menu', 'setup', 'main', 'vocab', 'hist'].forEach(s => {
+    $(s).style.display = s === screen ? 'flex' : 'none';
   });
   stopSpeak();  // 화면을 옮기면 읽던 소리도 멈춤
-  if (screen === 'home') paintHome();
+  if (screen === 'menu') paintMenu();
   if (screen === 'main') $('chat').scrollTop = $('chat').scrollHeight;
 }
 
@@ -317,9 +340,9 @@ $('save').onclick = () => {
   localStorage.setItem('gkey', key);
   localStorage.setItem('profile', JSON.stringify(p));
   $('err').textContent = '';
-  show('home');
+  show('menu');
 };
-$('back').onclick = () => show('home');
+$('back').onclick = () => show('menu');
 
 // 튜터 역할 문장 + 설정 정보
 function buildSystem() {
@@ -621,7 +644,7 @@ function renderVocab() {
     box.append(item);
   });
 }
-$('vback').onclick = () => show('home');
+$('vback').onclick = () => show('menu');
 
 // 기록 화면: 날짜 목록, 누르면 그날 대화 보기
 let viewing = null;  // 보고 있는 날짜 (목록이면 null)
@@ -691,7 +714,7 @@ function exportDoc(d) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-$('hback').onclick = () => (viewing ? renderHistList() : show('home'));
+$('hback').onclick = () => (viewing ? renderHistList() : show('menu'));
 
 // 제미나이에게 보내고 답 받기
 async function send(text) {
@@ -837,23 +860,25 @@ $('themesw').onclick = () => {
 const LOGO = '<svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><path d="M6 4H26A4 4 0 0 1 30 8V20A4 4 0 0 1 26 24H14L8 29V24H6A4 4 0 0 1 2 20V8A4 4 0 0 1 6 4Z" fill="#ffd43b"/><ellipse cx="12" cy="14" rx="1.8" ry="2.6" fill="#222"/><ellipse cx="20" cy="14" rx="1.8" ry="2.6" fill="#222"/></svg>';
 document.querySelectorAll('.logo').forEach(e => e.innerHTML = LOGO);
 document.querySelectorAll('.back').forEach(b => b.innerHTML = I_BACK);
-[['t-vocab', I_BOOK], ['t-hist', I_CLOCK], ['t-pron', I_MIC.replace('width="22" height="22"', 'width="24" height="24"')], ['t-set', I_SLIDERS]]
-  .forEach(([id, svg]) => $(id).querySelector('.ic').innerHTML = svg);
+const big = svg => svg.replace(/width="\d+" height="\d+"/, 'width="30" height="30"');
+[['m-chat', I_CHAT], ['m-vocab', I_BOOK], ['m-hist', I_CLOCK], ['m-pron', I_MIC], ['m-set', I_SLIDERS]]
+  .forEach(([id, svg]) => $(id).querySelector('.ic').innerHTML = big(svg));
 $('start').querySelector('.arrow').innerHTML = I_ARROW;
 document.querySelectorAll('#themesw .ti')[0].innerHTML = I_SUN;
 document.querySelectorAll('#themesw .ti')[1].innerHTML = I_MOON;
 
-// 홈 화면
-function paintHome() {
-  $('start-label').textContent = (chats[dayKey] || []).length ? '이어서 대화하기' : '대화 시작하기';
+// 시작 화면 -> 메뉴 화면 -> 각 기능
+function paintMenu() {
+  $('m-chat-sub').textContent = (chats[dayKey] || []).length ? '오늘 대화 이어서 하기' : '새 대화 시작하기';
 }
-$('start').onclick = () => show('main');
-$('t-vocab').onclick = () => { renderVocab(); show('vocab'); };
-$('t-hist').onclick = () => { renderHistList(); show('hist'); };
-$('t-set').onclick = () => { fillForm(); show('setup'); };
-$('chatback').onclick = () => show('home');
+$('start').onclick = () => show('menu');
+$('m-chat').onclick = () => show('main');
+$('m-vocab').onclick = () => { renderVocab(); show('vocab'); };
+$('m-hist').onclick = () => { renderHistList(); show('hist'); };
+$('m-set').onclick = () => { fillForm(); show('setup'); };
+$('chatback').onclick = () => show('menu');
 
-// 시작: 오늘 대화 복원, 설정이 있으면 홈 화면, 없으면 설정 화면
+// 시작: 오늘 대화 복원, 설정이 있으면 시작 화면, 없으면 설정 화면
 applyTheme();
 history.forEach(m => drawMsg(m, $('chat'), true));
 paint();
