@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
 <title>AI English Tutor</title>
 <style>
   body { margin: 0; height: 100dvh; display: flex; flex-direction: column;
@@ -25,9 +25,20 @@
   .user { background: #ffe066; margin-left: auto; }
   .ai { background: #eee; }
   .ko { background: #e7f5ff; font-size: 14px; }
-  #mic { margin: 12px; padding: 16px; font-size: 18px; border: 0;
-         border-radius: 12px; background: #333; color: #fff; }
-  #mic.on { background: #e03131; }
+  /* 입력 막대 */
+  #bar { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid #eee; }
+  #lang { padding: 0 12px; font-size: 14px; border: 1px solid #ccc; border-radius: 24px; background: #fff; }
+  #inp { flex: 1; min-width: 0; padding: 12px 16px; font-size: 16px;
+         border: 1px solid #ccc; border-radius: 24px; }
+  #act { width: 48px; height: 48px; font-size: 20px; border: 0; border-radius: 24px;
+         background: #333; color: #fff; }
+  #act.on { background: #e03131; }
+  #bar.listening #inp, #bar.listening #lang { display: none; }
+  #bar.listening #act { flex: 1; }
+  /* 기록 화면 */
+  #hist { flex: 1; overflow-y: auto; padding: 16px; }
+  #hback { width: 100%; padding: 12px; font-size: 16px; }
+  .rprev { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* 단어 카드 */
   .w { text-decoration: underline dotted #999; }
   .card { max-width: 80%; margin: -2px 0 10px; padding: 10px 14px; border-radius: 12px;
@@ -41,11 +52,12 @@
   #vback { width: 100%; padding: 12px; font-size: 16px; }
   .vitem { padding: 10px 0; border-bottom: 1px solid #eee; }
   .vrow { display: flex; align-items: center; gap: 8px; }
-  .vtxt { flex: 1; cursor: pointer; }
-  .vdet { margin-top: 8px; padding-left: 8px; }
+  .vtxt { flex: 1; min-width: 0; cursor: pointer; }
+  .vdet { padding-left: 8px; }
   .vmore { margin-top: 8px; padding: 6px 12px; font-size: 14px; }
-  .vtitle { font-weight: bold; }
-  .vnote { white-space: pre-line; color: #555; font-size: 13px; margin-top: 4px; }
+  .vtitle { font-weight: bold; font-size: 16px; }
+  .vnote { white-space: pre-line; color: #555; font-size: 13px; }
+  .vsec { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #d4c26a; }
   #ver { margin-right: auto; align-self: center; font-size: 12px; color: #999; }
   .vw { font-size: 18px; font-weight: bold; }
   /* 듣는 중 막대 */
@@ -97,9 +109,13 @@
 </div>
 
 <div id="main">
-  <div id="top"><span id="ver">v9</span><button id="vocabbtn">단어장</button><button id="settings">설정</button></div>
+  <div id="top"><span id="ver">v11</span><button id="vocabbtn">단어장</button><button id="histbtn">기록</button><button id="settings">설정</button></div>
   <div id="chat"></div>
-  <button id="mic">말하기</button>
+  <form id="bar">
+    <button type="button" id="lang"></button>
+    <input id="inp" placeholder="영어·한글로 입력하세요" enterkeyhint="send" autocomplete="off">
+    <button type="button" id="act"></button>
+  </form>
 </div>
 
 <div id="vocab">
@@ -108,19 +124,33 @@
   <div id="vlist"></div>
 </div>
 
+<div id="hist">
+  <button id="hback">돌아가기</button>
+  <h2 id="htitle">기록</h2>
+  <div id="hlist"></div>
+  <div id="hview"></div>
+</div>
+
 <script>
 // 설정값: 여기만 고치면 됨
 const MODEL = 'gemini-3.5-flash';  // 모델명
 const MAX_TURNS = 6;               // API로 보낼 최근 대화 횟수
 const BASE_SYSTEM = `You are a friendly English tutor. Reply in 1-2 short English sentences and end with a simple question. Be perceptive: use the conversation so far and the learner's field of interest to guess what they most likely meant, and answer that.
-The user's text comes from speech recognition: never comment on repeated words, fillers, capitalization, punctuation or apostrophes.
+The user's text may come from speech recognition: never comment on repeated words, fillers, capitalization, punctuation or apostrophes.
+If the user writes in Korean: when it is something they want to say, give the natural English way to say it as your English reply and ask them to try saying it; when it is a question about English, answer it in Korean after "KO:" and then continue in English.
 Only if the user made a real grammar or word-choice mistake, or the meaning is unclear or unfinished, add a new line starting with "KO:". In Korean, guess their intent and ask, in the form "혹시 ~라고 말하고 싶으셨어요? → natural English sentence" (if they seem to be asking something: "혹시 ~가 궁금하셨어요? → natural English question"). Then at most one short sentence on when the right word is used. No grammar lectures.
-Otherwise do not write KO:. If the user asks something in Korean, answer in Korean after "KO:".`;
+Otherwise do not write KO:.`;
 
 const $ = id => document.getElementById(id);
 const F = ['age', 'gender', 'level', 'score', 'field', 'time'];  // 저장할 설정 항목
 const NONE = '초등회화 미만';
-let history = [];  // 대화 기록
+const dayKey = (() => {  // 오늘 날짜 (YYYY-MM-DD)
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+})();
+let chats = JSON.parse(localStorage.getItem('chats') || '{}');  // 날짜별 대화 기록
+let history = chats[dayKey] || [];  // 오늘 대화
+const saveChats = () => localStorage.setItem('chats', JSON.stringify(chats));
 let apiKey = localStorage.getItem('gkey') || '';
 let profile = JSON.parse(localStorage.getItem('profile') || 'null');
 let vocab = JSON.parse(localStorage.getItem('vocab') || '[]');  // 저장한 단어
@@ -128,9 +158,10 @@ const cache = new Map();  // 이번 접속 중 조회한 단어
 
 // 화면 전환
 function show(screen) {
-  ['setup', 'main', 'vocab'].forEach(s => {
+  ['setup', 'main', 'vocab', 'hist'].forEach(s => {
     $(s).style.display = s !== screen ? 'none' : (s === 'main' ? 'flex' : 'block');
   });
+  if (screen === 'main') $('chat').scrollTop = $('chat').scrollHeight;
 }
 
 // 점수칸: 초등회화 미만이면 숨김
@@ -179,12 +210,12 @@ Learner: age ${profile.age}, ${profile.gender}, English level: ${lv}. Field of i
 }
 
 // 말풍선 추가
-function addMsg(text, cls) {
+function addMsg(text, cls, box = $('chat')) {
   const d = document.createElement('div');
   d.className = 'msg ' + cls;
   d.textContent = text;
-  $('chat').appendChild(d);
-  $('chat').scrollTop = $('chat').scrollHeight;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
 }
 
 // 답변 읽어주기 (영어만)
@@ -309,8 +340,12 @@ async function onWord(bubble, word, context) {
     };
     card.textContent = '';
     card.append(speakRow(d.base && d.base !== w ? `${w} (${d.base})` : w, w, 'vtitle'), el('div', '', d.meaning));
-    if (d.note) card.append(el('div', 'vnote', d.note));
-    else if (d.ex) card.append(speakRow(d.ex, d.ex, 'vex'), el('div', 'vex', d.exko));
+    if (d.note) card.append(el('div', 'vnote vsec', d.note));
+    else if (d.ex) {
+      const sec = el('div', 'vsec');
+      sec.append(speakRow(d.ex, d.ex, 'vex'), el('div', 'vex', d.exko));
+      card.append(sec);
+    }
     card.append(btn);
   } catch (e) {
     card.textContent = '오류: ' + e.message;
@@ -318,7 +353,7 @@ async function onWord(bubble, word, context) {
 }
 
 // 튜터 영어 답변: 단어마다 누를 수 있게 나눠서 표시
-function addAiMsg(text) {
+function addAiMsg(text, box = $('chat')) {
   const d = el('div', 'msg ai');
   text.split(/([A-Za-z'’]+)/).forEach((part, i) => {
     if (i % 2 === 0) return d.append(part);  // 단어가 아닌 부분
@@ -326,8 +361,17 @@ function addAiMsg(text) {
     s.onclick = () => onWord(d, part, text);
     d.append(s);
   });
-  $('chat').append(d);
-  $('chat').scrollTop = $('chat').scrollHeight;
+  box.append(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+// 저장된 대화 한 줄 그리기 (tap이 true면 단어를 누를 수 있음)
+function drawMsg(m, box, tap) {
+  const t = m.parts[0].text;
+  if (m.role === 'user') return addMsg(t, 'user', box);
+  const [en, ko] = t.split('KO:');  // KO: 앞은 영어, 뒤는 한국어 설명
+  if (en.trim()) tap ? addAiMsg(en.trim(), box) : addMsg(en.trim(), 'ai', box);
+  if (ko) addMsg(ko.trim(), 'ko', box);
 }
 
 // 단어장 목록 그리기 (최근 저장이 위, 누르면 예문 펼침)
@@ -339,8 +383,12 @@ function renderVocab() {
     det.style.display = 'none';
     const drawDet = () => {  // 예문 목록 + 더 보기 버튼
       det.textContent = '';
-      if (BASIC[v.w]) return det.append(el('div', 'vnote', BASIC[v.w].note));  // 기본 단어는 설명만
-      exsOf(v).forEach(e => det.append(speakRow(e.ex, e.ex, 'vex'), el('div', 'vex', e.exko)));
+      if (BASIC[v.w]) return det.append(el('div', 'vnote vsec', BASIC[v.w].note));  // 기본 단어는 설명만
+      exsOf(v).forEach(e => {
+        const sec = el('div', 'vsec');
+        sec.append(speakRow(e.ex, e.ex, 'vex'), el('div', 'vex', e.exko));
+        det.append(sec);
+      });
       const more = el('button', 'vmore', '예문 더 보기');
       more.onclick = async () => {
         more.disabled = true;
@@ -382,6 +430,68 @@ function renderVocab() {
 $('vocabbtn').onclick = () => { renderVocab(); show('vocab'); };
 $('vback').onclick = () => show('main');
 
+// 기록 화면: 날짜 목록, 누르면 그날 대화 보기
+let viewing = null;  // 보고 있는 날짜 (목록이면 null)
+function renderHistList() {
+  viewing = null;
+  $('htitle').textContent = '기록';
+  $('hview').style.display = 'none';
+  const box = $('hlist');
+  box.style.display = 'block';
+  const days = Object.keys(chats).filter(d => chats[d].length).sort().reverse();
+  box.textContent = days.length ? '' : '저장된 대화가 없어요';
+  days.forEach(d => {
+    const list = chats[d];
+    const info = el('div', 'vtxt');
+    info.append(el('b', '', `${d} · ${list.filter(m => m.role === 'user').length}번`),
+                el('div', 'vex rprev', list[0].parts[0].text));
+    info.onclick = () => openDay(d);
+    const exp = el('button', 'vdel', '내보내기');
+    exp.onclick = () => exportTxt(d);
+    const del = el('button', 'vdel', '삭제');
+    del.onclick = () => {
+      if (!confirm(`${d} 대화를 삭제할까요?`)) return;
+      delete chats[d];
+      saveChats();
+      if (d === dayKey) { history = []; $('chat').textContent = ''; }
+      renderHistList();
+    };
+    const row = el('div', 'vrow');
+    row.append(info, exp, del);
+    const item = el('div', 'vitem');
+    item.append(row);
+    box.append(item);
+  });
+}
+
+// 그날 대화를 읽기 전용으로 보기
+function openDay(d) {
+  viewing = d;
+  $('htitle').textContent = d;
+  $('hlist').style.display = 'none';
+  const v = $('hview');
+  v.style.display = 'block';
+  v.textContent = '';
+  chats[d].forEach(m => drawMsg(m, v, false));
+}
+
+// 그날 대화를 txt 파일로 저장 (다운로드 폴더)
+function exportTxt(d) {
+  const body = chats[d].map(m => {
+    const t = m.parts[0].text;
+    if (m.role === 'user') return `나: ${t}`;
+    const [en, ko] = t.split('KO:');
+    return `튜터: ${en.trim()}` + (ko ? `\n설명: ${ko.trim()}` : '');
+  }).join('\n\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([`${d} 영어 대화\n\n${body}\n`], { type: 'text/plain;charset=utf-8' }));
+  a.download = `english-${d}.txt`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+$('histbtn').onclick = () => { renderHistList(); show('hist'); };
+$('hback').onclick = () => (viewing ? renderHistList() : show('main'));
+
 // 제미나이에게 보내고 답 받기
 async function send(text) {
   addMsg(text, 'user');
@@ -397,10 +507,10 @@ async function send(text) {
       generationConfig: { temperature: 0.7, maxOutputTokens: 600 }
     });
     history.push({ role: 'model', parts: [{ text: reply }] });
-    // KO: 앞은 영어 답변, 뒤는 한국어 설명
-    const [en, ko] = reply.split('KO:');
-    if (en.trim()) { addAiMsg(en.trim()); speak(en); }
-    if (ko) addMsg(ko.trim(), 'ko');
+    chats[dayKey] = history;
+    saveChats();
+    drawMsg(history[history.length - 1], $('chat'), true);
+    speak(reply.split('KO:')[0]);
   } catch (e) {
     history.pop();  // 실패한 질문은 기록에서 제거
     addMsg('오류: ' + e.message, 'ai');
@@ -409,22 +519,36 @@ async function send(text) {
   }
 }
 
-// 마이크: 누르면 듣기 시작, 다시 누르면 끝내고 전송
-const mic = $('mic');
+// 입력 막대: 글자 입력 + 말하기(한/EN)를 버튼 하나로
+const bar = $('bar'), inp = $('inp'), act = $('act'), langBtn = $('lang');
+const BARS = '<span class="bars"><i></i><i></i><i></i><i></i><i></i></span>';
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (!SR) {
-  mic.disabled = true;
-  mic.textContent = '음성 인식 미지원 브라우저';
-} else {
-  const rec = new SR();
-  rec.lang = 'en-US';
-  let listening = false;  // 듣는 중 여부
-  let heard = '';         // 말한 내용 누적
+let lang = localStorage.getItem('lang') || 'en-US';  // 말하기 언어
+let listening = false;  // 듣는 중 여부
+let heard = '';         // 말한 내용 누적
+
+const closeCards = () => document.querySelectorAll('.card').forEach(c => c.remove());
+
+// 상태에 맞게 버튼 모양 바꾸기: 빈 칸이면 마이크, 글자가 있으면 전송, 듣는 중이면 막대
+function paint() {
+  langBtn.textContent = lang === 'en-US' ? '🎤 EN' : '🎤 한';
+  bar.classList.toggle('listening', listening);
+  act.classList.toggle('on', listening);
+  act.innerHTML = listening ? BARS : (inp.value.trim() ? '➤' : '🎤');
+}
+langBtn.onclick = () => {
+  lang = lang === 'en-US' ? 'ko-KR' : 'en-US';
+  localStorage.setItem('lang', lang);
+  paint();
+};
+inp.oninput = paint;
+
+const rec = SR ? new SR() : null;
+if (rec) {
   rec.onresult = e => { heard += ' ' + e.results[0][0].transcript; };
   rec.onend = () => {
     if (listening) return rec.start();  // 말이 멈춰 끊겨도 계속 듣기
-    mic.classList.remove('on');
-    mic.textContent = '말하기';
+    paint();
     if (heard.trim()) send(heard.trim());
     heard = '';
   };
@@ -433,19 +557,32 @@ if (!SR) {
     listening = false;
     addMsg('마이크 오류: ' + e.error, 'ai');
   };
-  mic.onclick = () => {
-    if (listening) { listening = false; return rec.stop(); }
-    document.querySelectorAll('.card').forEach(c => c.remove());  // 단어 카드 닫기
-    speechSynthesis.cancel();
-    heard = '';
-    listening = true;
-    rec.start();
-    mic.classList.add('on');
-    mic.innerHTML = '<span class="bars"><i></i><i></i><i></i><i></i><i></i></span>';
-  };
+} else {
+  langBtn.style.display = 'none';
 }
 
-// 시작: 설정이 있으면 대화 화면, 없으면 설정 화면
+// 버튼: 듣는 중이면 끝내고 전송 / 글자가 있으면 전송 / 비어 있으면 듣기 시작
+act.onclick = () => {
+  if (listening) { listening = false; return rec.stop(); }
+  closeCards();  // 단어 카드 닫기
+  const t = inp.value.trim();
+  if (t) { inp.value = ''; paint(); return send(t); }
+  if (!rec) return addMsg('이 브라우저는 음성 입력을 지원하지 않아요. 글로 입력해 주세요', 'ai');
+  speechSynthesis.cancel();
+  heard = '';
+  listening = true;
+  rec.lang = lang;
+  rec.start();
+  paint();
+};
+bar.onsubmit = e => {  // 키보드의 엔터(전송) 키
+  e.preventDefault();
+  if (inp.value.trim()) act.onclick();
+};
+
+// 시작: 오늘 대화 복원, 설정이 있으면 대화 화면, 없으면 설정 화면
+history.forEach(m => drawMsg(m, $('chat'), true));
+paint();
 fillForm();
 show(profile && apiKey ? 'main' : 'setup');
 </script>
