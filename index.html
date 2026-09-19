@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
 <title>AI English Tutor</title>
 <style>
+  :root { --avatar: url("data:image/webp;base64,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"); }
   body { margin: 0; height: 100dvh; display: flex; flex-direction: column;
          font-family: sans-serif; background: #fff; color: #222; }
   /* 설정 화면 */
@@ -18,7 +19,7 @@
   #err { color: #e03131; min-height: 1.2em; }
   /* 대화 화면 */
   #main { flex: 1; flex-direction: column; min-height: 0; }
-  #top { display: flex; align-items: center; gap: 2px; padding: 10px 12px;
+  #top { display: flex; align-items: center; gap: 2px; padding: 10px 12px; min-height: 60px; box-sizing: border-box;
          background: #fff; border-bottom: 1px solid #f1f3f5; }
   #brand { display: flex; align-items: center; gap: 8px; margin-right: auto; }
   #brand svg { display: block; }
@@ -30,6 +31,10 @@
          border-radius: 16px; white-space: pre-wrap; }
   .user { background: #ffe066; margin-left: auto; }
   .ai { background: #eee; }
+  .msg.ai { position: relative; margin-left: 44px; }
+  .msg.ai::before { content: ''; position: absolute; left: -44px; top: 0; width: 34px; height: 34px;
+                    border-radius: 50%; background: var(--avatar) center / cover no-repeat, #ffd43b; }
+  .msg.ko { margin-left: 44px; }
   .ko { background: #e7f5ff; font-size: 14px; }
   /* 입력 막대 */
   #bar { display: flex; align-items: center; gap: 8px; margin: 10px 12px;
@@ -55,7 +60,7 @@
   .rprev { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* 단어 카드 */
   .w { text-decoration: underline dotted #999; }
-  .card { max-width: 80%; margin: -2px 0 10px; padding: 10px 14px; border-radius: 12px;
+  .card { max-width: 80%; margin: -2px 0 10px 44px; padding: 10px 14px; border-radius: 12px;
           background: #fff9db; border: 1px solid #ffe066; font-size: 14px; }
   .vex { color: #555; font-size: 13px; margin-top: 2px; }
   .vsave { margin-top: 8px; padding: 6px 12px; font-size: 14px; }
@@ -65,7 +70,8 @@
   .vex.srow { align-items: flex-start; justify-content: space-between; }
   .vex.srow > span { flex: 1; }
   .vex.srow .vspk { flex: none; padding: 0 0 0 6px; }
-  .vspk { border: 0; background: none; padding: 0 6px; color: #555; line-height: 0; vertical-align: middle; }
+  .vspk { border: 0; background: none; padding: 0 6px; color: #9aa0a6; line-height: 0; vertical-align: middle; }
+  .vspk.on { color: #f59f00; }
   /* 단어장 화면 */
   #vocab { flex: 1; overflow-y: auto; padding: 16px; }
   #vback { width: 100%; padding: 12px; font-size: 16px; }
@@ -120,7 +126,7 @@
   <p id="err"></p>
   <button id="save">저장하고 시작</button>
   <button id="back">돌아가기</button>
-  <p id="ver">버전 v16</p>
+  <p id="ver">버전 v17</p>
 </div>
 
 <div id="main">
@@ -193,6 +199,7 @@ function show(screen) {
   ['setup', 'main', 'vocab', 'hist'].forEach(s => {
     $(s).style.display = s !== screen ? 'none' : (s === 'main' ? 'flex' : 'block');
   });
+  stopSpeak();  // 화면을 옮기면 읽던 소리도 멈춤
   if (screen === 'main') $('chat').scrollTop = $('chat').scrollHeight;
 }
 
@@ -250,12 +257,29 @@ function addMsg(text, cls, box = $('chat')) {
   box.scrollTop = box.scrollHeight;
 }
 
+// 읽는 중인 문장 하나만 추적: 스피커 버튼은 읽는 동안 노란색
+let cur = null, curText = '';
+function refreshSpk() {
+  document.querySelectorAll('.vspk').forEach(b => b.classList.toggle('on', !!cur && b.dataset.say === curText));
+}
+function stopSpeak() {
+  speechSynthesis.cancel();
+  cur = null;
+  curText = '';
+  refreshSpk();
+}
+
 // 답변 읽어주기 (영어만)
 function speak(text) {
+  if (!text.trim()) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'en-US';
+  cur = u;
+  curText = text;
+  u.onend = u.onerror = () => { if (cur === u) { cur = null; curText = ''; refreshSpk(); } };
   speechSynthesis.speak(u);
+  refreshSpk();
 }
 
 // 요소 만들기
@@ -267,7 +291,7 @@ function el(tag, cls, text) {
 }
 
 // 제미나이 호출 공통 함수: 답변 글자만 돌려줌
-async function gemini(body, model = MODEL) {
+async function gemini(body, model = MODEL, meta = {}) {
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
@@ -282,7 +306,9 @@ async function gemini(body, model = MODEL) {
     err.code = res.status;
     throw err;
   }
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  const cand = data.candidates?.[0];
+  meta.finish = cand?.finishReason || '';  // STOP이 아니면 중간에 멈춘 것
+  const text = (cand?.content?.parts || []).map(p => p.text || '').join('');  // 여러 조각이면 이어 붙임
   if (!text) throw new Error('빈 응답');
   return text;
 }
@@ -304,6 +330,12 @@ function friendly(e) {
   if (e.code === 503) return { title: '지금 AI가 붐벼요', body: '잠시 뒤에 다시 시도해 주세요.' };
   if (e instanceof TypeError) return { title: '인터넷 연결을 확인해 주세요', body: '서버에 연결하지 못했어요.' };
   return { title: '잠시 문제가 생겼어요', body: m };
+}
+
+// 대화창에 짧은 안내 표시
+function addNote(text) {
+  $('chat').append(el('div', 'msg notice', text));
+  $('chat').scrollTop = $('chat').scrollHeight;
 }
 
 // 대화창에 안내 카드 표시 (키 문제면 설정으로 가는 버튼 포함)
@@ -376,11 +408,13 @@ addBasic(['am ~이다(I 전용)', 'is ~이다(he·she·it)', 'are ~이다(you·w
   "i'm I am의 줄임말", "you're you are의 줄임말", "we're we are의 줄임말", "they're they are의 줄임말"], 'ⓥ',
   'be동사 (~이다 / ~에 있다)\n현재: I am · he/she/it is · you/we/they are\n과거: I/he/she/it was · you/we/they were\n원형 be · 완료 been · 진행 being');
 
-// 스피커 버튼: 누르면 읽어줌
+// 스피커 버튼: 누르면 읽고(노란색), 읽는 중에 다시 누르면 멈춤(회색)
 function spkBtn(spoken) {
   const b = el('button', 'vspk');
   b.innerHTML = I_SPK;
-  b.onclick = () => speak(spoken);
+  b.dataset.say = spoken;
+  if (cur && curText === spoken) b.classList.add('on');
+  b.onclick = () => (cur && curText === spoken ? stopSpeak() : speak(spoken));
   return b;
 }
 
@@ -587,16 +621,21 @@ async function send(text) {
   $('chat').append(wait);
   $('chat').scrollTop = $('chat').scrollHeight;
   try {
+    const meta = {};  // 응답 종료 사유 확인용
     const reply = await gemini({
       system_instruction: { parts: [{ text: buildSystem() }] },
       contents: history.slice(-(MAX_TURNS * 2 - 1)),
-      generationConfig: { temperature: 0.7, maxOutputTokens: 600 }
-    });
+      generationConfig: { temperature: 0.7, maxOutputTokens: 1500 }
+    }, MODEL, meta);
     history.push({ role: 'model', parts: [{ text: reply }] });
     chats[dayKey] = history;
     saveChats();
     drawMsg(history[history.length - 1], $('chat'), true);
     speak(reply.split('KO:')[0]);
+    if (meta.finish && meta.finish !== 'STOP') {
+      const why = { MAX_TOKENS: '답변이 길어서 중간에 잘렸어요', SAFETY: '안전 필터 때문에 답변이 중간에 멈췄어요' };
+      addNote((why[meta.finish] || `답변이 중간에 멈췄어요 (${meta.finish})`) + '. 다시 물어봐 주세요.');
+    }
   } catch (e) {
     history.pop();  // 실패한 질문은 기록에서 제거
     addNotice(e);
@@ -687,7 +726,7 @@ act.onclick = () => {
   const t = inp.value.trim();
   if (t) { inp.value = ''; paint(); return send(t); }
   if (!rec) return addMsg('이 브라우저는 음성 입력을 지원하지 않아요. 글로 입력해 주세요', 'ai');
-  speechSynthesis.cancel();
+  stopSpeak();
   heard = '';
   pending = '';
   listening = true;
