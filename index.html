@@ -46,7 +46,7 @@
   .vex { color: #555; font-size: 13px; margin-top: 2px; }
   .vsave { margin-top: 8px; padding: 6px 12px; font-size: 14px; }
   .vdel { padding: 6px 12px; font-size: 14px; }
-  .vspk { border: 0; background: none; font-size: 16px; padding: 0 6px; }
+  .vspk { border: 0; background: none; padding: 0 6px; color: #555; line-height: 0; vertical-align: middle; }
   /* 단어장 화면 */
   #vocab { flex: 1; overflow-y: auto; padding: 16px; }
   #vback { width: 100%; padding: 12px; font-size: 16px; }
@@ -109,7 +109,7 @@
 </div>
 
 <div id="main">
-  <div id="top"><span id="ver">v11</span><button id="vocabbtn">단어장</button><button id="histbtn">기록</button><button id="settings">설정</button></div>
+  <div id="top"><span id="ver">v12</span><button id="vocabbtn">단어장</button><button id="histbtn">기록</button><button id="settings">설정</button></div>
   <div id="chat"></div>
   <form id="bar">
     <button type="button" id="lang"></button>
@@ -135,9 +135,11 @@
 // 설정값: 여기만 고치면 됨
 const MODEL = 'gemini-3.5-flash';  // 모델명
 const MAX_TURNS = 6;               // API로 보낼 최근 대화 횟수
-const BASE_SYSTEM = `You are a friendly English tutor. Reply in 1-2 short English sentences and end with a simple question. Be perceptive: use the conversation so far and the learner's field of interest to guess what they most likely meant, and answer that.
+const SILENCE_MS = 5000;           // 이 시간 동안 말이 없으면 마이크 자동 종료
+const BASE_SYSTEM = `You are a friendly English tutor for a Korean learner. Reply in 1-2 short English sentences and end with a simple question. Be perceptive: use the conversation so far and the learner's field of interest to guess what they most likely meant, and answer that.
 The user's text may come from speech recognition: never comment on repeated words, fillers, capitalization, punctuation or apostrophes.
-If the user writes in Korean: when it is something they want to say, give the natural English way to say it as your English reply and ask them to try saying it; when it is a question about English, answer it in Korean after "KO:" and then continue in English.
+If the user asks in Korean how to say something in English: reply with only the natural English sentence (no extra question), then a new line "KO:" followed by "이렇게 말하면 돼요." and, if useful, one short note on a key word.
+If the user asks a question about English (a word's meaning, usage, why something is wrong), in any language: answer briefly in Korean after "KO:" with no English part.
 Only if the user made a real grammar or word-choice mistake, or the meaning is unclear or unfinished, add a new line starting with "KO:". In Korean, guess their intent and ask, in the form "혹시 ~라고 말하고 싶으셨어요? → natural English sentence" (if they seem to be asking something: "혹시 ~가 궁금하셨어요? → natural English question"). Then at most one short sentence on when the right word is used. No grammar lectures.
 Otherwise do not write KO:.`;
 
@@ -155,6 +157,12 @@ let apiKey = localStorage.getItem('gkey') || '';
 let profile = JSON.parse(localStorage.getItem('profile') || 'null');
 let vocab = JSON.parse(localStorage.getItem('vocab') || '[]');  // 저장한 단어
 const cache = new Map();  // 이번 접속 중 조회한 단어
+
+// 아이콘: 선 두께 2, 현재 글자색을 따라감
+const icon = (path, size = 22) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+const I_MIC = icon('<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>');
+const I_SEND = icon('<line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>');
+const I_SPK = icon('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>', 18);
 
 // 화면 전환
 function show(screen) {
@@ -307,12 +315,18 @@ addBasic(['am ~이다(I 전용)', 'is ~이다(he·she·it)', 'are ~이다(you·w
   "i'm I am의 줄임말", "you're you are의 줄임말", "we're we are의 줄임말", "they're they are의 줄임말"], 'ⓥ',
   'be동사 (~이다 / ~에 있다)\n현재: I am · he/she/it is · you/we/they are\n과거: I/he/she/it was · you/we/they were\n원형 be · 완료 been · 진행 being');
 
-// 소리 버튼 + 글자 한 줄
+// 스피커 버튼: 누르면 읽어줌
+function spkBtn(spoken) {
+  const b = el('button', 'vspk');
+  b.innerHTML = I_SPK;
+  b.onclick = () => speak(spoken);
+  return b;
+}
+
+// 글자 한 줄 + 오른쪽 스피커
 function speakRow(shown, spoken, cls) {
   const row = el('div', cls);
-  const spk = el('button', 'vspk', '🔊');
-  spk.onclick = () => speak(spoken);
-  row.append(shown, spk);
+  row.append(shown, spkBtn(spoken));
   return row;
 }
 
@@ -418,8 +432,7 @@ function renderVocab() {
       saveVocab();
       renderVocab();
     };
-    const spk = el('button', 'vspk', '🔊');
-    spk.onclick = () => speak(v.w);
+    const spk = spkBtn(v.w);
     const row = el('div', 'vrow');
     row.append(spk, line, del);
     const item = el('div', 'vitem');
@@ -447,7 +460,7 @@ function renderHistList() {
                 el('div', 'vex rprev', list[0].parts[0].text));
     info.onclick = () => openDay(d);
     const exp = el('button', 'vdel', '내보내기');
-    exp.onclick = () => exportTxt(d);
+    exp.onclick = () => exportDoc(d);
     const del = el('button', 'vdel', '삭제');
     del.onclick = () => {
       if (!confirm(`${d} 대화를 삭제할까요?`)) return;
@@ -475,20 +488,29 @@ function openDay(d) {
   chats[d].forEach(m => drawMsg(m, v, false));
 }
 
-// 그날 대화를 txt 파일로 저장 (다운로드 폴더)
-function exportTxt(d) {
+// 그날 대화를 읽기 좋은 파일로 저장 (html: 한글이 안 깨지고 글자가 큼)
+function exportDoc(d) {
+  const esc = t => t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   const body = chats[d].map(m => {
     const t = m.parts[0].text;
-    if (m.role === 'user') return `나: ${t}`;
+    if (m.role === 'user') return `<p class="u">${esc(t)}</p>`;
     const [en, ko] = t.split('KO:');
-    return `튜터: ${en.trim()}` + (ko ? `\n설명: ${ko.trim()}` : '');
-  }).join('\n\n');
+    return (en.trim() ? `<p class="a">${esc(en.trim())}</p>` : '') + (ko ? `<p class="k">${esc(ko.trim())}</p>` : '');
+  }).join('');
+  const css = 'body{font:19px/1.7 sans-serif;max-width:640px;margin:0 auto;padding:16px;color:#222}'
+    + 'h1{font-size:22px}p{margin:10px 0;padding:10px 14px;border-radius:14px;white-space:pre-wrap}'
+    + '.u{background:#ffe066;margin-left:15%}.a{background:#eee;margin-right:15%}'
+    + '.k{background:#e7f5ff;font-size:17px;margin-right:15%}';
+  const html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">`
+    + `<meta name="viewport" content="width=device-width, initial-scale=1"><title>${d} 영어 대화</title>`
+    + `<style>${css}</style></head><body><h1>${d} 영어 대화</h1>${body}</body></html>`;
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([`${d} 영어 대화\n\n${body}\n`], { type: 'text/plain;charset=utf-8' }));
-  a.download = `english-${d}.txt`;
+  a.href = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+  a.download = `english-${d}.html`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
+
 $('histbtn').onclick = () => { renderHistList(); show('hist'); };
 $('hback').onclick = () => (viewing ? renderHistList() : show('main'));
 
@@ -525,16 +547,18 @@ const BARS = '<span class="bars"><i></i><i></i><i></i><i></i><i></i></span>';
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let lang = localStorage.getItem('lang') || 'en-US';  // 말하기 언어
 let listening = false;  // 듣는 중 여부
-let heard = '';         // 말한 내용 누적
+let heard = '';         // 확정된 말
+let pending = '';       // 확정 전인 말
+let silence;            // 무음 타이머
 
 const closeCards = () => document.querySelectorAll('.card').forEach(c => c.remove());
 
 // 상태에 맞게 버튼 모양 바꾸기: 빈 칸이면 마이크, 글자가 있으면 전송, 듣는 중이면 막대
 function paint() {
-  langBtn.textContent = lang === 'en-US' ? '🎤 EN' : '🎤 한';
+  langBtn.textContent = lang === 'en-US' ? 'EN' : '한';
   bar.classList.toggle('listening', listening);
   act.classList.toggle('on', listening);
-  act.innerHTML = listening ? BARS : (inp.value.trim() ? '➤' : '🎤');
+  act.innerHTML = listening ? BARS : (inp.value.trim() ? I_SEND : I_MIC);
 }
 langBtn.onclick = () => {
   lang = lang === 'en-US' ? 'ko-KR' : 'en-US';
@@ -543,11 +567,29 @@ langBtn.onclick = () => {
 };
 inp.oninput = paint;
 
+// 무음이 계속되면 자동으로 듣기 끝내기
+const arm = () => {
+  clearTimeout(silence);
+  silence = setTimeout(() => { if (listening) { listening = false; rec.stop(); } }, SILENCE_MS);
+};
+
 const rec = SR ? new SR() : null;
 if (rec) {
-  rec.onresult = e => { heard += ' ' + e.results[0][0].transcript; };
+  rec.interimResults = true;
+  rec.onspeechstart = arm;
+  rec.onresult = e => {
+    arm();  // 말소리가 들어오는 동안 타이머 갱신
+    pending = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) heard += ' ' + t; else pending += t;
+    }
+  };
   rec.onend = () => {
+    heard += ' ' + pending;  // 확정 전 말도 포함
+    pending = '';
     if (listening) return rec.start();  // 말이 멈춰 끊겨도 계속 듣기
+    clearTimeout(silence);
     paint();
     if (heard.trim()) send(heard.trim());
     heard = '';
@@ -570,9 +612,11 @@ act.onclick = () => {
   if (!rec) return addMsg('이 브라우저는 음성 입력을 지원하지 않아요. 글로 입력해 주세요', 'ai');
   speechSynthesis.cancel();
   heard = '';
+  pending = '';
   listening = true;
   rec.lang = lang;
   rec.start();
+  arm();
   paint();
 };
 bar.onsubmit = e => {  // 키보드의 엔터(전송) 키
