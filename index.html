@@ -61,23 +61,25 @@
 
   /* 시작 화면 */
   #home { flex: 1; overflow-y: auto; flex-direction: column; align-items: center; text-align: center;
-          padding: max(26px, env(safe-area-inset-top)) 22px max(30px, env(safe-area-inset-bottom)); }
-  #home .brand { margin-top: auto; }
-  #home h1 { margin: 22px 0 8px; font-size: 27px; line-height: 1.2; font-weight: 800; letter-spacing: -.5px; }
+          padding: max(22px, env(safe-area-inset-top)) 24px max(26px, env(safe-area-inset-bottom)); }
+  #home::before { content: ''; flex: 0.5 1 0; }  /* 남는 세로 공간을 위 1 : 아래 3으로 나눠 전체를 위쪽으로 */
+  #home::after { content: ''; flex: 1.5 1 0; }
+  #home h1 { margin: 18px 0 6px; font-size: 26px; line-height: 1.2; font-weight: 800; letter-spacing: -.5px; }
   #home h1 b { color: var(--accent-text); }
   #home .sub { margin: 0; color: var(--sub); font-size: 14px; line-height: 1.55; }
-  #stage { position: relative; flex: 1 1 auto; width: 100%; max-width: 400px; min-height: 230px; max-height: 340px;
-           margin: 22px 0 24px; border-radius: 32px; border: 1px solid var(--line); overflow: hidden;
+  #stage { position: relative; flex: none; width: 100%; max-width: 380px; height: clamp(230px, 35dvh, 330px);
+           margin: 18px 0 20px; border-radius: 32px; border: 1px solid var(--line); overflow: hidden;
            background: radial-gradient(ellipse at 50% 58%, rgba(255, 212, 59, .18), #0f0f10 68%); }
   :root[data-theme="light"] #stage { border-color: transparent; background: radial-gradient(ellipse at 50% 58%, #2b2510 0%, #0b0b0c 76%); }
   #mascot { position: absolute; top: 9%; left: 50%; height: 82%; width: auto; transform: translateX(-50%);
             filter: drop-shadow(0 10px 24px rgba(255, 212, 59, .2)); }
-  #start { display: flex; align-items: center; justify-content: center; gap: 10px; width: min(100%, 260px); height: 52px;
-           margin-bottom: auto; padding: 0 22px; border: 0; border-radius: 26px;
-           background: var(--accent); color: var(--on-accent); font-size: 17px; font-weight: 800; }
+  #start { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 380px; height: 52px;
+           padding: 0 22px; border: 0; border-radius: 26px;
+           background: var(--accent); color: var(--on-accent); font-size: 16px; font-weight: 800; letter-spacing: -.2px; }
   #start svg { display: block; }
 
-  /* 메뉴 화면: 아이콘 칩 + 제목 + 동그란 화살표 카드, 기능이 늘면 아래로 한 줄씩 추가 */
+  
+/* 메뉴 화면: 아이콘 칩 + 제목 + 동그란 화살표 카드, 기능이 늘면 아래로 한 줄씩 추가 */
   #menu { background: radial-gradient(ellipse 90% 26% at 88% 0%, rgba(255, 212, 59, .13), transparent 72%); }
   .eyebrow { margin: 2px 0 0; color: var(--sub); font-size: 13px; font-weight: 600; }
   #menu .pg { margin: 2px 0 18px; }
@@ -101,8 +103,9 @@
   :root[data-theme="light"] .c-blue { --tint: #1c7ed6; --tint-bg: rgba(28, 126, 214, .12); }
   :root[data-theme="light"] .c-green { --tint: #0ca678; --tint-bg: rgba(12, 166, 120, .12); }
   :root[data-theme="light"] .c-purple { --tint: #9c36b5; --tint-bg: rgba(156, 54, 181, .12); }
-  :root .mcard.primary { grid-column: 1 / -1; min-height: 150px; border-color: transparent; background: var(--accent);
-                         color: var(--on-accent); --tint: var(--on-accent); --tint-bg: rgba(0, 0, 0, .1); }
+  :root .mcard.primary { grid-column: 1 / -1; min-height: 140px; justify-content: flex-end; border-color: transparent;
+                         background: var(--accent); color: var(--on-accent); --tint: var(--on-accent); --tint-bg: rgba(0, 0, 0, .1); }
+  .mcard.primary .mt { font-size: 22px; }
   .mcard.primary .go { background: #111; color: var(--accent); }
   .mcard.primary .mt small { color: rgba(0, 0, 0, .62); }
   .mcard.primary::after { content: ''; position: absolute; right: 14px; top: 14px; width: 68px; height: 68px; border-radius: 50%;
@@ -116,16 +119,49 @@
   .install .mt { flex: 1; }
 
   /* 설정 화면 */
-  #setup label { display: block; margin-bottom: 14px; font-weight: 700; }
+  .sec { display: flex; align-items: center; gap: 8px; margin: 22px 4px 8px; font-size: 13px; font-weight: 700; color: var(--sub); }
+  .sec:first-of-type { margin-top: 6px; }
+  .tag { padding: 2px 8px; border-radius: 10px; background: var(--surface2); font-size: 11px; font-weight: 600; }
+  .group { border: 1px solid var(--line); border-radius: 20px; background: var(--surface); overflow: hidden; }
+  .group > * + *, #alarmbody > * + * { border-top: 1px solid var(--line); }
+  .g-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; box-sizing: border-box;
+           min-height: 58px; padding: 0 16px; border: 0; background: none; text-align: left; font-size: 15px; font-weight: 600; }
+  .g-row .val { display: flex; align-items: center; gap: 4px; color: var(--sub); font-weight: 500; }
+  .g-row .val b { color: var(--text); font-size: 17px; font-weight: 800; }
+  .g-row .val svg { display: block; }
+  .g-blk { padding: 14px 16px 16px; }
+  .g-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 15px; font-weight: 600; }
+  .g-top .val { color: var(--sub); font-weight: 500; font-size: 14px; }
+  #alarmbody { transition: opacity .2s; }
+  #alarmbody.off { opacity: .45; }
+  .days { display: flex; justify-content: space-between; }
+  .days button { width: 38px; height: 38px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: transparent;
+                 font-size: 14px; font-weight: 700; color: var(--sub); }
+  .days button.on { background: var(--accent); border-color: transparent; color: var(--on-accent); }
+  .fields { padding: 2px 16px 6px; }
+  .fields > * + * { border-top: 0; }
+  #setup .pad { padding-bottom: 0; }
+  #setup label { display: block; margin: 14px 0; font-size: 13px; font-weight: 700; color: var(--sub); }
   #setup input, #setup select { display: block; width: 100%; box-sizing: border-box; margin-top: 6px; padding: 12px 14px;
-         font-size: 16px; font-weight: 400; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
-  #save { width: 100%; height: 54px; border: 0; border-radius: 14px; background: var(--accent); color: var(--on-accent);
-          font-size: 17px; font-weight: 800; }
-  #err { color: var(--danger); min-height: 1.2em; }
-  #ver { margin: 16px 0 0; text-align: center; font-size: 12px; color: var(--sub); }
-  .setrow { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 18px; padding: 10px 14px;
-            border: 1px solid var(--line); border-radius: 14px; background: var(--surface); font-weight: 700; }
-  .tsw { position: relative; display: flex; width: 88px; height: 40px; padding: 0; border: 0; border-radius: 20px; background: var(--surface2); }
+         font-size: 16px; font-weight: 400; color: var(--text); border: 0; border-radius: 12px; background: var(--surface2); outline: 0; }
+  #setup input::placeholder { color: var(--sub); }
+  .keyrow { position: relative; display: block; }
+  .keyrow input { padding-right: 46px; }
+  .eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); margin-top: 3px; width: 40px; height: 40px; padding: 0;
+         border: 0; background: none; color: var(--sub); display: flex; align-items: center; justify-content: center; }
+  .eye svg { display: block; }
+  .savebar { position: sticky; bottom: 0; margin: 12px -16px 0; padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+             background: linear-gradient(to top, var(--bg) 72%, transparent); }
+  #save { width: 100%; height: 52px; border: 0; border-radius: 26px; background: var(--accent); color: var(--on-accent);
+          font-size: 16px; font-weight: 800; }
+  #err { margin: 8px 4px 0; color: var(--danger); min-height: 1.2em; font-size: 14px; }
+  #ver { margin: 2px 0 20px; text-align: center; font-size: 12px; color: var(--sub); }
+  .sw { position: relative; flex: none; width: 50px; height: 30px; padding: 0; border: 0; border-radius: 15px; background: var(--surface2); transition: background .2s; }
+  .sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%;
+               background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3); transition: transform .2s; }
+  .sw[aria-checked="true"] { background: var(--accent); }
+  .sw[aria-checked="true"]::after { transform: translateX(20px); }
+  .tsw { position: relative; flex: none; display: flex; width: 88px; height: 40px; padding: 0; border: 0; border-radius: 20px; background: var(--surface2); }
   .tsw .ti { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center;
              color: var(--sub); transition: color .2s; }
   .tsw .ti svg { display: block; }
@@ -134,7 +170,31 @@
   :root[data-theme="dark"] .tsw .thumb { transform: translateX(42px); }
   :root[data-theme="light"] .tsw .ti:nth-child(1), :root[data-theme="dark"] .tsw .ti:nth-child(2) { color: var(--on-accent); }
 
-  /* 대화 화면 */
+  /* 시간 선택 시트: 휠로 오전/오후, 시, 분 고르기 */
+  .sheet { position: fixed; inset: 0; z-index: 50; display: none; }
+  .sheet.open { display: block; }
+  .sheet .dim { position: absolute; inset: 0; background: rgba(0, 0, 0, .55); }
+  .sheet .panel { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 20px calc(18px + env(safe-area-inset-bottom));
+                  border-radius: 28px 28px 0 0; background: var(--surface); animation: sheetup .22s ease-out; }
+  @keyframes sheetup { from { transform: translateY(36px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .grab { width: 40px; height: 4px; margin: 0 auto 14px; border-radius: 2px; background: var(--line); }
+  .sheet h3 { margin: 0 0 6px; text-align: center; font-size: 17px; font-weight: 800; }
+  .wheels { position: relative; display: flex; justify-content: center; align-items: center; height: 220px; margin: 0 auto; max-width: 320px; }
+  .band { position: absolute; left: 0; right: 0; top: 88px; height: 44px; border-radius: 14px; background: var(--surface2); }
+  .wheel { position: relative; flex: 1; height: 220px; padding: 88px 0; box-sizing: border-box; overflow-y: auto; scroll-snap-type: y mandatory;
+           scrollbar-width: none; overscroll-behavior: contain;
+           -webkit-mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); }
+  .wheel::-webkit-scrollbar { display: none; }
+  .wheel div { height: 44px; display: flex; align-items: center; justify-content: center; scroll-snap-align: center;
+               font-size: 21px; color: var(--sub); }
+  .wheel div.sel { color: var(--text); font-weight: 800; }
+  .colon { position: relative; font-size: 22px; font-weight: 800; }
+  .acts { display: flex; gap: 10px; margin-top: 14px; }
+  .acts button { flex: 1; height: 50px; border: 0; border-radius: 25px; background: var(--surface2); font-size: 16px; font-weight: 700; }
+  .acts .ok { background: var(--accent); color: var(--on-accent); font-weight: 800; }
+
+  
+/* 대화 화면 */
   #main { flex: 1; flex-direction: column; min-height: 0; }
   #chat { flex: 1; overflow-y: auto; padding: 12px 14px; }
   .msg { box-sizing: border-box; max-width: 82%; margin: 8px 0; padding: 10px 14px; border-radius: 18px; white-space: pre-wrap;
@@ -182,18 +242,30 @@
   .vspk.on { color: var(--icon-on); }
 
   /* 단어장, 기록 화면 */
-  .vitem { padding: 12px 0; border-bottom: 1px solid var(--line); }
-  .vrow { display: flex; align-items: center; gap: 8px; }
+  .cnt { margin-left: 6px; font-size: 16px; font-weight: 700; color: var(--sub); }
+  .search { position: relative; display: block; margin: 0 0 14px; }
+  .search .si { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--sub); line-height: 0; }
+  .search input { width: 100%; box-sizing: border-box; height: 46px; padding: 0 16px 0 44px; border: 1px solid var(--line);
+                  border-radius: 23px; background: var(--surface); color: var(--text); font-size: 15px; outline: 0; }
+  .search input::placeholder { color: var(--sub); }
+  .vitem { padding: 14px 16px; }
+  .vrow { display: flex; align-items: center; gap: 10px; }
   .vtxt { flex: 1; min-width: 0; cursor: pointer; }
-  .vdet { padding-left: 8px; }
-  .vw { font-size: 18px; font-weight: 800; }
+  .vdet { padding: 2px 0 0 4px; }
+  .vw { font-size: 17px; font-weight: 800; }
   .vtitle { font-weight: 800; font-size: 16px; }
   .vitem, .vnote { word-break: keep-all; }
   .vnote { white-space: pre-line; color: var(--sub); font-size: 13px; }
   .vsec { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--dash); }
   .rprev { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ibtn { flex: none; width: 38px; height: 38px; padding: 0; border: 0; border-radius: 50%; background: var(--surface2); color: var(--sub);
+          display: flex; align-items: center; justify-content: center; }
+  .ibtn svg { display: block; }
+  .empty { padding: 44px 20px; text-align: center; color: var(--sub); font-size: 14px; line-height: 1.6; }
+  .empty b { display: block; margin-bottom: 4px; color: var(--text); font-size: 16px; }
 
-  /* 듣는 중 파형, 답변 기다리는 점 */
+  
+/* 듣는 중 파형, 답변 기다리는 점 */
   .bars { display: flex; align-items: center; gap: 4px; height: 28px; }
   .bars i { width: 4px; height: 100%; border-radius: 2px; background: var(--accent-text);
             animation: wave .9s ease-in-out infinite; }
@@ -222,7 +294,6 @@
     <h2 class="pg">오늘의 학습</h2>
     <div class="grid">
       <button class="mcard primary" id="m-chat">
-        <span class="chip"><span class="ic"></span></span>
         <span class="mrow"><span class="mt">대화하기<small id="m-chat-sub"></small></span><span class="go"></span></span>
       </button>
       <button class="mcard c-blue" id="m-vocab">
@@ -254,33 +325,51 @@
   <div class="hd"><button id="back" class="back" aria-label="메뉴로"></button><div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div><span class="sp"></span></div>
   <div class="pad">
     <h2 class="pg" id="setuptitle">설정</h2>
-    <div class="setrow"><span>화면 모드</span>
-      <button type="button" id="themesw" class="tsw" aria-label="라이트, 다크 전환"><span class="ti"></span><span class="ti"></span><span class="thumb"></span></button>
+
+    <p class="sec">화면</p>
+    <div class="group">
+      <div class="g-row"><span>화면 모드</span>
+        <button type="button" id="themesw" class="tsw" aria-label="라이트, 다크 전환"><span class="ti"></span><span class="ti"></span><span class="thumb"></span></button>
+      </div>
     </div>
-    <label>API 키<input id="f-key" placeholder="API 키 붙여넣기"></label>
-    <label>나이<input id="f-age" type="number" min="5" max="100"></label>
-    <label>성별
-      <select id="f-gender">
-        <option value="">선택</option><option>남성</option><option>여성</option>
-      </select>
-    </label>
-    <label>영어 수준
-      <select id="f-level">
-        <option value="">선택</option><option>토익</option><option>토플</option>
-        <option>아이엘츠</option><option>초등회화 미만</option>
-      </select>
-      <input id="f-score" type="number" step="any" placeholder="점수 (예: 600)">
-    </label>
-    <label>학습분야
-      <input id="f-field" list="fields" placeholder="목록에서 고르거나 직접 입력">
-    </label>
-    <datalist id="fields">
-      <option value="병원"><option value="교회"><option value="학교"><option value="회사">
-    </datalist>
-    <label>알림시각<input id="f-time" type="time"></label>
+
+    <p class="sec">학습 알림 <span class="tag">준비 중</span></p>
+    <div class="group">
+      <div class="g-row"><span>알림 사용</span><button type="button" id="alarmsw" class="sw" role="switch" aria-checked="false" aria-label="알림 켜기"></button></div>
+      <div id="alarmbody">
+        <button type="button" id="timebtn" class="g-row"><span>시간</span><span class="val"><b id="timeval"></b><span class="chev"></span></span></button>
+        <div class="g-blk"><div class="g-top"><span>반복</span><span class="val" id="dayssum"></span></div><div class="days" id="days"></div></div>
+      </div>
+    </div>
+
+    <p class="sec">내 정보</p>
+    <div class="group fields">
+      <label>API 키
+        <span class="keyrow"><input id="f-key" type="password" placeholder="API 키 붙여넣기" autocomplete="off"><button type="button" id="keyeye" class="eye" aria-label="키 보기"></button></span>
+      </label>
+      <label>나이<input id="f-age" type="number" min="5" max="100"></label>
+      <label>성별
+        <select id="f-gender">
+          <option value="">선택</option><option>남성</option><option>여성</option>
+        </select>
+      </label>
+      <label>영어 수준
+        <select id="f-level">
+          <option value="">선택</option><option>토익</option><option>토플</option>
+          <option>아이엘츠</option><option>초등회화 미만</option>
+        </select>
+        <input id="f-score" type="number" step="any" placeholder="점수 (예: 600)">
+      </label>
+      <label>학습분야
+        <input id="f-field" list="fields" placeholder="목록에서 고르거나 직접 입력">
+      </label>
+      <datalist id="fields">
+        <option value="병원"><option value="교회"><option value="학교"><option value="회사">
+      </datalist>
+    </div>
     <p id="err"></p>
-    <button id="save">저장</button>
-    <p id="ver">버전 v21</p>
+    <div class="savebar"><button id="save">저장</button></div>
+    <p id="ver">버전 v22</p>
   </div>
 </div>
 
@@ -302,12 +391,29 @@
 
 <div id="vocab" class="screen">
   <div class="hd"><button id="vback" class="back" aria-label="메뉴로"></button><div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div><span class="sp"></span></div>
-  <div class="pad"><h2 class="pg">단어장</h2><div id="vlist"></div></div>
+  <div class="pad">
+    <h2 class="pg">단어장<span class="cnt" id="vcount"></span></h2>
+    <label class="search"><span class="si"></span><input id="vsearch" placeholder="단어나 뜻 검색" autocomplete="off"></label>
+    <div id="vlist" class="group"></div>
+  </div>
 </div>
 
 <div id="hist" class="screen">
   <div class="hd"><button id="hback" class="back" aria-label="뒤로"></button><div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div><span class="sp"></span></div>
-  <div class="pad"><h2 class="pg" id="htitle">기록</h2><div id="hlist"></div><div id="hview"></div></div>
+  <div class="pad"><h2 class="pg" id="htitle">기록</h2><div id="hlist" class="group"></div><div id="hview"></div></div>
+</div>
+
+<div id="sheet" class="sheet">
+  <div class="dim" id="sheetdim"></div>
+  <div class="panel">
+    <div class="grab"></div>
+    <h3>알림 시간</h3>
+    <div class="wheels">
+      <div class="band"></div>
+      <div class="wheel" id="w-ap"></div><div class="wheel" id="w-h"></div><span class="colon">:</span><div class="wheel" id="w-m"></div>
+    </div>
+    <div class="acts"><button type="button" id="sheet-cancel">취소</button><button type="button" id="sheet-ok" class="ok">확인</button></div>
+  </div>
 </div>
 
 <script>
@@ -324,7 +430,7 @@ Only if the user made a real grammar or word-choice mistake, or the meaning is u
 Otherwise do not write KO:.`;
 
 const $ = id => document.getElementById(id);
-const F = ['age', 'gender', 'level', 'score', 'field', 'time'];  // 저장할 설정 항목
+const F = ['age', 'gender', 'level', 'score', 'field'];  // 저장할 설정 항목
 const NONE = '초등회화 미만';
 const dayKey = (() => {  // 오늘 날짜 (YYYY-MM-DD)
   const d = new Date();
@@ -348,6 +454,11 @@ const I_CLOCK = icon('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 
 const I_SLIDERS = icon('<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>', 24);
 const I_ARROW = icon('<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>');
 const I_CHAT = icon('<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>');
+const I_TRASH = icon('<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>', 18);
+const I_SEARCH = icon('<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>', 18);
+const I_EYE = icon('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>', 20);
+const I_EYE_OFF = icon('<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>', 20);
+const I_CHEV = icon('<polyline points="9 18 15 12 9 6"/>', 18);
 const I_SUN = icon('<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>', 20);
 const I_MOON = icon('<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>', 20);
 const I_SPK = icon('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>', 18);
@@ -378,6 +489,7 @@ function goBack() {  // 화면의 뒤로가기 화살표
 }
 window.addEventListener('popstate', e => {  // 시스템 뒤로가기
   const st = e.state || { s: 'home', d: 0 };
+  if (sheetOpen) { closeSheet(); if (st.s === 'setup') return; }  // 시간 시트가 열려 있으면 시트만 닫기
   if (st.s === 'vocab') renderVocab();
   if (st.s === 'setup') fillForm();
   if (st.s === 'hist') (st.day && chats[st.day] ? openDay(st.day) : renderHistList());
@@ -396,6 +508,7 @@ function fillForm() {
   $('f-key').value = apiKey;
   F.forEach(k => $('f-' + k).value = p[k] || '');
   toggleScore();
+  paintAlarm();
   $('back').style.display = profile ? 'flex' : 'none';
   $('setuptitle').textContent = profile ? '설정' : '처음 설정';
 }
@@ -668,11 +781,22 @@ function drawMsg(m, box, tap) {
   if (ko) addMsg(ko.trim(), 'ko', box);
 }
 
-// 단어장 목록 그리기 (최근 저장이 위, 누르면 예문 펼침)
+// 단어장 목록 그리기 (최근 저장이 위, 검색 가능, 누르면 예문 펼침)
 function renderVocab() {
   const box = $('vlist');
-  box.textContent = vocab.length ? '' : '저장한 단어가 없어요';
-  [...vocab].reverse().forEach(v => {
+  const q = $('vsearch').value.trim().toLowerCase();
+  const list = [...vocab].reverse().filter(v => !q || [v.w, v.base, v.meaning].some(t => (t || '').toLowerCase().includes(q)));
+  $('vcount').textContent = vocab.length || '';
+  box.className = list.length ? 'group' : '';
+  box.textContent = '';
+  if (!list.length) {
+    const e = el('div', 'empty');
+    e.innerHTML = vocab.length ? '<b>검색 결과가 없어요</b>다른 단어로 찾아보세요'
+      : '<b>아직 저장한 단어가 없어요</b>대화 중 모르는 단어를 눌러 저장해 보세요';
+    box.append(e);
+    return;
+  }
+  list.forEach(v => {
     const det = el('div', 'vdet');
     det.style.display = 'none';
     const drawDet = () => {  // 예문 목록 + 더 보기 버튼
@@ -705,25 +829,29 @@ function renderVocab() {
       det.style.display = open ? 'block' : 'none';
       if (open) drawDet();
     };
-    const del = el('button', 'vdel', '삭제');
+    const del = el('button', 'ibtn');
+    del.setAttribute('aria-label', '삭제');
+    del.innerHTML = I_TRASH;
     del.onclick = () => {
       if (!confirm(`'${v.w}' 삭제할까요?`)) return;
       vocab = vocab.filter(x => x.w !== v.w);
       saveVocab();
       renderVocab();
     };
-    const spk = spkBtn(v.w);
     const row = el('div', 'vrow');
-    row.append(spk, line, del);
+    row.append(spkBtn(v.w), line, del);
     const item = el('div', 'vitem');
     item.append(row, det);
     box.append(item);
   });
 }
+
+
 $('vback').onclick = goBack;
 
 // 기록 화면: 날짜 목록, 누르면 그날 대화 보기
 let viewing = null;  // 보고 있는 날짜 (목록이면 null)
+const fdate = d => new Date(d + 'T00:00:00').toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
 function renderHistList() {
   viewing = null;
   $('htitle').textContent = '기록';
@@ -731,18 +859,29 @@ function renderHistList() {
   const box = $('hlist');
   box.style.display = 'block';
   const days = Object.keys(chats).filter(d => chats[d].length).sort().reverse();
-  box.textContent = days.length ? '' : '저장된 대화가 없어요';
+  box.className = days.length ? 'group' : '';
+  box.textContent = '';
+  if (!days.length) {
+    const e = el('div', 'empty');
+    e.innerHTML = '<b>아직 저장된 대화가 없어요</b>대화를 하면 날짜별로 자동 저장돼요';
+    box.append(e);
+    return;
+  }
   days.forEach(d => {
     const list = chats[d];
+    const n = list.filter(m => m.role === 'user').length;
     const info = el('div', 'vtxt');
-    info.append(el('b', '', `${d} · ${list.filter(m => m.role === 'user').length}번`),
-                el('div', 'vex rprev', list[0].parts[0].text));
+    info.append(el('b', '', fdate(d)), el('div', 'vex rprev', `${n}번 · ${list[0].parts[0].text}`));
     info.onclick = () => { navTo('hist', { day: d }); openDay(d); };
-    const exp = el('button', 'vdel', '내보내기');
+    const exp = el('button', 'ibtn');
+    exp.setAttribute('aria-label', '파일로 내보내기');
+    exp.innerHTML = sz(I_DL, 18);
     exp.onclick = () => exportDoc(d);
-    const del = el('button', 'vdel', '삭제');
+    const del = el('button', 'ibtn');
+    del.setAttribute('aria-label', '삭제');
+    del.innerHTML = I_TRASH;
     del.onclick = () => {
-      if (!confirm(`${d} 대화를 삭제할까요?`)) return;
+      if (!confirm(`${fdate(d)} 대화를 삭제할까요?`)) return;
       delete chats[d];
       saveChats();
       if (d === dayKey) { history = []; $('chat').textContent = ''; }
@@ -759,7 +898,7 @@ function renderHistList() {
 // 그날 대화를 읽기 전용으로 보기
 function openDay(d) {
   viewing = d;
-  $('htitle').textContent = d;
+  $('htitle').textContent = fdate(d);
   $('hlist').style.display = 'none';
   const v = $('hview');
   v.style.display = 'block';
@@ -937,7 +1076,7 @@ const LOGO = '<svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"
 document.querySelectorAll('.logo').forEach(e => e.innerHTML = LOGO);
 document.querySelectorAll('.back').forEach(b => b.innerHTML = I_BACK);
 const sz = (svg, n) => svg.replace(/width="\d+" height="\d+"/, `width="${n}" height="${n}"`);
-[['m-chat', I_CHAT], ['m-vocab', I_BOOK], ['m-hist', I_CLOCK], ['m-pron', I_MIC], ['m-set', I_SLIDERS]]
+[['m-vocab', I_BOOK], ['m-hist', I_CLOCK], ['m-pron', I_MIC], ['m-set', I_SLIDERS]]
   .forEach(([id, svg]) => $(id).querySelector('.ic').innerHTML = sz(svg, 24));
 document.querySelectorAll('.mcard .go').forEach(g => g.innerHTML = sz(I_ARROW, 18));
 $('start').querySelector('.arrow').innerHTML = sz(I_ARROW, 20);
@@ -979,6 +1118,82 @@ $('install').onclick = async () => {
   installEv = null;
   $('install').style.display = 'none';
 };
+
+// 학습 알림 설정: 켜기/끄기, 시간(휠), 요일 (지금은 저장만, 실제 울리는 기능은 준비 중)
+const WEEK = [['월', 1], ['화', 2], ['수', 3], ['목', 4], ['금', 5], ['토', 6], ['일', 0]];
+let alarm = JSON.parse(localStorage.getItem('alarm') || 'null')
+  || { on: false, time: (profile && profile.time) || '08:00', days: [1, 2, 3, 4, 5, 6, 0] };
+const saveAlarm = () => localStorage.setItem('alarm', JSON.stringify(alarm));
+const fmtTime = t => { const [h, m] = t.split(':').map(Number); return `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}:${String(m).padStart(2, '0')}`; };
+function daysText(ds) {
+  if (ds.length === 7) return '매일';
+  if (!ds.length) return '요일을 선택해 주세요';
+  if (ds.length === 5 && [1, 2, 3, 4, 5].every(d => ds.includes(d))) return '평일';
+  if (ds.length === 2 && ds.includes(6) && ds.includes(0)) return '주말';
+  return WEEK.filter(([, n]) => ds.includes(n)).map(([k]) => k).join(', ');
+}
+function paintAlarm() {
+  $('alarmsw').setAttribute('aria-checked', alarm.on);
+  $('timeval').textContent = fmtTime(alarm.time);
+  $('dayssum').textContent = daysText(alarm.days);
+  document.querySelectorAll('#days button').forEach(b => b.classList.toggle('on', alarm.days.includes(+b.dataset.d)));
+  $('alarmbody').classList.toggle('off', !alarm.on);
+}
+$('days').innerHTML = WEEK.map(([k, n]) => `<button type="button" data-d="${n}">${k}</button>`).join('');
+$('days').onclick = e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const d = +b.dataset.d;
+  alarm.days = alarm.days.includes(d) ? alarm.days.filter(x => x !== d) : [...alarm.days, d];
+  saveAlarm();
+  paintAlarm();
+};
+$('alarmsw').onclick = () => { alarm.on = !alarm.on; saveAlarm(); paintAlarm(); };
+$('timebtn').querySelector('.chev').innerHTML = I_CHEV;
+
+// 시간 선택 시트: 오전/오후, 시, 분 휠
+let sheetOpen = false;
+const ITEM = 44;  // 휠 한 칸 높이(px)
+function wheel(id, items, idx) {
+  const w = $(id);
+  w.innerHTML = items.map(t => `<div>${t}</div>`).join('');
+  const mark = () => { const i = Math.round(w.scrollTop / ITEM); [...w.children].forEach((c, k) => c.classList.toggle('sel', k === i)); };
+  w.onscroll = () => requestAnimationFrame(mark);
+  w.onclick = e => { const k = [...w.children].indexOf(e.target); if (k >= 0) w.scrollTo({ top: k * ITEM, behavior: 'smooth' }); };
+  w.scrollTop = idx * ITEM;
+  mark();
+}
+const pick = id => Math.round($(id).scrollTop / ITEM);
+function openSheet() {
+  const [h, m] = alarm.time.split(':').map(Number);
+  $('sheet').classList.add('open');
+  wheel('w-ap', ['오전', '오후'], h < 12 ? 0 : 1);
+  wheel('w-h', Array.from({ length: 12 }, (_, i) => i + 1), (h % 12 || 12) - 1);
+  wheel('w-m', Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')), m);
+  sheetOpen = true;
+  navTo('setup', { sheet: true });  // 뒤로가기 제스처로 시트만 닫히게
+}
+function closeSheet() { $('sheet').classList.remove('open'); sheetOpen = false; }
+$('timebtn').onclick = openSheet;
+$('sheet-cancel').onclick = $('sheetdim').onclick = goBack;
+$('sheet-ok').onclick = () => {
+  const ap = pick('w-ap'), h = pick('w-h') + 1, m = pick('w-m');
+  alarm.time = `${String((h % 12) + ap * 12).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  saveAlarm();
+  paintAlarm();
+  goBack();
+};
+
+// API 키 보기/숨기기
+let keyShown = false;
+$('keyeye').innerHTML = I_EYE;
+$('keyeye').onclick = () => {
+  keyShown = !keyShown;
+  $('f-key').type = keyShown ? 'text' : 'password';
+  $('keyeye').innerHTML = keyShown ? I_EYE_OFF : I_EYE;
+};
+$('vsearch').oninput = renderVocab;
+$('vsearch').parentNode.querySelector('.si').innerHTML = I_SEARCH;
 
 // 시작: 오늘 대화 복원, 설정이 있으면 시작 화면, 없으면 설정 화면
 applyTheme();
