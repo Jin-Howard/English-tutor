@@ -100,9 +100,13 @@
   .c-blue { --tint: #5aa9ff; --tint-bg: rgba(90, 169, 255, .16); }
   .c-green { --tint: #3fd6a0; --tint-bg: rgba(63, 214, 160, .16); }
   .c-purple { --tint: #c084fc; --tint-bg: rgba(192, 132, 252, .16); }
+  .c-orange { --tint: #ffa94d; --tint-bg: rgba(255, 169, 77, .16); }
   :root[data-theme="light"] .c-blue { --tint: #1c7ed6; --tint-bg: rgba(28, 126, 214, .12); }
   :root[data-theme="light"] .c-green { --tint: #0ca678; --tint-bg: rgba(12, 166, 120, .12); }
   :root[data-theme="light"] .c-purple { --tint: #9c36b5; --tint-bg: rgba(156, 54, 181, .12); }
+  :root[data-theme="light"] .c-orange { --tint: #e8590c; --tint-bg: rgba(232, 89, 12, .12); }
+  .mcard.rev { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: flex-start; gap: 14px; min-height: 88px; }
+  .mcard.rev .mt { flex: 1; }
   :root .mcard.primary { grid-column: 1 / -1; min-height: 140px; justify-content: flex-end; border-color: transparent;
                          background: var(--accent); color: var(--on-accent); --tint: var(--on-accent); --tint-bg: rgba(0, 0, 0, .1); }
   .mcard.primary .mt { font-size: 22px; }
@@ -196,6 +200,10 @@
   
 /* 대화 화면 */
   #main { flex: 1; flex-direction: column; min-height: 0; }
+  .modebar { display: none; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--card-line);
+             background: var(--card); font-size: 13px; color: var(--sub); }
+  .modebar b { color: var(--accent-text); }
+  .modebar button { padding: 6px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface2); font-size: 13px; font-weight: 700; }
   #chat { flex: 1; overflow-y: auto; padding: 12px 14px; }
   .msg { box-sizing: border-box; max-width: 82%; margin: 8px 0; padding: 10px 14px; border-radius: 18px; white-space: pre-wrap;
          line-height: 1.45; word-break: keep-all; overflow-wrap: anywhere; }
@@ -296,6 +304,11 @@
       <button class="mcard primary" id="m-chat">
         <span class="mrow"><span class="mt">대화하기<small id="m-chat-sub"></small></span><span class="go"></span></span>
       </button>
+      <button class="mcard c-orange rev" id="m-rev">
+        <span class="chip"><span class="ic"></span></span>
+        <span class="mt">복습하기<small id="m-rev-sub"></small></span>
+        <span class="go"></span>
+      </button>
       <button class="mcard c-blue" id="m-vocab">
         <span class="chip"><span class="ic"></span></span>
         <span class="mrow"><span class="mt">단어장<small id="m-vocab-sub"></small></span><span class="go"></span></span>
@@ -369,7 +382,7 @@
     </div>
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v22</p>
+    <p id="ver">버전 v23</p>
   </div>
 </div>
 
@@ -379,6 +392,7 @@
     <div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div>
     <span class="sp"></span>
   </div>
+  <div id="modebar" class="modebar"><span><b>복습 모드</b> · 지난 대화에서 골랐어요</span><button type="button" id="revexit">끝내기</button></div>
   <div id="chat"></div>
   <form id="bar">
     <button type="button" id="cancel" aria-label="취소"></button>
@@ -459,6 +473,7 @@ const I_SEARCH = icon('<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="
 const I_EYE = icon('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>', 20);
 const I_EYE_OFF = icon('<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>', 20);
 const I_CHEV = icon('<polyline points="9 18 15 12 9 6"/>', 18);
+const I_REV = icon('<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>');
 const I_SUN = icon('<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>', 20);
 const I_MOON = icon('<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>', 20);
 const I_SPK = icon('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>', 18);
@@ -469,6 +484,7 @@ function show(screen) {
     $(s).style.display = s === screen ? 'flex' : 'none';
   });
   stopSpeak();  // 화면을 옮기면 읽던 소리도 멈춤
+  if (mode === 'review' && screen !== 'main') exitReview();
   if (screen === 'menu') paintMenu();
   if (screen === 'main') $('chat').scrollTop = $('chat').scrollHeight;
 }
@@ -509,7 +525,7 @@ function fillForm() {
   F.forEach(k => $('f-' + k).value = p[k] || '');
   toggleScore();
   paintAlarm();
-  $('back').style.display = profile ? 'flex' : 'none';
+  $('back').style.visibility = profile ? 'visible' : 'hidden';  // 자리는 유지해서 제목이 가운데에 오게
   $('setuptitle').textContent = profile ? '설정' : '처음 설정';
 }
 
@@ -931,10 +947,98 @@ function exportDoc(d) {
 
 $('hback').onclick = goBack;
 
-// 제미나이에게 보내고 답 받기
+// 복습 모드: 지난 대화의 틀린 문장과 저장한 단어로 짧게 다시 연습 (기록에는 저장하지 않음)
+let mode = 'chat';  // 'chat' | 'review'
+let revHist = [];   // 복습 대화
+let revMat = null;  // 복습 재료
+const H = () => (mode === 'review' ? revHist : history);  // 지금 화면의 대화 기록
+
+function reviewMaterial() {
+  const days = Object.keys(chats).filter(d => chats[d].length).sort().reverse();
+  const mistakes = [];
+  for (const d of days) {
+    const list = chats[d];
+    for (let i = list.length - 1; i > 0 && mistakes.length < 3; i--) {  // 최근 것부터
+      if (list[i].role !== 'model' || list[i - 1].role !== 'user') continue;
+      const ko = list[i].parts[0].text.split('KO:')[1];
+      if (ko && ko.includes('→')) mistakes.push({ said: list[i - 1].parts[0].text.trim(), note: ko.trim() });
+    }
+    if (mistakes.length >= 3) break;
+  }
+  const words = [...vocab].reverse().filter(v => !BASIC[v.w]).slice(0, 3).map(v => ({ w: v.w, meaning: v.meaning }));
+  return { mistakes, words, n: mistakes.length + words.length };
+}
+
+const reviewSystem = mat => `You run a short review session for a Korean learner of English, using only the material below from their past practice.
+${mat.mistakes.length ? 'Sentences the learner got wrong (what they said -> Korean note with the corrected sentence after an arrow):\n' + mat.mistakes.map(m => `- "${m.said}" -> ${m.note}`).join('\n') : ''}
+${mat.words.length ? 'Saved words:\n' + mat.words.map(w => `- ${w.w}: ${w.meaning}`).join('\n') : ''}
+Rules:
+- Review at most 3 items in total, one at a time, mixing sentences and words.
+- To ask an item: English part is one short line like "Let's try this one." Then a new line "KO:" followed by the Korean sentence the learner must say in English (for a word: a short Korean situation where they must use that word).
+- Wait for the learner's answer. Then reply: the natural correct English sentence as the English part; after "KO:" write short Korean feedback (max 2 sentences), a blank line, then the next item's Korean sentence.
+- After the last item, after "KO:" give a short encouraging summary in Korean, and end the English part with "Review complete."
+- The learner's text may come from speech recognition: ignore capitalization, punctuation and repeated words. Keep everything short.`;
+
+// 튜터 답변 화면에 그리기 (복습 끝 표시는 글자를 지우고 완료 카드로 대체)
+function showReply(reply) {
+  const done = mode === 'review' && /review complete/i.test(reply);
+  const shown = mode === 'review' ? reply.replace(/\s*Review complete\.?/i, '') : reply;
+  drawMsg({ role: 'model', parts: [{ text: shown }] }, $('chat'), true);
+  speak(shown.split('KO:')[0]);
+  if (done) finishReview();
+}
+function finishReview() {
+  localStorage.setItem('review', JSON.stringify({ date: dayKey }));
+  const n = el('div', 'msg notice');
+  n.append(el('b', '', '복습 끝! 수고했어요'), el('div', '', '틀렸던 표현이 조금 더 익숙해졌을 거예요.'));
+  const b = el('button', 'vsave', '메뉴로 돌아가기');
+  b.onclick = goBack;
+  n.append(b);
+  $('chat').append(n);
+  $('chat').scrollTop = $('chat').scrollHeight;
+}
+function exitReview() {  // 복습을 마치고 나가면 원래 대화를 다시 보여줌
+  mode = 'chat';
+  revHist = [];
+  revMat = null;
+  $('modebar').style.display = 'none';
+  $('chat').textContent = '';
+  history.forEach(m => drawMsg(m, $('chat'), true));
+}
+async function startReview() {
+  const mat = reviewMaterial();
+  if (!mat.n) return;
+  mode = 'review';
+  revMat = mat;
+  revHist = [];
+  $('chat').textContent = '';
+  $('modebar').style.display = 'flex';
+  navTo('main', { review: true });
+  const arr = revHist;
+  const wait = el('div', 'msg ai wait');
+  wait.innerHTML = '복습 문제 고르는 중<i></i><i></i><i></i>';
+  $('chat').append(wait);
+  try {
+    const first = { role: 'user', parts: [{ text: 'Start the review.' }] };
+    const reply = await gemini({
+      system_instruction: { parts: [{ text: reviewSystem(mat) }] },
+      contents: [first],
+      generationConfig: { temperature: 0.7, maxOutputTokens: 1500 }
+    });
+    arr.push(first, { role: 'model', parts: [{ text: reply }] });
+    if (mode === 'review') showReply(reply);
+  } catch (e) {
+    if (mode === 'review') addNotice(e);
+  } finally {
+    wait.remove();
+  }
+}
+
+// 제미나이에게 보내고 답 받기 (복습 모드에서는 기록에 저장하지 않음)
 async function send(text) {
+  const m0 = mode, arr = H();
   addMsg(text, 'user');
-  history.push({ role: 'user', parts: [{ text }] });
+  arr.push({ role: 'user', parts: [{ text }] });
   const wait = el('div', 'msg ai wait');  // 답변 기다리는 표시
   wait.innerHTML = '답변 정리하는 중<i></i><i></i><i></i>';
   $('chat').append(wait);
@@ -942,22 +1046,21 @@ async function send(text) {
   try {
     const meta = {};  // 응답 종료 사유 확인용
     const reply = await gemini({
-      system_instruction: { parts: [{ text: buildSystem() }] },
-      contents: history.slice(-(MAX_TURNS * 2 - 1)),
+      system_instruction: { parts: [{ text: m0 === 'review' ? reviewSystem(revMat) : buildSystem() }] },
+      contents: arr.slice(-(MAX_TURNS * 2 - 1)),
       generationConfig: { temperature: 0.7, maxOutputTokens: 1500 }
     }, MODEL, meta);
-    history.push({ role: 'model', parts: [{ text: reply }] });
-    chats[dayKey] = history;
-    saveChats();
-    drawMsg(history[history.length - 1], $('chat'), true);
-    speak(reply.split('KO:')[0]);
+    arr.push({ role: 'model', parts: [{ text: reply }] });
+    if (m0 === 'chat') { chats[dayKey] = history; saveChats(); }
+    if (mode !== m0) return;  // 그 사이 화면을 옮겼으면 저장만 하고 끝
+    showReply(reply);
     if (meta.finish && meta.finish !== 'STOP') {
       const why = { MAX_TOKENS: '답변이 길어서 중간에 잘렸어요', SAFETY: '안전 필터 때문에 답변이 중간에 멈췄어요' };
       addNote((why[meta.finish] || `답변이 중간에 멈췄어요 (${meta.finish})`) + '. 다시 물어봐 주세요.');
     }
   } catch (e) {
-    history.pop();  // 실패한 질문은 기록에서 제거
-    addNotice(e);
+    arr.pop();  // 실패한 질문은 기록에서 제거
+    if (mode === m0) addNotice(e);
   } finally {
     wait.remove();
   }
@@ -1076,7 +1179,7 @@ const LOGO = '<svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"
 document.querySelectorAll('.logo').forEach(e => e.innerHTML = LOGO);
 document.querySelectorAll('.back').forEach(b => b.innerHTML = I_BACK);
 const sz = (svg, n) => svg.replace(/width="\d+" height="\d+"/, `width="${n}" height="${n}"`);
-[['m-vocab', I_BOOK], ['m-hist', I_CLOCK], ['m-pron', I_MIC], ['m-set', I_SLIDERS]]
+[['m-rev', I_REV], ['m-vocab', I_BOOK], ['m-hist', I_CLOCK], ['m-pron', I_MIC], ['m-set', I_SLIDERS]]
   .forEach(([id, svg]) => $(id).querySelector('.ic').innerHTML = sz(svg, 24));
 document.querySelectorAll('.mcard .go').forEach(g => g.innerHTML = sz(I_ARROW, 18));
 $('start').querySelector('.arrow').innerHTML = sz(I_ARROW, 20);
@@ -1090,13 +1193,20 @@ function paintMenu() {
   $('m-chat-sub').textContent = (chats[dayKey] || []).length ? '오늘 대화 이어서 하기' : '새 대화 시작하기';
   $('m-vocab-sub').textContent = vocab.length ? `${vocab.length}개 저장됨` : '아직 비어 있어요';
   $('m-hist-sub').textContent = days ? `${days}일 기록` : '아직 없어요';
+  const mat = reviewMaterial();
+  const doneToday = (JSON.parse(localStorage.getItem('review') || 'null') || {}).date === dayKey;
+  $('m-rev-sub').textContent = !mat.n ? '대화하고 단어를 저장하면 생겨요'
+    : doneToday ? '오늘 복습 완료 · 한 번 더 하기' : `지난 대화에서 ${Math.min(3, mat.n)}문제`;
+  $('m-rev').disabled = !mat.n;
 }
 $('start').onclick = () => setRoot('menu');
 $('m-chat').onclick = () => navTo('main');
+$('m-rev').onclick = startReview;
 $('m-vocab').onclick = () => { renderVocab(); navTo('vocab'); };
 $('m-hist').onclick = () => { renderHistList(); navTo('hist'); };
 $('m-set').onclick = () => { fillForm(); navTo('setup'); };
 $('chatback').onclick = goBack;
+$('revexit').onclick = goBack;
 
 // 앱 설치: 서비스 워커 등록 + 설치 버튼 (설치 가능한 기기에서만 보임)
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
