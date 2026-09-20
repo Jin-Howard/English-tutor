@@ -29,6 +29,7 @@
     --notice: #33261a; --notice-line: #6b4a1f;
     --icon: #8F8C82; --icon-on: #FFD43B; --danger: #ff6b6b;
     --bar: rgba(14, 13, 11, .86); --shadow: none;
+    --hero-glow: rgba(255, 212, 59, .07); --hero-line: rgba(255, 212, 59, .22); --ok: #4FD8A4;
     color-scheme: dark;
   }
   :root[data-theme="light"] {
@@ -40,6 +41,7 @@
     --card: #FFF6D6; --card-line: #F3D66B; --dash: #D9C46C;
     --notice: #FFF1E0; --notice-line: #F5CE9F;
     --icon: #9C978A; --icon-on: #D98A00; --danger: #D6303A;
+    --hero-glow: rgba(255, 212, 59, .3); --hero-line: rgba(226, 170, 0, .5); --ok: #0CA678;
     --bar: rgba(251, 249, 244, .9); --shadow: 0 1px 2px rgba(26, 24, 19, .05), 0 10px 28px rgba(26, 24, 19, .06);
     color-scheme: light;
   }
@@ -114,12 +116,11 @@
   }
 
   /* 홈 화면 */
-  #menu { background: radial-gradient(ellipse 80% 28% at 100% 0%, var(--accent-soft), transparent 70%); }
   .greet { position: relative; padding: 4px 0 20px; min-height: 118px; }
   .gh { margin: 0 0 6px; color: var(--accent-text); font-size: 15px; font-weight: 700; letter-spacing: .01em; }
   .greet h1 { margin: 0; max-width: 70%; font-size: clamp(22px, 6.4vw, 26px); line-height: 1.3; font-weight: 800; letter-spacing: -.7px; word-break: keep-all; }
   .gart { position: absolute; right: -4px; top: -2px; width: 108px; height: auto; pointer-events: none;
-          filter: drop-shadow(0 8px 20px rgba(255, 212, 59, .28)); }
+          filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .25)); }
   .install { display: none; align-items: center; gap: 12px; width: 100%; margin: 0 0 14px; padding: 12px 14px;
              border: 1px dashed var(--line2); border-radius: 20px; background: transparent; text-align: left;
              --tint: var(--accent-text); --tint-bg: var(--accent-soft); }
@@ -131,10 +132,10 @@
   .mt { font-size: 16px; font-weight: 800; line-height: 1.3; letter-spacing: -.2px; text-align: left; }
   .mt small { display: block; margin-top: 2px; font-size: 13px; font-weight: 500; color: var(--sub); letter-spacing: 0; }
   .hero { position: relative; display: flex; align-items: center; gap: 16px; width: 100%; box-sizing: border-box; margin: 0 0 12px; padding: 18px 16px;
-          border: 1px solid var(--accent-line); border-radius: 26px; text-align: left; box-shadow: var(--shadow);
-          background: linear-gradient(135deg, var(--accent-soft) 0%, transparent 52%), var(--surface); }
+          border: 1px solid var(--hero-line); border-radius: 26px; text-align: left; box-shadow: var(--shadow);
+          background: linear-gradient(135deg, var(--hero-glow) 0%, transparent 52%), var(--surface); }
   .hero .hic { flex: none; display: flex; align-items: center; justify-content: center; width: 58px; height: 58px; border-radius: 50%;
-               background: var(--accent); color: var(--on-accent); line-height: 0; box-shadow: 0 6px 18px rgba(255, 212, 59, .28); }
+               background: var(--accent); color: var(--on-accent); line-height: 0; }
   .hero .hic svg { display: block; }
   .hero .ht { flex: 1; min-width: 0; }
   .hero .ht small { display: block; color: var(--accent-text); font-size: 12.5px; font-weight: 800; letter-spacing: .02em; }
@@ -191,7 +192,7 @@
   .tab.on .ti-ic { background: var(--accent-soft); color: var(--accent-text); }
   .tab.fab { margin-top: -20px; color: var(--text); }
   .fab .fab-ic { display: flex; align-items: center; justify-content: center; width: 58px; height: 58px; border-radius: 50%; line-height: 0;
-                 background: var(--accent); color: var(--on-accent); box-shadow: 0 0 0 6px var(--bg), 0 8px 22px rgba(255, 212, 59, .38); }
+                 background: var(--accent); color: var(--on-accent); box-shadow: 0 0 0 6px var(--bg), 0 6px 14px rgba(0, 0, 0, .22); }
   .fab .fab-ic svg { display: block; }
   #toast { position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom)); z-index: 60; padding: 11px 18px; border-radius: 22px;
            background: var(--text); color: var(--bg); font-size: 14px; font-weight: 700; opacity: 0; pointer-events: none;
@@ -202,7 +203,7 @@
   .sec { display: flex; align-items: center; gap: 8px; margin: 24px 4px 8px; font-size: 13px; font-weight: 700; color: var(--sub); }
   .sec:first-of-type { margin-top: 6px; }
   .group { border: 1px solid var(--line); border-radius: 22px; background: var(--surface); overflow: hidden; box-shadow: var(--shadow); }
-  .group > * + *, #alarmbody > * + * { border-top: 1px solid var(--line); }
+  .group > * + * { border-top: 1px solid var(--line); }
   .g-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; box-sizing: border-box;
            min-height: 58px; padding: 0 16px; border: 0; background: none; text-align: left; font-size: 15px; font-weight: 600; }
   .g-row .val { display: flex; align-items: center; gap: 4px; color: var(--sub); font-weight: 500; }
@@ -211,8 +212,6 @@
   .g-blk { padding: 14px 16px 16px; }
   .g-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 15px; font-weight: 600; }
   .g-top .val { color: var(--sub); font-weight: 500; font-size: 14px; }
-  #alarmbody { transition: opacity .2s; }
-  #alarmbody.off { opacity: .45; }
   .days { display: flex; justify-content: space-between; }
   .days button { width: 38px; height: 38px; padding: 0; border: 1px solid var(--line2); border-radius: 50%; background: transparent;
                  font-size: 14px; font-weight: 700; color: var(--sub); }
@@ -248,6 +247,28 @@
                 background: var(--accent); transition: transform .2s; }
   :root[data-theme="dark"] .tsw .thumb { transform: translateX(42px); }
   :root[data-theme="light"] .tsw .ti:nth-child(1), :root[data-theme="dark"] .tsw .ti:nth-child(2) { color: var(--on-accent); }
+
+  .lead { display: none; margin: 0 4px 16px; font-size: 15px; line-height: 1.55; color: var(--sub); }
+  .lead b { color: var(--text); }
+  .pill.wide { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 48px; border-radius: 24px; font-size: 15px; }
+  .pill.wide svg { display: block; }
+  .hint { margin: 10px 2px 0; font-size: 12.5px; line-height: 1.55; color: var(--sub); }
+  .guide .g-row .chev svg { display: block; transition: transform .2s; }
+  .guide.open .g-row .chev svg { transform: rotate(90deg); }
+  .gtitle { display: flex; align-items: center; gap: 12px; }
+  .gtitle .chip { width: 40px; height: 40px; border-radius: 13px; }
+  #guidebody { display: none; }
+  .guide.open #guidebody { display: block; }
+  .steps { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .steps li { display: flex; align-items: flex-start; gap: 12px; font-size: 14px; line-height: 1.55; }
+  .steps i { flex: none; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-top: 1px; border-radius: 50%;
+            background: var(--accent); color: var(--on-accent); font-style: normal; font-size: 13px; font-weight: 800; }
+  .steps b { font-weight: 800; }
+  .lb { display: flex; align-items: center; justify-content: space-between; }
+  .mini { height: 28px; padding: 0 12px; border: 0; border-radius: 14px; background: var(--accent); color: var(--on-accent); font-size: 12.5px; font-weight: 800; }
+  .kstat { display: block; min-height: 18px; margin-top: 6px; font-size: 13px; font-weight: 600; }
+  .kstat.ok { color: var(--ok); }
+  .kstat.bad, .kstat.warn { color: var(--danger); }
 
   /* 시간 선택 시트 */
   .sheet { position: fixed; inset: 0; z-index: 50; display: none; }
@@ -414,26 +435,43 @@
   <div class="pad">
     <h2 class="pg" id="setuptitle">설정</h2>
 
-    <p class="sec">화면</p>
-    <div class="group">
+    <p class="sec only-set">화면</p>
+    <div class="group only-set">
       <div class="g-row"><span>화면 모드</span>
         <button type="button" id="themesw" class="tsw" aria-label="라이트, 다크 전환"><span class="ti"></span><span class="ti"></span><span class="thumb"></span></button>
       </div>
     </div>
 
-    <p class="sec">학습 알림 <span class="tag">준비 중</span></p>
-    <div class="group">
-      <div class="g-row"><span>알림 사용</span><button type="button" id="alarmsw" class="sw" role="switch" aria-checked="false" aria-label="알림 켜기"></button></div>
-      <div id="alarmbody">
-        <button type="button" id="timebtn" class="g-row"><span>시간</span><span class="val"><b id="timeval"></b><span class="chev"></span></span></button>
-        <div class="g-blk"><div class="g-top"><span>반복</span><span class="val" id="dayssum"></span></div><div class="days" id="days"></div></div>
+    <p class="sec only-set">학습 알림</p>
+    <div class="group only-set">
+      <button type="button" id="timebtn" class="g-row"><span>시간</span><span class="val"><b id="timeval"></b><span class="chev"></span></span></button>
+      <div class="g-blk"><div class="g-top"><span>반복</span><span class="val" id="dayssum"></span></div><div class="days" id="days"></div></div>
+      <div class="g-blk">
+        <button type="button" id="calbtn" class="pill wide"><span class="cal-ic"></span>캘린더에 알림 추가</button>
+        <p class="hint">파일을 내려받아 열고 저장하면, 정해진 시각에 폰이 알려줘요. 바꾸거나 끄려면 캘린더에서 그 일정을 지우고 다시 추가하세요.</p>
+      </div>
+    </div>
+
+    <p class="lead" id="setuplead">AI 튜터와 대화하려면 <b>API 키</b>가 필요해요. 처음 한 번만 아래 순서대로 해 주세요.</p>
+    <p class="sec only-set">도움말</p>
+    <div class="group guide" id="guide">
+      <button type="button" id="guidehead" class="g-row"><span class="gtitle"><span class="chip t-blue"><span class="ic"></span></span><span class="mt">API 키 발급 방법<small>구글 계정만 있으면 돼요</small></span></span><span class="chev"></span></button>
+      <div class="g-blk" id="guidebody">
+        <ol class="steps">
+          <li><i>1</i><span>아래 버튼으로 <b>Google AI Studio</b>를 열고 구글 계정으로 로그인해요.</span></li>
+          <li><i>2</i><span><b>API 키 만들기</b>(Create API key)를 누르고, 나온 키의 <b>복사</b> 아이콘을 눌러요.</span></li>
+          <li><i>3</i><span>이 앱으로 돌아와 아래 <b>붙여넣기</b>를 눌러요.</span></li>
+        </ol>
+        <button type="button" id="keyopen" class="pill wide">Google AI Studio 열기</button>
+        <p class="hint">AI Studio에서 새로 만든 키를 써야 해요. 예전 방식으로 만든 키는 막혔을 수 있어요.</p>
       </div>
     </div>
 
     <p class="sec">내 정보</p>
     <div class="group fields">
-      <label>API 키
+      <label><span class="lb">API 키<button type="button" id="keypaste" class="mini">붙여넣기</button></span>
         <span class="keyrow"><input id="f-key" type="password" placeholder="API 키 붙여넣기" autocomplete="off"><button type="button" id="keyeye" class="eye" aria-label="키 보기"></button></span>
+        <span class="kstat" id="keystat"></span>
       </label>
       <label>나이<input id="f-age" type="number" min="5" max="100"></label>
       <label>성별
@@ -457,7 +495,7 @@
     </div>
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v24</p>
+    <p id="ver">버전 v25</p>
   </div>
 </div>
 
@@ -602,12 +640,12 @@ function tabTo(screen) {  // 하단 탭: 홈이 맨 아래, 다른 탭은 한 �
   show(screen);
 }
 let toastT;
-function toast(msg) {  // 잠깐 떴다 사라지는 안내
+function toast(msg, ms = 1800) {  // 잠깐 떴다 사라지는 안내
   const t = $('toast');
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(toastT);
-  toastT = setTimeout(() => t.classList.remove('show'), 1800);
+  toastT = setTimeout(() => t.classList.remove('show'), ms);
 }
 function goBack() {  // 화면의 뒤로가기 화살표
   if ((window.history.state?.d || 0) > 0) window.history.back();
@@ -636,6 +674,11 @@ function fillForm() {
   toggleScore();
   paintAlarm();
   $('setuptitle').textContent = profile ? '설정' : '처음 설정';
+  document.querySelectorAll('.only-set').forEach(e => e.style.display = profile ? '' : 'none');  // 처음에는 키와 정보만
+  $('setuplead').style.display = profile ? 'none' : 'block';
+  $('guide').classList.toggle('open', !apiKey);  // 키가 없으면 발급 안내를 펼침
+  $('keystat').className = 'kstat';
+  $('keystat').textContent = '';
 }
 
 // 저장 버튼: 빈 칸 검사 후 저장
@@ -745,7 +788,7 @@ function friendly(e) {
     return { key: true, title: 'AI 사용 한도에 도달했어요',
       body: 'API 키의 무료 사용량을 모두 썼거나 결제 금액이 소진됐어요. 잠시 뒤에 다시 시도하거나 다른 키로 바꿔 보세요.' };
   if (e.code === 403 || (e.code === 400 && /api key/i.test(m)))
-    return { key: true, title: 'API 키를 확인해 주세요', body: '키가 올바르지 않거나 사용할 수 없는 상태예요.' };
+    return { key: true, title: 'API 키를 확인해 주세요', body: '키가 올바르지 않거나 사용할 수 없는 상태예요. AI Studio에서 새로 만든 키인지 확인해 주세요.' };
   if (e.code === 503) return { title: '지금 AI가 붐벼요', body: '잠시 뒤에 다시 시도해 주세요.' };
   if (e instanceof TypeError) return { title: '인터넷 연결을 확인해 주세요', body: '서버에 연결하지 못했어요.' };
   return { title: '잠시 문제가 생겼어요', body: m };
@@ -764,7 +807,7 @@ function addNotice(e) {
   n.append(el('b', '', f.title), el('div', '', f.body));
   if (f.key) {
     const b = el('button', 'vsave', '다른 키로 바꾸기');
-    b.onclick = () => { fillForm(); show('setup'); };
+    b.onclick = () => { fillForm(); tabTo('setup'); };
     n.append(b);
   }
   $('chat').append(n);
@@ -1418,7 +1461,7 @@ $('install').onclick = async () => {
   $('install').style.display = 'none';
 };
 
-// 학습 알림 설정: 켜기/끄기, 시간(휠), 요일 (지금은 저장만, 실제 울리는 기능은 준비 중)
+// 학습 알림 설정: 시간(휠), 요일, 폰 캘린더에 반복 알림 추가
 const WEEK = [['월', 1], ['화', 2], ['수', 3], ['목', 4], ['금', 5], ['토', 6], ['일', 0]];
 let alarm = JSON.parse(localStorage.getItem('alarm') || 'null')
   || { on: false, time: (profile && profile.time) || '08:00', days: [1, 2, 3, 4, 5, 6, 0] };
@@ -1432,11 +1475,9 @@ function daysText(ds) {
   return WEEK.filter(([, n]) => ds.includes(n)).map(([k]) => k).join(', ');
 }
 function paintAlarm() {
-  $('alarmsw').setAttribute('aria-checked', alarm.on);
   $('timeval').textContent = fmtTime(alarm.time);
   $('dayssum').textContent = daysText(alarm.days);
   document.querySelectorAll('#days button').forEach(b => b.classList.toggle('on', alarm.days.includes(+b.dataset.d)));
-  $('alarmbody').classList.toggle('off', !alarm.on);
 }
 $('days').innerHTML = WEEK.map(([k, n]) => `<button type="button" data-d="${n}">${k}</button>`).join('');
 $('days').onclick = e => {
@@ -1447,8 +1488,35 @@ $('days').onclick = e => {
   saveAlarm();
   paintAlarm();
 };
-$('alarmsw').onclick = () => { alarm.on = !alarm.on; saveAlarm(); paintAlarm(); };
 $('timebtn').querySelector('.chev').innerHTML = I_CHEV;
+const I_CAL = icon('<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>');
+$('calbtn').querySelector('.cal-ic').innerHTML = sz(I_CAL, 18);
+
+// 캘린더 파일(.ics): 정해진 요일과 시각에 반복되는 일정 + 알림. 앱이 꺼져 있어도 캘린더가 알려줌
+function makeIcs() {
+  const [h, m] = alarm.time.split(':').map(Number);
+  const now = new Date();
+  let d = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
+  for (let i = 0; i < 8 && (!alarm.days.includes(d.getDay()) || d <= now); i++) d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1, h, m);  // 다음 알림 날짜
+  const stamp = x => `${x.getFullYear()}${two(x.getMonth() + 1)}${two(x.getDate())}T${two(x.getHours())}${two(x.getMinutes())}00`;  // 폰 시간 기준
+  const BY = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//AI E-Tutor//KO', 'BEGIN:VEVENT',
+    `UID:etutor-${Date.now()}@ai-etutor`, `DTSTAMP:${new Date().toISOString().replace(/[-:]|\.\d{3}/g, '')}`,
+    `DTSTART:${stamp(d)}`, `DTEND:${stamp(new Date(d.getTime() + 15 * 60000))}`,
+    `RRULE:FREQ=WEEKLY;BYDAY=${WEEK.filter(([, n]) => alarm.days.includes(n)).map(([, n]) => BY[n]).join(',')}`,  // 월~일 순서
+    'SUMMARY:AI E-Tutor 영어 학습', 'DESCRIPTION:앱을 열어 AI 튜터와 영어로 대화해 보세요',
+    'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:영어 학습 시간이에요', 'TRIGGER:PT0M', 'END:VALARM',
+    'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+}
+$('calbtn').onclick = () => {
+  if (!alarm.days.length) return toast('요일을 하나 이상 골라 주세요');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([makeIcs()], { type: 'text/calendar;charset=utf-8' }));
+  a.download = 'ai-etutor-alarm.ics';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  toast('내려받은 파일을 열어 캘린더에 저장해 주세요', 4000);
+};
 
 // 시간 선택 시트: 오전/오후, 시, 분 휠
 let sheetOpen = false;
@@ -1490,6 +1558,39 @@ $('keyeye').onclick = () => {
   keyShown = !keyShown;
   $('f-key').type = keyShown ? 'text' : 'password';
   $('keyeye').innerHTML = keyShown ? I_EYE_OFF : I_EYE;
+};
+const I_KEY = icon('<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>');
+$('guidehead').querySelector('.ic').innerHTML = sz(I_KEY, 20);
+$('guidehead').querySelector('.chev').innerHTML = I_CHEV;
+$('guidehead').onclick = () => $('guide').classList.toggle('open');
+$('keyopen').onclick = () => window.open('https://aistudio.google.com/apikey', '_blank', 'noopener');
+let keySeq = 0;
+async function checkKey() {  // 키가 맞는지 가볍게 확인 (글 생성 없이 목록만 조회, 사용량이 들지 않음)
+  const key = $('f-key').value.trim(), st = $('keystat'), seq = ++keySeq;
+  st.className = 'kstat';
+  st.textContent = key ? '키 확인하는 중...' : '';
+  if (!key) return;
+  let r = '';
+  try {
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1', { headers: { 'x-goog-api-key': key } });
+    if (res.ok) r = 'ok';
+    else if (res.status === 400 && /API key not valid|API_KEY_INVALID/i.test(await res.text())) r = 'bad';
+    else if (res.status === 401 || res.status === 403) r = 'warn';
+  } catch { r = ''; }  // 인터넷 문제 등은 알릴 것 없이 넘어감
+  if (seq !== keySeq) return;  // 그 사이 다시 입력했으면 무시
+  st.className = 'kstat ' + r;
+  st.textContent = { ok: '✓ 사용할 수 있는 키예요', bad: '키가 올바르지 않아요. 다시 복사해 붙여넣어 주세요', warn: '이 키는 사용이 어려울 수 있어요. AI Studio에서 새 키를 만들어 보세요' }[r] || '';
+}
+$('f-key').onchange = checkKey;
+$('keypaste').onclick = async () => {
+  try {
+    const t = (await navigator.clipboard.readText()).trim();
+    if (!t) return toast('복사된 내용이 없어요');
+    $('f-key').value = t;
+    checkKey();
+    $('guide').classList.remove('open');  // 키를 넣었으면 안내는 접고 입력칸을 보여줌
+    setTimeout(() => $('f-key').scrollIntoView({ block: 'center', behavior: 'smooth' }), 50);
+  } catch { toast('붙여넣기가 막혔어요. 입력칸을 길게 눌러 붙여넣어 주세요', 3000); }
 };
 $('vsearch').oninput = renderVocab;
 $('vsearch').parentNode.querySelector('.si').innerHTML = I_SEARCH;
