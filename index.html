@@ -362,7 +362,8 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .opt .num { flex: none; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: var(--surface2); font-weight: 800; }
   .opt.on { border-color: var(--accent); background: var(--accent-soft); }
   .opt.on .num { background: var(--accent); color: var(--on-accent); }
-  .opt.q { justify-content: center; text-align: center; font-weight: 700; line-height: 1.45; word-break: keep-all; }
+  .opt.q { justify-content: center; min-width: 0; text-align: center; font-weight: 700; line-height: 1.45; }
+  .opt.q > span { display: block; min-width: 0; max-width: 100%; word-break: keep-all; overflow-wrap: anywhere; }
   .opt.idk { border-style: dashed; background: transparent; box-shadow: none; color: var(--sub); }
   .opt.pick { border-color: var(--accent); background: var(--accent-soft); }
   .qcount { margin: 0; text-align: center; font-size: 13.5px; font-weight: 700; color: var(--sub); }
@@ -371,7 +372,28 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .qhint .vspk { display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; padding: 0; border-radius: 50%; background: var(--surface2); color: var(--sub); }
   .qhint .vspk.on { background: var(--accent-soft); color: var(--accent-text); }
   .qsent { margin: 18px 0 20px; padding: 20px 18px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); box-shadow: var(--shadow);
-           font-size: 19px; line-height: 1.5; font-weight: 700; word-break: keep-all; }
+           font-size: 19px; line-height: 1.5; font-weight: 700; word-break: keep-all; overflow-wrap: anywhere; }
+  @media (max-height: 700px) {  /* 낮은 화면에서는 문제 영역을 촘촘하게 */
+    .qsent { margin: 10px 0 12px; padding: 14px 16px; font-size: 17px; }
+    .opt.q { padding: 11px 14px; margin-bottom: 8px; font-size: 15px; }
+    .qword { margin-top: 12px; font-size: 36px; }
+  }
+  .gauge { display: flex; align-items: center; gap: 10px; margin: 12px 0 4px; font-size: 12.5px; font-weight: 700; color: var(--sub); }
+  .gauge .gt { flex: 1; height: 8px; border-radius: 4px; background: var(--surface2); overflow: hidden; }
+  .gauge .gt i { display: block; height: 100%; border-radius: 4px; background: var(--accent); transition: width .6s cubic-bezier(.2, .8, .3, 1); }
+  .gauge b { min-width: 58px; text-align: right; color: var(--text); font-size: 14px; }
+  .qtip { margin: 6px 0 0; text-align: center; font-size: 12.5px; color: var(--sub); }
+  .skills { margin: 4px 0 14px; }
+  .sk { display: flex; align-items: center; gap: 10px; margin: 8px 0; font-size: 13.5px; font-weight: 700; }
+  .sk > span { width: 64px; color: var(--sub); }
+  .sk .sb { flex: 1; height: 8px; border-radius: 4px; background: var(--surface2); overflow: hidden; }
+  .sk .sb i { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
+  .sk b { width: 32px; text-align: right; }
+  .sk.off small { color: var(--sub); font-weight: 500; }
+  .sk.off .sb { background: none; border: 1px dashed var(--line2); height: 6px; }
+  .seg { display: flex; padding: 3px; border-radius: 18px; background: var(--surface2); }
+  .seg button { padding: 7px 18px; border: 0; border-radius: 15px; background: transparent; font-size: 14px; font-weight: 700; color: var(--sub); }
+  .seg button.on { background: var(--accent); color: var(--on-accent); }
   .lvbig { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 124px; height: 124px; margin: 8px auto 18px; border-radius: 50%;
            background: var(--accent); color: var(--on-accent); }
   .lvbig small { font-size: 14px; font-weight: 800; }
@@ -559,6 +581,13 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
       </div>
     </div>
 
+    <p class="sec only-set">AI 모델</p>
+    <div class="group only-set">
+      <div class="g-row"><span>대화 모델</span><div class="seg" id="aiseg"><button type="button" data-m="lite">빠름</button><button type="button" data-m="pro">정교</button></div></div>
+    </div>
+    <p class="hint only-set" id="aihint"></p>
+    <p class="hint only-set" id="aiuse"></p>
+
     <p class="sec only-set">학습 레벨</p>
     <div class="group only-set">
       <button type="button" id="obbtn" class="g-row"><span>나의 레벨</span><span class="val"><b id="lvstat"></b><span class="chev"></span></span></button>
@@ -622,7 +651,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
     </div>
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v29</p>
+    <p id="ver">버전 v31</p>
   </div>
 </div>
 
@@ -661,7 +690,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   <div class="hd"><button id="obback" class="back" aria-label="이전" style="visibility:hidden"></button><div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div><span class="sp"></span></div>
   <div class="obprog"><i id="obbar"></i></div>
   <div class="pad" id="obbody"></div>
-  <div class="obfoot"><button type="button" id="obnext" class="obbtn">다음</button><button type="button" id="obskip" class="linkbtn">나중에 할게요</button></div>
+  <div class="obfoot" id="obfoot"><button type="button" id="obnext" class="obbtn">다음</button><button type="button" id="obskip" class="linkbtn">나중에 할게요</button></div>
 </div>
 
 <div id="perm" class="screen">
@@ -716,10 +745,11 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
 
 <script>
 // 설정값: 여기만 고치면 됨
-const MODEL = 'gemini-3.5-flash';  // 모델명
 const MAX_TURNS = 6;               // API로 보낼 최근 대화 횟수
 const SILENCE_MS = 5000;           // 이 시간 동안 말이 없으면 마이크 자동 종료
-const LITE_MODEL = 'gemini-3.5-flash-lite';  // 단어 조회용 가벼운 모델
+const MODELS = { lite: 'gemini-3.5-flash-lite', pro: 'gemini-3.5-flash' };  // 빠름: 하루 한도가 넉넉함, 정교: 더 정확하지만 한도가 적음
+const MODEL_NAME = { lite: '빠름', pro: '정교' };
+let aiMode = localStorage.getItem('aimode') === 'pro' ? 'pro' : 'lite';  // 기본은 빠름
 const BASE_SYSTEM = `You are a friendly English tutor for a Korean learner. Reply in 1-2 short English sentences and end with a simple question. Be perceptive: use the conversation so far and the learner's field of interest to guess what they most likely meant, and answer that.
 The user's text may come from speech recognition: never comment on repeated words, fillers, capitalization, punctuation or apostrophes.
 If the user asks in Korean how to say something in English: reply with only the natural English sentence (no extra question), then a new line "KO:" followed by "이렇게 말하면 돼요." and, if useful, one short note on a key word.
@@ -859,6 +889,23 @@ function toggleScore() {
 }
 $('f-level').onchange = toggleScore;
 
+// AI 모델 선택 표시: 선택 상태, 설명, 오늘 사용 횟수
+function paintAI() {
+  document.querySelectorAll('#aiseg [data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === aiMode));
+  $('aihint').textContent = aiMode === 'lite'
+    ? '하루 한도가 넉넉해요(무료 기준 약 500번으로 알려져 있어요). 답이 조금 단순할 수 있어요.'
+    : '답이 더 정확해요. 대신 하루 한도가 적고(무료 기준 약 20번), 다 되면 빠름 모델로 이어져요.';
+  const u = usageToday();
+  $('aiuse').textContent = `오늘 사용: 빠름 ${u.n[MODELS.lite] || 0}번 · 정교 ${u.n[MODELS.pro] || 0}번. 한도는 ${resetText()}에 초기화돼요. 정확한 한도는 AI Studio에서 확인하세요.`;
+}
+$('aiseg').onclick = e => {
+  const b = e.target.closest('[data-m]');
+  if (!b) return;
+  aiMode = b.dataset.m;
+  localStorage.setItem('aimode', aiMode);
+  paintAI();
+};
+
 // 저장된 값을 입력칸에 채우기
 function fillForm() {
   const p = profile || {};
@@ -873,6 +920,7 @@ function fillForm() {
   $('keystat').className = 'kstat';
   $('keystat').textContent = '';
   $('permstat').textContent = micState === 'granted' ? '허용됨' : '';
+  paintAI();
   $('lvstat').textContent = ob && ob.lvl ? `레벨 ${ob.lvl} · ${LV_NAME[ob.lvl]}` : '테스트하기';
 }
 
@@ -979,7 +1027,7 @@ function el(tag, cls, text) {
 }
 
 // 제미나이 호출 공통 함수: 답변 글자만 돌려줌
-async function gemini(body, model = MODEL, meta = {}) {
+async function gemini(body, model = MODELS[aiMode], meta = {}) {
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
@@ -998,21 +1046,46 @@ async function gemini(body, model = MODEL, meta = {}) {
   meta.finish = cand?.finishReason || '';  // STOP이 아니면 중간에 멈춘 것
   const text = (cand?.content?.parts || []).map(p => p.text || '').join('');  // 여러 조각이면 이어 붙임
   if (!text) throw new Error('빈 응답');
+  bumpUsage(model);
   return text;
 }
 
-// 가벼운 작업(단어 조회 등)은 가벼운 모델로: 한도가 따로 계산됨. 없거나 한도 초과면 기본 모델로 재시도
-async function lite(body) {
-  try { return await gemini(body, LITE_MODEL); }
-  catch (e) { if ((e.code === 404 || e.code === 429) && LITE_MODEL !== MODEL) return gemini(body); throw e; }
+// 무료 한도는 모델마다 하루 횟수가 정해져 있고 태평양 시간 자정에 초기화됨 -> 그 기준으로 오늘 사용 횟수를 셈
+const ptDay = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(new Date());
+function usageToday() {
+  try { const u = JSON.parse(localStorage.getItem('usage') || '{}'); if (u.d === ptDay()) return u; } catch (e) {}
+  return { d: ptDay(), n: {} };
 }
+function bumpUsage(model) {
+  const u = usageToday();
+  u.n[model] = (u.n[model] || 0) + 1;
+  localStorage.setItem('usage', JSON.stringify(u));
+}
+function resetText() {  // 한도가 초기화되는 시각을 내 폰 시간으로
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date());
+  const g = t => +parts.find(x => x.type === t).value;
+  const left = 86400 - ((g('hour') % 24) * 3600 + g('minute') * 60 + g('second'));
+  return new Date(Date.now() + left * 1000).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' });
+}
+// 선택한 모델로 요청하고, 한도(429)가 다 됐거나 모델이 없으면(404) 다른 모델로 한 번 더
+async function askAI(body, meta = {}, prefer = aiMode, quiet = false) {
+  const other = prefer === 'lite' ? 'pro' : 'lite';
+  try { return await gemini(body, MODELS[prefer], meta); }
+  catch (e) {
+    if (e.code !== 429 && e.code !== 404) throw e;
+    const text = await gemini(body, MODELS[other], meta);
+    if (!quiet) toast(`${MODEL_NAME[prefer]} 모델 한도가 다 돼서 ${MODEL_NAME[other]} 모델로 이어갈게요`, 3800);
+    return text;
+  }
+}
+const lite = body => askAI(body, {}, 'lite', true);  // 단어 조회 같은 가벼운 작업은 항상 빠른 모델 먼저
 
 // 오류를 알아보기 쉬운 말로 바꾸기
 function friendly(e) {
   const m = String(e.message || '');
   if (e.code === 429 || /quota|exhausted/i.test(m))
     return { key: true, title: 'AI 사용 한도에 도달했어요',
-      body: 'API 키의 무료 사용량을 모두 썼거나 결제 금액이 소진됐어요. 잠시 뒤에 다시 시도하거나 다른 키로 바꿔 보세요.' };
+      body: `오늘 무료 사용량을 모두 썼어요. 한도는 ${resetText()}쯤 초기화돼요. 결제 수단을 등록한 키라면 금액이 소진됐는지 확인해 주세요.` };
   if (e.code === 403 || (e.code === 400 && /api key/i.test(m)))
     return { key: true, title: 'API 키를 확인해 주세요', body: '키가 올바르지 않거나 사용할 수 없는 상태예요. AI Studio에서 새로 만든 키인지 확인해 주세요.' };
   if (e.code === 503) return { title: '지금 AI가 붐벼요', body: '잠시 뒤에 다시 시도해 주세요.' };
@@ -1402,7 +1475,7 @@ async function startReview() {
   $('chat').append(wait);
   try {
     const first = { role: 'user', parts: [{ text: 'Start the review.' }] };
-    const reply = await gemini({
+    const reply = await askAI({
       system_instruction: { parts: [{ text: reviewSystem(mat) }] },
       contents: [first],
       generationConfig: { temperature: 0.7, maxOutputTokens: 1500 }
@@ -1427,11 +1500,11 @@ async function send(text) {
   $('chat').scrollTop = $('chat').scrollHeight;
   try {
     const meta = {};  // 응답 종료 사유 확인용
-    const reply = await gemini({
+    const reply = await askAI({
       system_instruction: { parts: [{ text: m0 === 'review' ? reviewSystem(revMat) : buildSystem() }] },
       contents: arr.slice(-(MAX_TURNS * 2 - 1)),
       generationConfig: { temperature: 0.7, maxOutputTokens: 1500 }
-    }, MODEL, meta);
+    }, meta);
     arr.push({ role: 'model', parts: [{ text: reply }] });
     if (m0 === 'chat') { chats[dayKey] = history; saveChats(); }
     if (mode !== m0) return;  // 그 사이 화면을 옮겼으면 저장만 하고 끝
@@ -1776,6 +1849,7 @@ $('permbtn').querySelector('.chev').innerHTML = I_CHEV;
 $('permbtn').onclick = () => navTo('perm');
 
 // ===== 온보딩: 목표, 자가진단, 단어 퀴즈, 문장 퀴즈, 학습 계획, 결과 =====
+// 레벨 추정: 답 하나마다 실력 점수(th, 1~5)를 올리거나 내리고(적응형 시험 방식), 충분히 확신되면 일찍 끝냄
 const GOALS = ['일상 대화', '여행', '직장', '시험 준비', '병원', '학교', '교회'];
 const SELF = [
   ['처음이에요', '인사나 자기소개도 영어로 하기 어려워요'],
@@ -1786,100 +1860,169 @@ const SELF = [
 ];
 const LV_DESC = ['', '짧고 쉬운 문장으로 천천히, 한국어 설명을 많이 곁들여요', '일상 단어로 짧게 말하고, 핵심 단어는 한국어로 알려줘요',
   '자연스러운 일상 문장으로 말하고, 고칠 때 한국어로 설명해요', '보통 속도의 자연스러운 영어로, 한국어는 꼭 필요할 때만 써요', '제한 없이 관용 표현과 뉘앙스까지 다뤄요'];
-// 단어: [영어, 뜻, 품사(n 명사, v 동사, a 형용사)], 난이도 1~5. 뜻이 서로 겹치지 않게 골랐음
+// 단어 문제 은행: [영어, 뜻, 품사(n 명사, v 동사, a 형용사)]. 난이도 1~5단계 x 30개, 각 단계 안에서 쉬운 것부터 순서대로.
+// 오답 보기는 같은 품사에서 뽑으므로, 뜻이 서로 겹치는 단어(비슷한말)는 넣지 않았음
 const WORDS = [null,
-  [['hungry', '배고픈', 'a'], ['borrow', '빌리다', 'v'], ['tired', '피곤한', 'a'], ['ticket', '표, 티켓', 'n'], ['kitchen', '부엌', 'n'],
-   ['weather', '날씨', 'n'], ['airport', '공항', 'n'], ['spicy', '매운', 'a'], ['cheap', '값싼', 'a'], ['neighbor', '이웃', 'n']],
-  [['deadline', '마감 기한', 'n'], ['invite', '초대하다', 'v'], ['receipt', '영수증', 'n'], ['cancel', '취소하다', 'v'], ['recommend', '추천하다', 'v'],
-   ['luggage', '짐, 수하물', 'n'], ['crowded', '붐비는', 'a'], ['refund', '환불', 'n'], ['appointment', '약속, 진료 예약', 'n'], ['advice', '조언', 'n']],
-  [['attend', '참석하다', 'v'], ['responsible', '책임이 있는', 'a'], ['improve', '향상시키다', 'v'], ['convenient', '편리한', 'a'], ['requirement', '필요 조건', 'n'],
-   ['reduce', '줄이다', 'v'], ['audience', '청중, 관객', 'n'], ['environment', '환경', 'n'], ['confirm', '확인해 주다', 'v'], ['experience', '경험', 'n']],
-  [['reluctant', '내키지 않는', 'a'], ['negotiate', '협상하다', 'v'], ['obvious', '명백한', 'a'], ['efficient', '효율적인', 'a'], ['accommodate', '수용하다, 맞춰 주다', 'v'],
-   ['consequence', '결과, 영향', 'n'], ['postpone', '연기하다', 'v'], ['criticize', '비판하다', 'v'], ['estimate', '추정하다', 'v'], ['flexible', '유연한', 'a']],
-  [['ambiguous', '모호한', 'a'], ['exaggerate', '과장하다', 'v'], ['inevitable', '불가피한', 'a'], ['scrutinize', '면밀히 조사하다', 'v'], ['comprehensive', '포괄적인', 'a'],
-   ['substantial', '상당한, 실질적인', 'a'], ['coincide', '동시에 일어나다', 'v'], ['prevalent', '널리 퍼진', 'a'], ['deteriorate', '악화되다', 'v'], ['elaborate', '상세히 설명하다', 'v']]
+  [['water', '물', 'n'], ['happy', '행복한', 'a'], ['eat', '먹다', 'v'], ['friend', '친구', 'n'], ['big', '큰', 'a'], ['buy', '사다', 'v'], ['school', '학교', 'n'], ['hungry', '배고픈', 'a'],
+   ['sleep', '자다', 'v'], ['morning', '아침', 'n'], ['hot', '뜨거운, 더운', 'a'], ['borrow', '빌리다', 'v'], ['tired', '피곤한', 'a'], ['ticket', '표, 티켓', 'n'], ['kitchen', '부엌', 'n'],
+   ['weather', '날씨', 'n'], ['airport', '공항', 'n'], ['spicy', '매운', 'a'], ['cheap', '값싼', 'a'], ['neighbor', '이웃', 'n'], ['wait', '기다리다', 'v'], ['cook', '요리하다', 'v'],
+   ['busy', '바쁜', 'a'], ['doctor', '의사', 'n'], ['lost', '길을 잃은', 'a'], ['open', '열다', 'v'], ['quiet', '조용한', 'a'], ['visit', '방문하다', 'v'], ['ready', '준비된', 'a'], ['price', '가격', 'n']],
+  [['deadline', '마감 기한', 'n'], ['invite', '초대하다', 'v'], ['receipt', '영수증', 'n'], ['cancel', '취소하다', 'v'], ['recommend', '추천하다', 'v'], ['luggage', '짐, 수하물', 'n'], ['crowded', '붐비는', 'a'],
+   ['refund', '환불', 'n'], ['appointment', '약속, 진료 예약', 'n'], ['advice', '조언', 'n'], ['arrive', '도착하다', 'v'], ['medicine', '약', 'n'], ['delicious', '아주 맛있는', 'a'], ['fever', '열', 'n'],
+   ['exercise', '운동', 'n'], ['dangerous', '위험한', 'a'], ['password', '비밀번호', 'n'], ['prepare', '준비하다', 'v'], ['expensive', '비싼', 'a'], ['traffic', '교통', 'n'], ['complain', '불평하다', 'v'],
+   ['comfortable', '편안한', 'a'], ['schedule', '일정', 'n'], ['discount', '할인', 'n'], ['pack', '짐을 싸다', 'v'], ['patient', '환자', 'n'], ['explain', '설명하다', 'v'], ['polite', '예의 바른', 'a'],
+   ['lonely', '외로운', 'a'], ['repair', '수리하다', 'v']],
+  [['attend', '참석하다', 'v'], ['responsible', '책임이 있는', 'a'], ['improve', '향상시키다', 'v'], ['convenient', '편리한', 'a'], ['requirement', '필요 조건', 'n'], ['reduce', '줄이다', 'v'],
+   ['audience', '청중, 관객', 'n'], ['environment', '환경', 'n'], ['confirm', '확인해 주다', 'v'], ['experience', '경험', 'n'], ['gather', '모으다', 'v'], ['relationship', '관계', 'n'],
+   ['opportunity', '기회', 'n'], ['available', '이용 가능한', 'a'], ['employ', '고용하다', 'v'], ['temporary', '임시의', 'a'], ['permission', '허가', 'n'], ['avoid', '피하다', 'v'],
+   ['compare', '비교하다', 'v'], ['valuable', '가치 있는', 'a'], ['symptom', '증상', 'n'], ['depend', '달려 있다, 의존하다', 'v'], ['average', '평균의, 보통의', 'a'], ['consider', '고려하다', 'v'],
+   ['tradition', '전통', 'n'], ['anxious', '불안한', 'a'], ['achieve', '달성하다', 'v'], ['resource', '자원', 'n'], ['lend', '빌려주다', 'v'], ['independent', '독립적인', 'a']],
+  [['reluctant', '내키지 않는', 'a'], ['negotiate', '협상하다', 'v'], ['obvious', '명백한', 'a'], ['efficient', '효율적인', 'a'], ['accommodate', '수용하다, 맞춰 주다', 'v'], ['consequence', '결과, 영향', 'n'],
+   ['postpone', '연기하다', 'v'], ['criticize', '비판하다', 'v'], ['estimate', '추정하다', 'v'], ['flexible', '유연한', 'a'], ['regulation', '규정, 규제', 'n'], ['emphasize', '강조하다', 'v'],
+   ['sufficient', '충분한', 'a'], ['acquire', '습득하다, 얻다', 'v'], ['controversial', '논란이 많은', 'a'], ['evidence', '증거', 'n'], ['accurate', '정확한', 'a'], ['sustain', '지속하다', 'v'],
+   ['approach', '접근법', 'n'], ['subtle', '미묘한', 'a'], ['inquire', '문의하다', 'v'], ['shortage', '부족', 'n'], ['implement', '실행하다', 'v'], ['random', '무작위의', 'a'],
+   ['authority', '권위, 당국', 'n'], ['hesitate', '망설이다', 'v'], ['concise', '간결한', 'a'], ['invest', '투자하다', 'v'], ['complicated', '복잡한', 'a'], ['commute', '통근하다', 'v']],
+  [['ambiguous', '모호한', 'a'], ['exaggerate', '과장하다', 'v'], ['inevitable', '불가피한', 'a'], ['scrutinize', '면밀히 조사하다', 'v'], ['comprehensive', '포괄적인', 'a'], ['substantial', '상당한, 실질적인', 'a'],
+   ['coincide', '동시에 일어나다', 'v'], ['prevalent', '널리 퍼진', 'a'], ['deteriorate', '악화되다', 'v'], ['elaborate', '상세히 설명하다', 'v'], ['inherent', '내재된, 본질적인', 'a'], ['refine', '다듬다, 정제하다', 'v'],
+   ['plausible', '그럴듯한', 'a'], ['advocate', '옹호하다', 'v'], ['meticulous', '꼼꼼한', 'a'], ['pragmatic', '실용적인', 'a'], ['discrepancy', '불일치, 모순', 'n'], ['fluctuate', '오르내리다', 'v'],
+   ['bias', '편견, 편향', 'n'], ['resilient', '회복력 있는', 'a'], ['allocate', '배분하다', 'v'], ['circumstance', '상황, 사정', 'n'], ['contradict', '모순되다, 반박하다', 'v'], ['stringent', '엄격한', 'a'],
+   ['proponent', '지지자', 'n'], ['reconcile', '조화시키다', 'v'], ['endeavor', '노력하다', 'v'], ['volatile', '변덕스러운, 급변하는', 'a'], ['redundant', '불필요한, 중복된', 'a'], ['lucrative', '수익이 많이 나는', 'a']]
 ];
+// 각 단어의 난이도 b: 단계 값을 중심으로 단계 안에서 -0.4 ~ +0.4
 const ALLW = [];
-WORDS.forEach((ws, band) => ws && ws.forEach(w => ALLW.push({ en: w[0], ko: w[1], pos: w[2], band })));
-// 문장: [난이도, 영어, 맞는 뜻, 틀린 뜻 3개]
+WORDS.forEach((ws, band) => ws && ws.forEach((w, i) => ALLW.push({ id: w[0], en: w[0], ko: w[1], pos: w[2], b: band - 0.4 + 0.8 * i / (ws.length - 1) })));
+// 문장 문제 은행: [난이도 단계, 영어, 맞는 뜻, 틀린 뜻 3개], 단계당 4개 (시제, 조건, 도치, 가정법 같은 쓰임을 함께 봄)
 const SENT = [
   [1, "I'm hungry. Let's eat lunch.", '배고파요. 점심 먹어요.', ['피곤해요. 집에 가요.', '덥네요. 창문을 열어요.', '바빠요. 내일 만나요.']],
+  [1, 'Where is the bathroom?', '화장실이 어디예요?', ['지금 몇 시예요?', '이 근처에 식당이 있나요?', '어디에서 오셨어요?']],
+  [1, "I don't like coffee, but I like tea.", '커피는 싫어하지만 차는 좋아해요.', ['커피와 차를 모두 좋아해요.', '차는 싫지만 커피는 좋아해요.', '커피도 차도 마시지 않아요.']],
+  [1, 'My phone is on the table.', '제 휴대폰은 탁자 위에 있어요.', ['제 휴대폰은 탁자 아래에 있어요.', '제 휴대폰은 가방 안에 있어요.', '탁자에 휴대폰을 두고 왔어요.']],
   [2, 'Could you recommend a good restaurant near here?', '이 근처 맛집을 추천해 주시겠어요?', ['여기서 가까운 역이 어디예요?', '이 식당은 예약이 꽉 찼어요.', '오늘 저녁에 같이 식사할래요?']],
+  [2, 'I have had a headache since yesterday.', '어제부터 머리가 아파요.', ['어제 머리를 다쳤어요.', '오늘 아침에 두통약을 먹었어요.', '어제는 머리가 아프지 않았어요.']],
+  [2, 'The meeting was moved to next Tuesday.', '회의가 다음 주 화요일로 옮겨졌어요.', ['회의가 지난 화요일에 열렸어요.', '다음 주 화요일에 회의를 취소했어요.', '회의는 화요일마다 열려요.']],
+  [2, 'You should take this medicine after meals.', '이 약은 식사 후에 드셔야 해요.', ['이 약은 식사 전에 드셔야 해요.', '식사를 하지 않고 이 약을 드세요.', '이 약은 하루에 한 번만 드세요.']],
   [3, 'I would have called you, but my phone ran out of battery.', '전화했을 텐데, 휴대폰 배터리가 다 나가서 못 했어요.', ['전화를 걸었지만 아무도 받지 않았어요.', '배터리를 충전하려고 전화를 걸었어요.', '휴대폰이 고장 나서 새로 샀어요.']],
+  [3, "If it rains tomorrow, we'll have to cancel the picnic.", '내일 비가 오면 소풍을 취소해야 해요.', ['내일 비가 와도 소풍을 갈 거예요.', '어제 비가 와서 소풍을 취소했어요.', '소풍을 취소하면 내일 비가 올 거예요.']],
+  [3, 'She asked me whether I had finished the report.', '그녀는 내가 보고서를 끝냈는지 물어봤어요.', ['그녀는 내게 보고서를 끝내라고 시켰어요.', '그녀는 보고서를 이미 끝냈다고 말했어요.', '내가 그녀에게 보고서를 끝냈는지 물어봤어요.']],
+  [3, 'The package should have arrived by now.', '소포가 지금쯤 도착했어야 해요.', ['소포가 방금 도착했어요.', '소포는 아직 보내지 않았어요.', '소포가 곧 도착할 예정이에요.']],
   [4, "Unless the report is finished by Friday, we'll have to postpone the launch.", '금요일까지 보고서가 끝나지 않으면 출시를 미뤄야 해요.', ['금요일에 보고서를 끝내면 출시를 미룰 거예요.', '보고서가 끝나서 금요일에 출시할 수 있어요.', '출시를 미루려면 금요일까지 보고서를 내야 해요.']],
-  [5, "Had I known the risks, I wouldn't have agreed to the deal so readily.", '위험을 알았더라면 그 거래에 그렇게 쉽게 동의하지 않았을 거예요.', ['위험을 알고도 그 거래에 기꺼이 동의했어요.', '그 거래가 위험하지 않다는 것을 알게 됐어요.', '위험을 알게 되어 거래를 더 빨리 끝냈어요.']]
+  [4, 'Not only did he apologize, but he also offered to pay for the damage.', '그는 사과했을 뿐 아니라 피해 비용도 내겠다고 했어요.', ['그는 사과하지 않고 피해 비용만 내겠다고 했어요.', '그는 사과했지만 피해 비용은 내지 않겠다고 했어요.', '그는 피해 비용을 내고 나서야 사과했어요.']],
+  [4, 'The proposal, which was submitted last week, has yet to be approved.', '지난주에 제출된 제안서는 아직 승인되지 않았어요.', ['지난주에 제안서가 승인되었어요.', '제안서를 이번 주에 제출할 예정이에요.', '승인된 제안서는 지난주에 반려됐어요.']],
+  [4, 'I wish I had taken your advice earlier.', '당신의 조언을 더 일찍 따랐더라면 좋았을 텐데요.', ['당신의 조언을 일찍 따라서 다행이에요.', '당신에게 조언을 더 일찍 해 줄 걸 그랬어요.', '조언을 듣고 싶지 않았어요.']],
+  [5, "Had I known the risks, I wouldn't have agreed to the deal so readily.", '위험을 알았더라면 그 거래에 그렇게 쉽게 동의하지 않았을 거예요.', ['위험을 알고도 그 거래에 기꺼이 동의했어요.', '그 거래가 위험하지 않다는 것을 알게 됐어요.', '위험을 알게 되어 거래를 더 빨리 끝냈어요.']],
+  [5, 'Rarely does a company recover so quickly from such a scandal.', '회사가 그런 스캔들에서 그렇게 빨리 회복하는 일은 드물어요.', ['회사는 스캔들에서 자주 빠르게 회복해요.', '그 스캔들 때문에 회사가 빠르게 성장했어요.', '그런 스캔들은 회사에서 거의 일어나지 않아요.']],
+  [5, 'The committee is disinclined to endorse any plan that lacks measurable outcomes.', '위원회는 측정 가능한 성과가 없는 계획은 지지하고 싶어 하지 않아요.', ['위원회는 측정 가능한 성과가 있는 계획만 만들었어요.', '위원회는 모든 계획을 조건 없이 지지해요.', '위원회는 성과를 측정할 수 없어서 해산됐어요.']],
+  [5, 'Her argument, though compelling on the surface, collapses under scrutiny.', '그녀의 주장은 겉보기에는 설득력 있지만 꼼꼼히 따져 보면 무너져요.', ['그녀의 주장은 처음에는 약해 보이지만 조사하면 더 탄탄해져요.', '그녀는 조사 결과를 무시하고 주장을 굽히지 않았어요.', '그녀의 주장은 표면적으로도 설득력이 없어요.']]
 ];
-const NVOC = 12;  // 단어 문항 수
+const SENTB = SENT.map((s, i) => ({ id: 's' + i, b: s[0] - 0.3 + 0.2 * (i % 4), en: s[1], ok: s[2], wrong: s[3] }));
+
+// 실력 점수 계산: 문제 난이도(b)와 내 점수(th)의 차이로 '맞힐 확률'을 구하고, 결과가 예상과 다른 만큼 점수를 조정
+const G = 0.25, SLOPE = 1.4;          // 4지선다에서 찍어 맞힐 확률, 문제가 실력을 가르는 정도
+const VMIN = 8, VMAX = 18, SE_STOP = 0.45;  // 단어 문제는 최소 8개, 최대 18개, 충분히 확신되고 점수가 안정되면 끝
+const NREAD = 5;                      // 문장 문제 수
 const clampLv = n => Math.min(5, Math.max(1, n));
 const shuffle = a => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
-let obs = null;  // 진행 중인 온보딩 상태
+const pOk = (th, b, g) => g + (1 - g) / (1 + Math.exp(-SLOPE * (th - b)));
+const newSkill = th => ({ th, n: 0, info: 0, h: [] });  // h: 점수 변화 기록
+const seOf = sk => 1 / Math.sqrt(1 + sk.info);  // 확신이 높을수록 작아짐
+const stable = sk => { const h = sk.h.slice(-3); return h.length < 3 || Math.max(...h) - Math.min(...h) < 0.3; };  // 최근 점수가 거의 안 움직이면 안정
+function grade(sk, b, ok, idk, ms) {
+  const g = idk ? 0 : G;  // '모르겠어요'는 찍은 게 아니라 정말 모르는 것
+  const p = pOk(sk.th, b, g);
+  let k = Math.max(0.25, 1.6 / (1 + 0.35 * sk.n));  // 처음엔 크게 움직여 빨리 찾고, 갈수록 조금씩 조정
+  if (ok && ms < 2500) k *= 1.15;          // 빨리 맞히면 확실히 아는 것
+  else if (ok && ms > 12000) k *= 0.8;     // 오래 걸려 맞힌 것은 약하게
+  else if (!ok && !idk && ms < 1500) k *= 0.8;  // 성급한 오답도 약하게
+  sk.th = Math.min(5.5, Math.max(0.5, sk.th + k * ((ok ? 1 : 0) - p)));
+  sk.info += SLOPE * SLOPE * ((1 - p) / p) * ((p - g) / (1 - g)) ** 2;
+  sk.n++;
+  sk.h.push(sk.th);
+}
+function estimate() {  // 자가진단(약한 근거)과 단어, 문장 결과를 확신도만큼 섞음
+  const parts = [[obs.self, 0.8], [obs.v.th, obs.v.info], [obs.r.th, obs.r.info]];
+  const I = parts.reduce((a, p) => a + p[1], 0);
+  return { th: parts.reduce((a, p) => a + p[0] * p[1], 0) / I, se: 1 / Math.sqrt(I) };
+}
+const nearest = (bank, sk, used) => bank.filter(x => !used.has(x.id)).map(x => [Math.abs(x.b - sk.th) + Math.random() * 0.3, x]).sort((a, b) => a[0] - b[0])[0][1];  // 지금 실력에 가장 가까운 문제
 
-function askWord() {  // 지금 난이도에서 아직 안 낸 단어 하나 + 같은 품사의 비슷한 난이도 오답 3개
-  const pool = ALLW.filter(w => w.band === obs.band && !obs.used.has(w.en));
-  const w = pool[Math.floor(Math.random() * pool.length)] || ALLW.find(x => x.band === obs.band);
-  obs.used.add(w.en);
-  const wrong = ALLW.filter(x => x.pos === w.pos && x.en !== w.en).map(x => [Math.abs(x.band - w.band) + Math.random() * 2, x])
-    .sort((a, b) => a[0] - b[0]).slice(0, 3).map(p => p[1].ko);
-  return { en: w.en, ko: w.ko, band: w.band, opts: shuffle([w.ko, ...wrong]) };
+let obs = null;  // 진행 중인 온보딩 상태
+function askWord() {
+  const w = nearest(ALLW, obs.v, obs.used);
+  obs.used.add(w.id);
+  const wrong = ALLW.filter(x => x.pos === w.pos && x.id !== w.id).map(x => [Math.abs(x.b - w.b) + Math.random() * 1.5, x])
+    .sort((a, b) => a[0] - b[0]).slice(0, 3).map(p => p[1].ko);  // 같은 품사에서 비슷한 난이도의 오답 3개
+  obs.t0 = Date.now();
+  return { id: w.id, en: w.en, ko: w.ko, b: w.b, opts: shuffle([w.ko, ...wrong]) };
 }
 function askSent() {
-  const s = SENT[obs.sres.length];
-  return { en: s[1], ok: s[2], opts: shuffle([s[2], ...s[3]]) };
+  const s = nearest(SENTB, obs.r, obs.usedS);
+  obs.usedS.add(s.id);
+  obs.t0 = Date.now();
+  return { id: s.id, en: s.en, ok: s.ok, b: s.b, opts: shuffle([s.ok, ...s.wrong]) };
 }
 function obGo(step) {
   obs.step = step;
-  if (step === 'vocab') { obs.vq = []; obs.band = obs.self; obs.used = new Set(); obs.q = askWord(); }
-  if (step === 'read') { obs.sres = []; obs.q = askSent(); }
+  if (step === 'vocab') { obs.v = newSkill(0.6 * obs.self + 0.4 * 3); obs.used = new Set(); obs.log = []; obs.q = askWord(); }
+  if (step === 'read') { obs.r = newSkill(obs.v.th); obs.usedS = new Set(); obs.q = askSent(); }
   renderOb();
 }
 function obStart() {
   const p = ob && ob.lvl ? ob : {};
-  obs = { step: 'goal', goals: [...(p.goals || [])], self: 0, days: p.days || 5, mins: p.mins || 20 };
+  obs = { step: 'goal', goals: [...(p.goals || [])], self: 0, days: p.days || 5, mins: p.mins || 20, v: newSkill(3), r: newSkill(3) };
   renderOb();
 }
 function obFraction() {
   const st = obs.step;
-  return st === 'goal' ? 0.04 : st === 'self' ? 0.12 : st === 'vocab' ? 0.12 + 0.5 * obs.vq.length / NVOC
-    : st === 'read' ? 0.62 + 0.24 * obs.sres.length / SENT.length : st === 'plan' ? 0.92 : 1;
+  return st === 'goal' ? 0.04 : st === 'self' ? 0.12 : st === 'vocab' ? 0.12 + 0.5 * Math.min(1, obs.v.n / 12)
+    : st === 'read' ? 0.62 + 0.24 * obs.r.n / NREAD : st === 'plan' ? 0.92 : 1;
 }
+const lvPct = v => Math.round((Math.min(5, Math.max(1, v)) - 1) / 4 * 100);
 function renderOb(anim = true) {
   const st = obs.step, box = $('obbody'), inSettings = (window.history.state?.d || 0) > 0;
   const chip = (a, v, t, on) => `<button type="button" class="chipb${on ? ' on' : ''}" data-a="${a}" data-v="${v}">${t}</button>`;
-  let h = '', next = '다음', can = true, showNext = true;
+  const opts = (a, q, idk) => `${q.opts.map((o, i) => `<button type="button" class="opt q" data-a="${a}" data-v="${i}"><span>${o}</span></button>`).join('')}
+      <button type="button" class="opt q idk" data-a="${a}" data-v="-1"><span>${idk}</span></button>`;
+  let h = '', next = '다음', can = true, showNext = true, g1 = null;
   if (st === 'goal') {
     h = `<h2>어떤 영어가 필요하세요?</h2><p class="sub">가장 필요한 것을 최대 2개 골라 주세요. 연습 상황과 예문이 여기에 맞춰져요.</p>
       <div class="chips">${GOALS.map(g => chip('goal', g, g, obs.goals.includes(g))).join('')}</div>`;
     can = obs.goals.length > 0;
   } else if (st === 'self') {
-    h = `<h2>지금 영어는 어느 정도예요?</h2><p class="sub">가장 가까운 것을 골라 주세요. 다음 단계에서 다시 확인해요.</p>
+    h = `<h2>지금 영어는 어느 정도예요?</h2><p class="sub">가장 가까운 것을 골라 주세요. 다음 단계에서 실제로 확인해요.</p>
       ${SELF.map((s, i) => `<button type="button" class="opt${obs.self === i + 1 ? ' on' : ''}" data-a="self" data-v="${i + 1}"><span class="num">${i + 1}</span><span><b>${s[0]}</b><small>${s[1]}</small></span></button>`).join('')}`;
     can = obs.self > 0;
-  } else if (st === 'vocab') {
+  } else if (st === 'vocab' || st === 'read') {
     showNext = false;
-    h = `<p class="qcount">단어 ${obs.vq.length + 1} / ${NVOC}</p><div class="qword">${obs.q.en}</div><div class="qhint" id="qspk"></div>
-      ${obs.q.opts.map((o, i) => `<button type="button" class="opt q" data-a="w" data-v="${i}">${o}</button>`).join('')}
-      <button type="button" class="opt q idk" data-a="w" data-v="-1">모르겠어요</button>`;
-  } else if (st === 'read') {
-    showNext = false;
-    h = `<p class="qcount">문장 ${obs.sres.length + 1} / ${SENT.length}</p><div class="qsent">${obs.q.en}</div>
-      ${obs.q.opts.map((o, i) => `<button type="button" class="opt q" data-a="s" data-v="${i}">${o}</button>`).join('')}
-      <button type="button" class="opt q idk" data-a="s" data-v="-1">잘 모르겠어요</button>`;
+    const e = estimate(), val = Math.min(5, Math.max(1, e.th)), cur = lvPct(val);
+    g1 = cur;
+    const gauge = `<div class="gauge"><span>실력 추정</span><div class="gt"><i id="gf" style="width:${obs.gPrev ?? cur}%"></i></div><b>Lv ${val.toFixed(1)}</b></div>`;
+    if (st === 'vocab') {
+      h = `<p class="qcount">단어 ${obs.v.n + 1}번째</p>${gauge}${obs.v.n === 0 ? '<p class="qtip">정답이면 어려운 문제가, 모르면 쉬운 문제가 나와요</p>' : ''}
+        <div class="qword">${obs.q.en}</div><div class="qhint" id="qspk"></div>${opts('w', obs.q, '모르겠어요')}`;
+    } else {
+      h = `<p class="qcount">문장 ${obs.r.n + 1} / ${NREAD}</p>${gauge}<div class="qsent">${obs.q.en}</div>${opts('s', obs.q, '잘 모르겠어요')}`;
+    }
   } else if (st === 'plan') {
     h = `<h2>학습 계획을 정해요</h2><p class="sub">나중에 설정에서 바꿀 수 있어요.</p>
       <p class="qlabel">일주일에</p><div class="chips">${[3, 5, 7].map(d => chip('days', d, d + '일', obs.days === d)).join('')}</div>
       <p class="qlabel">하루에</p><div class="chips">${[10, 20, 30].map(m => chip('mins', m, m + '분', obs.mins === m)).join('')}</div>`;
     next = '결과 보기';
   } else {
-    const sg = obs.sig, low = obs.conf === 'low';
+    const sg = obs.sig, low = obs.conf === 'low', [lo, hi] = obs.range;
+    const bar = (label, v) => `<div class="sk"><span>${label}</span><div class="sb"><i style="width:${lvPct(v)}%"></i></div><b>${Math.min(5, Math.max(1, v)).toFixed(1)}</b></div>`;
     h = `<div class="lvbig"><small>레벨</small><b>${obs.lvl}</b></div><h2 class="c">${LV_NAME[obs.lvl]}</h2>
       <p class="sub c">${LV_DESC[obs.lvl]}</p>
-      <div class="sigs"><span>자가진단 ${sg.self}</span><span>단어 ${Math.round(sg.vocab)}</span><span>문장 ${sg.read}</span></div>
-      <p class="note">${low ? '결과가 서로 조금 달라요. ' : ''}처음 정한 레벨이라 정확하지 않을 수 있어요. 대화하면서 계속 맞춰 갈게요.</p>
+      <div class="skills">${bar('어휘', sg.vocab)}${bar('문장 이해', sg.read)}<div class="sk off"><span>표현</span><div class="sb"></div><small>대화하며 알아가요</small></div></div>
+      <p class="note">추정 범위: 레벨 ${lo === hi ? lo : lo + '~' + hi}${low ? ' · 결과가 조금 달라요' : ''}<br>처음 정한 레벨이라 정확하지 않을 수 있어요. 대화하면서 계속 맞춰 갈게요.</p>
       <div class="adj"><button type="button" class="pill ghost" data-a="adj" data-v="-1">한 단계 쉽게</button><button type="button" class="pill ghost" data-a="adj" data-v="1">한 단계 어렵게</button></div>`;
     next = inSettings ? '저장하기' : '이 레벨로 시작하기';
   }
   box.innerHTML = h;
   if (st === 'vocab') $('qspk').append(spkBtn(obs.q.en));
+  if (g1 !== null) {  // 막대가 이전 값에서 새 값으로 움직이게
+    requestAnimationFrame(() => { const f = $('gf'); if (f) f.style.width = g1 + '%'; });
+    obs.gPrev = g1;
+  }
   box.classList.remove('step');
   if (anim) { void box.offsetWidth; box.classList.add('step'); }
   $('obbar').style.width = Math.round(obFraction() * 100) + '%';
@@ -1888,19 +2031,20 @@ function renderOb(anim = true) {
   $('obnext').disabled = !can;
   $('obback').style.visibility = st === 'self' || st === 'result' || (st === 'goal' && inSettings) ? 'visible' : 'hidden';
   $('obskip').style.display = st === 'goal' && !inSettings ? '' : 'none';
+  $('obfoot').style.display = showNext || st === 'goal' ? '' : 'none';
 }
 function obDone() {  // 온보딩을 마치고 나가기
   obs = null;
   if ((window.history.state?.d || 0) > 0) goBack(); else setRoot(permsDone() ? 'menu' : 'perm');
 }
 function obResult() {
-  const self = obs.self;
-  const last = obs.vq.slice(-8);
-  const vocab = clampLv(last.reduce((a, q) => a + q.band, 0) / last.length - (last.some(q => !q.ok) ? 0.4 : 0));  // 틀린 문제가 있으면, 겨우 맞히는 수준보다 살짝 낮게
-  const read = 1 + obs.sres.filter((r, i) => i > 0 && r).length;  // 첫 문장은 몸풀기라 점수에서 제외
-  obs.sig = { self, vocab: +vocab.toFixed(1), read };
-  obs.lvl = clampLv(Math.round(0.1 * self + 0.5 * vocab + 0.4 * read));  // 자가진단은 가장 덜 믿을 만해서 비중을 낮춤 (처음 정한 값이라 써 보며 조정)
-  obs.conf = Math.max(self, vocab, read) - Math.min(self, vocab, read) <= 1.2 ? 'mid' : 'low';
+  const e = estimate();
+  obs.th = e.th;
+  obs.se = e.se;
+  obs.lvl = clampLv(Math.round(e.th));
+  obs.range = [clampLv(Math.round(e.th - 1.28 * e.se)), clampLv(Math.round(e.th + 1.28 * e.se))];  // 약 80% 범위
+  obs.sig = { self: obs.self, vocab: obs.v.th, read: obs.r.th };
+  obs.conf = e.se <= 0.45 && Math.abs(obs.v.th - obs.r.th) <= 1.2 ? 'mid' : 'low';
 }
 $('obbody').onclick = e => {
   const b = e.target.closest('[data-a]');
@@ -1913,22 +2057,28 @@ $('obbody').onclick = e => {
   if (a === 'self') { obs.self = +b.dataset.v; return renderOb(false); }
   if (a === 'days') { obs.days = +b.dataset.v; return renderOb(false); }
   if (a === 'mins') { obs.mins = +b.dataset.v; return renderOb(false); }
-  if (a === 'adj') { obs.lvl = clampLv(obs.lvl + +b.dataset.v); return renderOb(false); }
+  if (a === 'adj') {
+    obs.th = Math.min(5, Math.max(1, obs.th + +b.dataset.v));
+    obs.lvl = clampLv(Math.round(obs.th));
+    return renderOb(false);
+  }
   if (a === 'w' || a === 's') {
     if (obs.busy) return;
     obs.busy = true;
     b.classList.add('pick');
-    const idx = +b.dataset.v, q = obs.q;
+    const idx = +b.dataset.v, q = obs.q, ms = Date.now() - obs.t0;
     setTimeout(() => {
       obs.busy = false;
       if (a === 'w') {
         const ok = idx >= 0 && q.opts[idx] === q.ko;
-        obs.vq.push({ band: q.band, ok });
-        obs.band = clampLv(obs.band + (ok ? 1 : -1));  // 맞히면 어렵게, 틀리면 쉽게
-        if (obs.vq.length >= NVOC) obGo('read'); else { obs.q = askWord(); renderOb(); }
+        grade(obs.v, q.b, ok, idx < 0, ms);
+        obs.log.push(['w', q.id, +q.b.toFixed(1), ok ? 1 : 0, Math.round(ms / 100) / 10]);
+        if (obs.v.n >= VMAX || (obs.v.n >= VMIN && seOf(obs.v) <= SE_STOP && stable(obs.v))) obGo('read'); else { obs.q = askWord(); renderOb(); }
       } else {
-        obs.sres.push(idx >= 0 && q.opts[idx] === q.ok);
-        if (obs.sres.length >= SENT.length) obGo('plan'); else { obs.q = askSent(); renderOb(); }
+        const ok = idx >= 0 && q.opts[idx] === q.ok;
+        grade(obs.r, q.b, ok, idx < 0, ms);
+        obs.log.push(['s', q.id, +q.b.toFixed(1), ok ? 1 : 0, Math.round(ms / 100) / 10]);
+        if (obs.r.n >= NREAD) obGo('plan'); else { obs.q = askSent(); renderOb(); }
       }
     }, 170);
   }
@@ -1939,7 +2089,8 @@ $('obnext').onclick = () => {
   else if (st === 'self') obGo('vocab');
   else if (st === 'plan') { obResult(); obGo('result'); }
   else if (st === 'result') {
-    ob = { lvl: obs.lvl, goals: obs.goals, mins: obs.mins, days: obs.days, conf: obs.conf, sig: obs.sig, checked: false, at: dayKey };
+    ob = { lvl: obs.lvl, th: +obs.th.toFixed(2), se: +obs.se.toFixed(2), goals: obs.goals, mins: obs.mins, days: obs.days, conf: obs.conf,
+           sig: { self: obs.sig.self, vocab: +obs.sig.vocab.toFixed(2), read: +obs.sig.read.toFixed(2) }, log: obs.log, checked: false, at: dayKey };
     localStorage.setItem('ob', JSON.stringify(ob));
     profile = profile || {};
     profile.field = ob.goals.join(', ');  // 오늘의 표현과 튜터가 쓰는 분야
@@ -1974,8 +2125,9 @@ function maybeAskLevel() {
   [['쉬웠어요', 1], ['딱 좋아요', 0], ['어려웠어요', -1]].forEach(([t, d]) => {
     const b = el('button', d === 0 ? 'pill' : 'pill ghost', t);
     b.onclick = () => {
-      const to = clampLv(ob.lvl + d);
-      const said = to === ob.lvl ? (d === 0 ? '좋아요! 지금 난이도로 이어갈게요.' : `이미 레벨 ${ob.lvl}로 가장 ${d > 0 ? '어려운' : '쉬운'} 단계예요.`) : `레벨 ${to} (${LV_NAME[to]})로 맞췄어요.`;
+      const th = Math.min(5, Math.max(1, (ob.th || ob.lvl) + d)), to = clampLv(Math.round(th));
+      const said = d === 0 ? '좋아요! 지금 난이도로 이어갈게요.' : to === ob.lvl ? `이미 레벨 ${ob.lvl}로 가장 ${d > 0 ? '어려운' : '쉬운'} 단계예요.` : `레벨 ${to} (${LV_NAME[to]})로 맞췄어요.`;
+      ob.th = th;
       ob.lvl = to;
       localStorage.setItem('ob', JSON.stringify(ob));
       c.textContent = said + ' 설정에서 언제든 바꿀 수 있어요.';
