@@ -70,9 +70,12 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
     color-scheme: light;
   }
   * { -webkit-tap-highlight-color: transparent; }
+  html { background: var(--bg); }
   html, body { overscroll-behavior-y: contain; }  /* 아래로 당겨 새로고침되는 것 방지 */
-  body { margin: 0; height: 100vh; height: 100dvh; display: flex; flex-direction: column; font-family: var(--font);
+  body { margin: 0 auto; max-width: 520px; box-sizing: border-box; height: 100vh; height: 100dvh; display: flex; flex-direction: column; font-family: var(--font);
          background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+  html.vh body { height: var(--app-h); }  /* dvh를 모르는 구형 브라우저용 */
+  @media (min-width: 560px) { body { border-left: 1px solid var(--line); border-right: 1px solid var(--line); } }
   button { font: inherit; color: inherit; cursor: pointer; transition: transform .12s ease, background .2s ease; }
   button:active:not(:disabled) { transform: scale(.97); }
   input, select { font: inherit; color: var(--text); }
@@ -232,6 +235,31 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
            transform: translateX(-50%) translateY(10px); transition: opacity .25s, transform .25s; white-space: nowrap; }
   #toast.show { opacity: 1; transform: translateX(-50%); }
 
+  /* 화면 전환: 탭은 페이드, 앞으로/뒤로는 옆으로 밀기 */
+  #tabs { view-transition-name: tabs; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .28s; animation-timing-function: cubic-bezier(.2, .8, .3, 1); mix-blend-mode: normal; }
+  html[data-nav="tab"]::view-transition-old(root) { animation-name: vt-out; animation-duration: .14s; }
+  html[data-nav="tab"]::view-transition-new(root) { animation-name: vt-fade; animation-duration: .24s; }
+  html[data-nav="push"]::view-transition-old(root) { animation-name: vt-push-out; }
+  html[data-nav="push"]::view-transition-new(root) { animation-name: vt-push-in; }
+  html[data-nav="pop"]::view-transition-old(root) { animation-name: vt-pop-out; }
+  html[data-nav="pop"]::view-transition-new(root) { animation-name: vt-pop-in; }
+  @keyframes vt-out { to { opacity: 0; } }
+  @keyframes vt-fade { from { opacity: 0; transform: translateY(8px); } }
+  @keyframes vt-push-in { from { opacity: 0; transform: translateX(32px); } }
+  @keyframes vt-push-out { to { opacity: 0; transform: translateX(-20px); } }
+  @keyframes vt-pop-in { from { opacity: 0; transform: translateX(-20px); } }
+  @keyframes vt-pop-out { to { opacity: 0; transform: translateX(32px); } }
+
+  .inapp { display: none; position: fixed; left: 50%; top: 12px; z-index: 70; width: min(496px, calc(100% - 24px)); box-sizing: border-box; transform: translateX(-50%);
+           padding: 14px 16px; border: 1px solid var(--accent-line); border-radius: 20px; background: var(--surface); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
+  .inapp b { font-size: 15px; }
+  .inapp p { margin: 6px 0 12px; font-size: 13.5px; line-height: 1.55; color: var(--sub); }
+  .inapp p b { color: var(--text); font-size: 13.5px; }
+  .inapp .ia { display: flex; gap: 8px; }
+  .install.hint { pointer-events: none; border-style: solid; }
+  .install.hint .go { display: none; }
+
   /* 설정 화면 */
   .sec { display: flex; align-items: center; gap: 8px; margin: 24px 4px 8px; font-size: 13px; font-weight: 700; color: var(--sub); }
   .sec:first-of-type { margin-top: 6px; }
@@ -307,7 +335,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .sheet { position: fixed; inset: 0; z-index: 50; display: none; }
   .sheet.open { display: block; }
   .sheet .dim { position: absolute; inset: 0; background: rgba(0, 0, 0, .55); }
-  .sheet .panel { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 20px calc(18px + env(safe-area-inset-bottom));
+  .sheet .panel { position: absolute; left: 0; right: 0; bottom: 0; max-width: 520px; margin: 0 auto; padding: 10px 20px calc(18px + env(safe-area-inset-bottom));
                   border-radius: 28px 28px 0 0; background: var(--surface); animation: sheetup .22s ease-out; }
   @keyframes sheetup { from { transform: translateY(36px); opacity: 0; } to { transform: none; opacity: 1; } }
   .grab { width: 40px; height: 4px; margin: 0 auto 14px; border-radius: 2px; background: var(--line2); }
@@ -475,6 +503,11 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
       </div>
     </div>
 
+    <p class="sec only-set">소리</p>
+    <div class="group only-set">
+      <button type="button" id="ttstest" class="g-row"><span>영어 소리 확인</span><span class="val" id="ttsstat">테스트</span></button>
+    </div>
+
     <p class="sec only-set">학습 알림</p>
     <div class="group only-set">
       <button type="button" id="timebtn" class="g-row"><span>시간</span><span class="val"><b id="timeval"></b><span class="chev"></span></span></button>
@@ -496,7 +529,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
           <li><i>3</i><span>이 앱으로 돌아와 아래 <b>붙여넣기</b>를 눌러요.</span></li>
         </ol>
         <button type="button" id="keyopen" class="pill wide">Google AI Studio 열기</button>
-        <p class="hint">AI Studio에서 새로 만든 키를 써야 해요. 예전 방식으로 만든 키는 막혔을 수 있어요.</p>
+        <p class="hint">AI Studio에서 새로 만든 키를 써야 해요. 예전 방식으로 만든 키는 막혔을 수 있어요. 결제 수단을 등록하지 않으면 무료 한도 안에서만 쓰이고, 넘으면 앱이 알려줘요. 무료 등급에서는 대화 내용이 구글 서비스 개선에 쓰일 수 있으니 개인정보는 말하지 마세요.</p>
       </div>
     </div>
 
@@ -528,7 +561,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
     </div>
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v26</p>
+    <p id="ver">버전 v27</p>
   </div>
 </div>
 
@@ -570,6 +603,11 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   <button type="button" class="tab" data-s="hist"><span class="ti-ic"></span>기록</button>
   <button type="button" class="tab" data-s="setup"><span class="ti-ic"></span>설정</button>
 </nav>
+<div id="inapp" class="inapp" role="alert">
+  <b>앱 안에서 열려 있어요</b>
+  <p>카카오톡 같은 앱 안에서는 마이크와 앱 설치가 잘 안 돼요. 메뉴에서 <b>다른 브라우저로 열기</b>를 누르거나, 링크를 복사해 크롬에서 열어 주세요.</p>
+  <div class="ia"><button type="button" id="inapp-copy" class="pill">링크 복사</button><button type="button" id="inapp-x" class="pill ghost">닫기</button></div>
+</div>
 <div id="toast" role="status"></div>
 
 <div id="sheet" class="sheet">
@@ -635,14 +673,35 @@ const I_SPK = icon('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d
 
 // 화면 전환: 탭 바는 홈, 단어장, 기록, 설정에서만 보임
 const TABS = ['menu', 'vocab', 'hist', 'setup'];
+// 화면을 바꿀 때 부드럽게: 탭 이동은 페이드, 앞으로/뒤로는 옆으로 밀기 (지원하지 않는 브라우저는 기존 효과)
+let curScreen = null, curDepth = 0;
+const calmMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 function show(screen) {
+  const nd = window.history.state?.d || 0;
+  const dir = !curScreen || screen === curScreen ? 'none'
+    : TABS.includes(curScreen) && TABS.includes(screen) ? 'tab' : nd < curDepth ? 'pop' : 'push';
+  curScreen = screen;
+  curDepth = nd;
+  if (dir !== 'none' && !calmMotion && document.startViewTransition) {
+    try {
+      document.documentElement.dataset.nav = dir;
+      const vt = document.startViewTransition(() => swap(screen, false));
+      ['ready', 'finished', 'updateCallbackDone'].forEach(k => vt[k] && vt[k].catch(() => {}));  // 연달아 누르면 앞 전환이 취소되는 것은 정상
+      return;
+    } catch (e) {}
+  }
+  swap(screen, dir !== 'none' && !calmMotion);
+}
+function swap(screen, fade) {
   ['menu', 'setup', 'main', 'vocab', 'hist'].forEach(s => {
     $(s).style.display = s === screen ? 'flex' : 'none';
   });
   const box = $(screen);
   box.classList.remove('enter');
-  void box.offsetWidth;
-  box.classList.add('enter');
+  if (fade) {
+    void box.offsetWidth;
+    box.classList.add('enter');
+  }
   const detail = screen === 'hist' && !!window.history.state?.day;  // 그날 대화 보기는 탭 바 숨김
   $('tabs').style.display = profile && !detail && TABS.includes(screen) ? 'flex' : 'none';
   document.querySelectorAll('#tabs .tab[data-s]').forEach(t => t.classList.toggle('on', t.dataset.s === screen));
@@ -771,11 +830,36 @@ function speak(text) {
   tts.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'en-US';
+  if (enVoice) u.voice = enVoice;
+  let started = false;
+  const done = () => { if (cur === u) { cur = null; curText = ''; refreshSpk(); } };
+  u.onstart = () => { started = true; };
+  u.onend = done;
+  u.onerror = e => {
+    done();
+    if (e && e.error && e.error !== 'canceled' && e.error !== 'interrupted') ttsHint('소리를 낼 수 없어요');
+  };
   cur = u;
   curText = text;
-  u.onend = u.onerror = () => { if (cur === u) { cur = null; curText = ''; refreshSpk(); } };
   tts.speak(u);
   refreshSpk();
+  setTimeout(() => { if (!started && cur === u) ttsHint('소리가 나지 않아요'); }, 2200);
+}
+// 영어 음성 고르기 (폰마다 목록이 늦게 채워질 수 있음)
+let enVoice = null, ttsWarned = false;
+function loadVoices() {
+  const v = tts && tts.getVoices ? tts.getVoices() : [];
+  enVoice = v.find(x => /^en[-_]US/i.test(x.lang) && x.localService) || v.find(x => /^en[-_]US/i.test(x.lang)) || v.find(x => /^en/i.test(x.lang)) || null;
+}
+const TTS_HELP = '폰 설정에서 "텍스트 음성 변환(TTS)"의 영어(미국) 음성을 설치해 주세요. 삼성폰은 설정 → 일반 → 언어 → 텍스트 음성 변환이에요.';
+function ttsHint(why) {  // 세션당 한 번만 안내
+  if (ttsWarned) return;
+  ttsWarned = true;
+  toast(`${why}. ${TTS_HELP}`, 7000);
+}
+if (tts) {
+  loadVoices();
+  if (tts.addEventListener) tts.addEventListener('voiceschanged', loadVoices); else tts.onvoiceschanged = loadVoices;
 }
 
 // 요소 만들기
@@ -1290,6 +1374,12 @@ const arm = () => {
   silence = setTimeout(() => { if (listening) { listening = false; rec.stop(); } }, SILENCE_MS);
 };
 
+// 마이크 허용 상태를 미리 알아 두기 (막혀 있으면 방법을 알려줌)
+const MIC_HELP = '마이크가 막혀 있어요. 브라우저의 사이트 설정(⋮ → 설정 → 사이트 설정 → 마이크)에서 이 사이트를 "허용"으로 바꿔 주세요. 카카오톡 같은 앱 안에서 열었다면 크롬에서 열어 주세요.';
+let micState = 'unknown';
+if (navigator.permissions && navigator.permissions.query) {
+  navigator.permissions.query({ name: 'microphone' }).then(p => { micState = p.state; p.onchange = () => { micState = p.state; }; }).catch(() => {});
+}
 const rec = SR ? new SR() : null;
 if (rec) {
   rec.interimResults = true;
@@ -1317,7 +1407,8 @@ if (rec) {
   rec.onerror = e => {
     if (e.error === 'no-speech' || e.error === 'aborted') return;
     listening = false;
-    addMsg('마이크 오류: ' + e.error, 'ai');
+    const why = { 'not-allowed': MIC_HELP, 'service-not-allowed': MIC_HELP, 'audio-capture': '마이크를 찾을 수 없어요. 다른 앱이 마이크를 쓰고 있는지 확인해 주세요.', network: '인터넷 연결을 확인해 주세요.' }[e.error];
+    addMsg(why || '마이크 오류: ' + e.error, 'ai');
   };
   // 취소: 말한 내용을 버리고 끝내기
   $('cancel').onclick = () => {
@@ -1337,6 +1428,11 @@ act.onclick = () => {
   const t = inp.value.trim();
   if (t) { inp.value = ''; paint(); return send(t); }
   if (!rec) return addMsg('이 브라우저는 음성 입력을 지원하지 않아요. 글로 입력해 주세요', 'ai');
+  if (micState === 'denied') return addMsg(MIC_HELP, 'ai');
+  if (micState === 'prompt' && !sessionStorage.getItem('michint')) {  // 처음 한 번, 허용 창에서 무엇을 눌러야 하는지 안내
+    sessionStorage.setItem('michint', '1');
+    addMsg("마이크 허용 창이 뜨면 '허용'(또는 '사이트 방문 중 허용')을 눌러 주세요. '이번에만 허용'을 고르면 매번 물어봐요.", 'ai');
+  }
   stopSpeak();
   heard = '';
   pending = '';
@@ -1481,9 +1577,12 @@ const isApp = () => window.matchMedia('(display-mode: standalone)').matches || n
 const I_DL = icon('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>');
 $('install').querySelector('.ic').innerHTML = sz(I_DL, 24);
 $('install').querySelector('.go').innerHTML = sz(I_ARROW, 18);
+const installTx = $('install').querySelector('.mt').innerHTML;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   installEv = e;
+  $('install').classList.remove('hint');
+  $('install').querySelector('.mt').innerHTML = installTx;
   if (!isApp()) $('install').style.display = 'flex';
 });
 window.addEventListener('appinstalled', () => { installEv = null; $('install').style.display = 'none'; });
@@ -1493,6 +1592,34 @@ $('install').onclick = async () => {
   await installEv.userChoice;
   installEv = null;
   $('install').style.display = 'none';
+};
+
+// 앱 안 브라우저(카카오톡 등)는 마이크와 설치가 잘 안 되므로 안내, 설치 버튼이 안 뜨는 브라우저에는 설치 방법을 안내
+const UA = navigator.userAgent;
+const inApp = /KAKAOTALK|NAVER\(inapp|FBAN|FBAV|Instagram|; wv\)|DaumApps|Line\//i.test(UA) || (/iPhone|iPad/.test(UA) && !/Safari\//.test(UA) && !navigator.standalone);
+if (isApp()) localStorage.setItem('installed', '1');
+if (inApp && !sessionStorage.getItem('inappx')) setTimeout(() => { $('inapp').style.display = 'block'; }, 2600);
+$('inapp-x').onclick = () => { $('inapp').style.display = 'none'; sessionStorage.setItem('inappx', '1'); };
+$('inapp-copy').onclick = async () => {
+  try { await navigator.clipboard.writeText(location.href.split('?')[0]); toast('링크를 복사했어요. 크롬에 붙여넣어 주세요', 3500); }
+  catch (e) { toast('링크를 길게 눌러 복사해 주세요', 3500); }
+};
+setTimeout(() => {
+  if (installEv || isApp() || inApp || localStorage.getItem('installed')) return;
+  const ios = /iPhone|iPad/.test(UA);
+  $('install').querySelector('.mt').innerHTML = `앱으로 설치하기<small>${ios ? '공유 버튼 → 홈 화면에 추가' : '메뉴(⋮) → 앱 설치 또는 홈 화면에 추가'}</small>`;
+  $('install').classList.add('hint');
+  $('install').style.display = 'flex';
+}, 4500);
+
+// 영어 소리 확인 (설정)
+$('ttstest').onclick = () => {
+  if (!tts || !window.SpeechSynthesisUtterance) { $('ttsstat').textContent = '이 브라우저는 지원하지 않아요'; return; }
+  loadVoices();
+  $('ttsstat').textContent = enVoice ? '재생 중...' : '영어 음성이 없어요';
+  if (!enVoice && tts.getVoices().length) toast(TTS_HELP, 7000);
+  speak('Hello! This is a sound test.');
+  setTimeout(() => { $('ttsstat').textContent = enVoice ? `영어 음성 있음 (${enVoice.lang})` : '테스트'; }, 2600);
 };
 
 // 학습 알림 설정: 시간(휠), 요일, 폰 캘린더에 반복 알림 추가
@@ -1628,6 +1755,14 @@ $('keypaste').onclick = async () => {
 };
 $('vsearch').oninput = renderVocab;
 $('vsearch').parentNode.querySelector('.si').innerHTML = I_SEARCH;
+
+// dvh를 모르는 구형 브라우저: 화면 높이를 직접 재서 사용
+if (!(window.CSS && CSS.supports && CSS.supports('height', '100dvh'))) {
+  const setH = () => document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px');
+  document.documentElement.classList.add('vh');
+  setH();
+  window.addEventListener('resize', setH);
+}
 
 // 시작: 오늘 대화 복원, 설정이 있으면 홈, 없으면 설정 화면. 스플래시가 보이는 동안 뒤에서 준비
 applyTheme();
