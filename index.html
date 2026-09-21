@@ -391,6 +391,19 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .sk b { width: 32px; text-align: right; }
   .sk.off small { color: var(--sub); font-weight: 500; }
   .sk.off .sb { background: none; border: 1px dashed var(--line2); height: 6px; }
+  .memoact { display: flex; gap: 8px; padding: 12px 16px; }
+  .memoact .pill { flex: 1; height: 38px; padding: 0 8px; font-size: 13.5px; }
+  .mm { margin-bottom: 14px; }
+  .mm:last-child { margin-bottom: 0; }
+  .mm small { display: block; margin-bottom: 6px; font-size: 12.5px; font-weight: 700; color: var(--sub); }
+  .mchips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .mc { display: inline-flex; align-items: center; padding: 5px 4px 5px 12px; border-radius: 16px; background: var(--accent-soft); color: var(--accent-text); font-size: 13.5px; font-weight: 700; }
+  .mc.gray { background: var(--surface2); color: var(--text); }
+  .mc button { padding: 2px 8px; border: 0; background: none; color: inherit; font-size: 16px; line-height: 1; opacity: .7; }
+  .mempty { margin: 0; font-size: 14px; line-height: 1.6; color: var(--sub); }
+  .seg.s3 button { padding: 8px 12px; font-size: 14px; }
+  .seg.full { width: 100%; box-sizing: border-box; }
+  .seg.full button { flex: 1; white-space: nowrap; }
   .seg { display: flex; padding: 3px; border-radius: 18px; background: var(--surface2); }
   .seg button { padding: 7px 18px; border: 0; border-radius: 15px; background: transparent; font-size: 14px; font-weight: 700; color: var(--sub); }
   .seg button.on { background: var(--accent); color: var(--on-accent); }
@@ -588,6 +601,19 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
     <p class="hint only-set" id="aihint"></p>
     <p class="hint only-set" id="aiuse"></p>
 
+    <p class="sec only-set">교정 강도</p>
+    <div class="group only-set">
+      <div class="g-blk"><div class="g-top"><span>고쳐 주는 정도</span></div><div class="seg s3 full" id="strictseg"><button type="button" data-k="soft">부드럽게</button><button type="button" data-k="normal">보통</button><button type="button" data-k="strict">엄격</button></div></div>
+    </div>
+    <p class="hint only-set" id="stricthint"></p>
+
+    <p class="sec only-set">튜터가 기억하는 나</p>
+    <div class="group only-set">
+      <div class="g-blk" id="memobody"></div>
+      <div class="memoact"><button type="button" id="memonew" class="pill ghost">지금 새로 만들기</button><button type="button" id="memoclr" class="pill ghost">모두 지우기</button></div>
+    </div>
+    <p class="hint only-set">하루 한 번, 최근 대화에서 튜터가 고쳐 준 내용으로 만들어요. 틀린 항목은 ×를 눌러 지우면 다시 만들 때 빠져요. 이 메모는 대화할 때 튜터에게 함께 전달돼요.</p>
+
     <p class="sec only-set">학습 레벨</p>
     <div class="group only-set">
       <button type="button" id="obbtn" class="g-row"><span>나의 레벨</span><span class="val"><b id="lvstat"></b><span class="chev"></span></span></button>
@@ -651,7 +677,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
     </div>
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v31</p>
+    <p id="ver">버전 v32</p>
   </div>
 </div>
 
@@ -839,7 +865,10 @@ function swap(screen, fade) {
   if (screen === 'menu') paintMenu();
   if (screen === 'onb') obStart();
   if (screen === 'perm') { paintPerm(); $('pback').style.visibility = (window.history.state?.d || 0) > 0 ? 'visible' : 'hidden'; }
-  if (screen === 'main') $('chat').scrollTop = $('chat').scrollHeight;
+  if (screen === 'main') {
+    $('chat').scrollTop = $('chat').scrollHeight;
+    if (mode === 'chat') makeMemo().then(r => { if (r === 'ok') paintMemo(); });  // 하루 한 번, 뒤에서 조용히
+  }
 }
 
 // 화면 이동을 브라우저 기록과 연결: 안드로이드 뒤로가기가 앱 종료 대신 이전 화면으로 이어짐
@@ -906,6 +935,117 @@ $('aiseg').onclick = e => {
   paintAI();
 };
 
+// ===== 교정 강도: 튜터가 고쳐 주는 정도 (보통은 기존 방식 그대로) =====
+let corrMode = ['soft', 'strict'].includes(localStorage.getItem('strict')) ? localStorage.getItem('strict') : 'normal';
+const STRICT_RULE = {
+  soft: 'Correction style: gentle. If the meaning is clear, do not add a KO: correction. Correct only the single most important mistake, and only when it affects understanding.',
+  strict: 'Correction style: strict. Correct every grammar and word-choice mistake, including articles, tenses, prepositions and plurals, using the same KO: format, and name each mistake type briefly in Korean (for example 관사, 시제). Do not skip small mistakes.'
+};
+const STRICT_HINT = {
+  soft: '뜻이 통하면 넘어가고, 꼭 필요한 실수 한 가지만 짚어요.',
+  normal: '문법이나 단어 선택 실수가 있으면 알려줘요. (지금까지의 방식)',
+  strict: '관사, 시제, 전치사 같은 작은 실수도 모두 짚어요.'
+};
+function paintStrict() {
+  document.querySelectorAll('#strictseg [data-k]').forEach(b => b.classList.toggle('on', b.dataset.k === corrMode));
+  $('stricthint').textContent = STRICT_HINT[corrMode];
+}
+$('strictseg').onclick = e => {
+  const b = e.target.closest('[data-k]');
+  if (!b) return;
+  corrMode = b.dataset.k;
+  localStorage.setItem('strict', corrMode);
+  paintStrict();
+};
+
+// ===== 튜터가 기억하는 나: 하루 한 번, 최근 교정 내용으로 짧은 메모를 만들어 대화 지시문에 붙임 =====
+let memo = JSON.parse(localStorage.getItem('memo') || 'null');  // { weak, words, topics, strong, day }
+let memoNo = JSON.parse(localStorage.getItem('memono') || '[]');  // 사용자가 지운 항목 (다시 만들 때 제외)
+let memoBusy = false;
+const saveMemo = () => { if (memo) localStorage.setItem('memo', JSON.stringify(memo)); else localStorage.removeItem('memo'); localStorage.setItem('memono', JSON.stringify(memoNo.slice(-30))); };
+const memoHas = m => !!m && !!((m.weak || []).length + (m.words || []).length + (m.topics || []).length + (m.strong ? 1 : 0));
+const escH = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function memoNotes() {  // 튜터 지시문에 붙는 짧은 메모 (없으면 빈 글자)
+  if (!memoHas(memo)) return '';
+  const p = [];
+  if (memo.weak.length) p.push('weak points: ' + memo.weak.join('; '));
+  if (memo.words.length) p.push('recent words: ' + memo.words.join(', '));
+  if (memo.topics.length) p.push('interests: ' + memo.topics.join(', '));
+  if (memo.strong) p.push('strength: ' + memo.strong);
+  return `\nNotes from past sessions (never mention them directly; when it fits naturally, give the learner a chance to practice the weak points): ${p.join('. ')}.`;
+}
+function recentMistakes(max = 15) {  // 최근 2주 대화에서 튜터가 고쳐 준 내용을 폰에서 무료로 추림
+  const cut = new Date(); cut.setDate(cut.getDate() - 14);
+  const cutKey = `${cut.getFullYear()}-${String(cut.getMonth() + 1).padStart(2, '0')}-${String(cut.getDate()).padStart(2, '0')}`;
+  const days = Object.keys(chats).filter(d => chats[d].length && d >= cutKey).sort().reverse(), out = [];  // 최근 2주
+  for (const d of days) {
+    const list = chats[d];
+    for (let i = list.length - 1; i > 0 && out.length < max; i--) {
+      if (list[i].role !== 'model' || list[i - 1].role !== 'user') continue;
+      const ko = list[i].parts[0].text.split('KO:')[1] || '';
+      if (ko.includes('→')) out.push(`"${list[i - 1].parts[0].text.trim().slice(0, 80)}" -> ${ko.replace(/\s+/g, ' ').trim().slice(0, 120)}`);
+    }
+    if (out.length >= max) break;
+  }
+  return out;
+}
+const MEMO_SYSTEM = `You write a short memory card about a Korean learner of English for their tutor. Use ONLY the data given and never invent anything. Output only JSON with this shape: {"weak":[],"words":[],"topics":[],"strong":""}. "weak": up to 3 recurring mistake types as short Korean phrases (for example "관사 빠뜨림"). "words": up to 5 English words worth reviewing. "topics": up to 3 interests as short Korean phrases. "strong": one short Korean phrase, or an empty string. Each Korean phrase is at most 15 characters. If the data is thin, return fewer items or empty ones.`;
+async function makeMemo(force = false) {  // 'ok' | 'none'(재료 없음) | 'skip'(오늘 이미 만듦) | 'fail'
+  if (memoBusy || !apiKey) return 'fail';
+  const ms = recentMistakes(), words = [...vocab].reverse().filter(v => !BASIC[v.w]).slice(0, 8).map(v => v.w);
+  if (!ms.length && !words.length) return 'none';
+  if (!force && memo && memo.day === dayKey) return 'skip';
+  memoBusy = true;
+  try {
+    const goals = (profile && profile.field) || (ob && ob.goals && ob.goals.join(', ')) || '';
+    const text = [`Level: ${ob && ob.lvl ? ob.lvl + ' of 5' : 'unknown'}${goals ? '; goals: ' + goals : ''}`,
+      ms.length ? 'Corrections (learner said -> tutor note):\n' + ms.map(m => '- ' + m).join('\n') : '',
+      words.length ? 'Saved words: ' + words.join(', ') : '',
+      memoHas(memo) ? 'Previous card: ' + JSON.stringify({ weak: memo.weak, words: memo.words, topics: memo.topics, strong: memo.strong }) : '',
+      memoNo.length ? 'The learner removed these items, do not include them again: ' + memoNo.join(', ') : ''].filter(Boolean).join('\n');
+    const raw = await askAI({ system_instruction: { parts: [{ text: MEMO_SYSTEM }] }, contents: [{ role: 'user', parts: [{ text }] }],
+      generationConfig: { temperature: 0.2, maxOutputTokens: 400 } }, {}, 'lite', true);
+    const j = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    const no = memoNo.map(x => x.toLowerCase());
+    const cl = (a, n) => (Array.isArray(a) ? a : []).map(x => String(x).replace(/["<>\n\r]/g, ' ').trim().slice(0, 20)).filter(x => x && !no.includes(x.toLowerCase())).slice(0, n);
+    memo = { weak: cl(j.weak, 3), words: cl(j.words, 5), topics: cl(j.topics, 3), strong: cl([j.strong], 1)[0] || '', day: dayKey };
+    saveMemo();
+    return 'ok';
+  } catch (e) { return 'fail'; }
+  finally { memoBusy = false; }
+}
+function paintMemo() {
+  const b = $('memobody');
+  if (!memoHas(memo)) { b.innerHTML = '<p class="mempty">아직 기억할 내용이 없어요. 대화를 몇 번 나누고 나면 하루 한 번 만들어요.</p>'; return; }
+  const rows = [['자주 틀리는 것', 'weak', ''], ['최근 단어', 'words', ' gray'], ['관심 주제', 'topics', ' gray']];
+  let h = rows.filter(r => memo[r[1]].length).map(([t, k, c]) =>
+    `<div class="mm"><small>${t}</small><div class="mchips">${memo[k].map((x, i) => `<span class="mc${c}">${escH(x)}<button type="button" data-k="${k}" data-i="${i}" aria-label="지우기">×</button></span>`).join('')}</div></div>`).join('');
+  if (memo.strong) h += `<div class="mm"><small>잘하는 점</small><div class="mchips"><span class="mc gray">${escH(memo.strong)}<button type="button" data-k="strong" data-i="0" aria-label="지우기">×</button></span></div></div>`;
+  b.innerHTML = h;
+}
+$('memobody').onclick = e => {
+  const b = e.target.closest('button[data-k]');
+  if (!b || !memo) return;
+  const k = b.dataset.k;
+  if (k === 'strong') { memoNo.push(memo.strong); memo.strong = ''; }
+  else memoNo.push(...memo[k].splice(+b.dataset.i, 1));
+  if (!memoHas(memo)) memo = { weak: [], words: [], topics: [], strong: '', day: memo.day };
+  saveMemo();
+  paintMemo();
+};
+$('memonew').onclick = async () => {
+  const btn = $('memonew');
+  btn.disabled = true;
+  btn.textContent = '만드는 중...';
+  const r = await makeMemo(true);
+  btn.disabled = false;
+  btn.textContent = '지금 새로 만들기';
+  paintMemo();
+  if (r === 'none') toast('아직 대화 기록이나 저장한 단어가 없어요');
+  else if (r === 'fail') toast('지금은 만들지 못했어요. 잠시 뒤에 다시 눌러 보세요');
+};
+$('memoclr').onclick = () => { memo = null; memoNo = []; saveMemo(); paintMemo(); toast('지웠어요'); };
+
 // 저장된 값을 입력칸에 채우기
 function fillForm() {
   const p = profile || {};
@@ -921,6 +1061,8 @@ function fillForm() {
   $('keystat').textContent = '';
   $('permstat').textContent = micState === 'granted' ? '허용됨' : '';
   paintAI();
+  paintStrict();
+  paintMemo();
   $('lvstat').textContent = ob && ob.lvl ? `레벨 ${ob.lvl} · ${LV_NAME[ob.lvl]}` : '테스트하기';
 }
 
@@ -955,7 +1097,7 @@ function buildSystem() {
   const lvl = ob && ob.lvl ? ` Learner level: ${ob.lvl} of 5 (${LV_NAME[ob.lvl]}). ${LV_RULE[ob.lvl]}`
     : p.level === NONE ? ' Learner level: below elementary conversation (use very simple words).' : '';
   const goals = p.field || (ob && ob.goals && ob.goals.join(', ')) || 'daily conversation';  // 설정의 학습 분야가 기준
-  return `${BASE_SYSTEM}\nLearner: ${who || 'Korean adult'}.${exam}${lvl} Goals and situations: ${goals}. Match the level and use situations and words from these goals.`;
+  return `${BASE_SYSTEM}\nLearner: ${who || 'Korean adult'}.${exam}${lvl} Goals and situations: ${goals}. Match the level and use situations and words from these goals.${STRICT_RULE[corrMode] ? '\n' + STRICT_RULE[corrMode] : ''}${memoNotes()}`;
 }
 
 // 말풍선 추가
