@@ -157,10 +157,12 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .greet h1 { margin: 0; max-width: 70%; font-size: clamp(22px, 6.4vw, 26px); line-height: 1.3; font-weight: 800; letter-spacing: -.7px; word-break: keep-all; }
   .gart { position: absolute; right: -4px; top: -2px; width: 108px; height: auto; pointer-events: none;
           filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .25)); }
-  .install { display: none; align-items: center; gap: 12px; width: 100%; margin: 0 0 14px; padding: 12px 14px;
-             border: 1px dashed var(--line2); border-radius: 20px; background: transparent; text-align: left;
+  .install { display: none; position: relative; margin: 0 0 16px; border: 1px dashed var(--line2); border-radius: 20px;
              --tint: var(--accent-text); --tint-bg: var(--accent-soft); }
+  .install .in-main { display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; padding: 12px 14px; border: 0; background: none; text-align: left; }
   .install .mt { flex: 1; }
+  .install .in-x { position: absolute; top: -10px; right: -6px; width: 26px; height: 26px; padding: 0; border: 1px solid var(--line2); border-radius: 50%;
+                   background: var(--surface); color: var(--sub); font-size: 16px; line-height: 1; }
   .chip, .go { display: flex; align-items: center; justify-content: center; flex: none; background: var(--tint-bg); color: var(--tint); line-height: 0; }
   .chip { width: 44px; height: 44px; border-radius: 14px; }
   .go { width: 36px; height: 36px; border-radius: 50%; }
@@ -257,8 +259,9 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .inapp p { margin: 6px 0 12px; font-size: 13.5px; line-height: 1.55; color: var(--sub); }
   .inapp p b { color: var(--text); font-size: 13.5px; }
   .inapp .ia { display: flex; gap: 8px; }
-  .install.hint { pointer-events: none; border-style: solid; }
-  .install.hint .go { display: none; }
+  .install.howto { border-style: solid; }
+  .install.howto .in-main { pointer-events: none; }
+  .install.howto .go { display: none; }
 
   /* 설정 화면 */
   .sec { display: flex; align-items: center; gap: 8px; margin: 24px 4px 8px; font-size: 13px; font-weight: 700; color: var(--sub); }
@@ -291,7 +294,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .eye svg { display: block; }
   .savebar { position: sticky; bottom: 0; margin: 12px -18px 0; padding: 14px 18px 30px;
              background: linear-gradient(to top, var(--bg) 72%, transparent); }
-  #save { width: 100%; height: 52px; border: 0; border-radius: 26px; background: var(--accent); color: var(--on-accent);
+  #save, #p-go { width: 100%; height: 52px; border: 0; border-radius: 26px; background: var(--accent); color: var(--on-accent);
           font-size: 16px; font-weight: 800; }
   #err { margin: 8px 4px 0; color: var(--danger); min-height: 1.2em; font-size: 14px; }
   #ver { margin: 2px 0 20px; text-align: center; font-size: 12px; color: var(--sub); }
@@ -325,6 +328,14 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .steps i { flex: none; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-top: 1px; border-radius: 50%;
             background: var(--accent); color: var(--on-accent); font-style: normal; font-size: 13px; font-weight: 800; }
   .steps b { font-weight: 800; }
+  .prow { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+  .prow .mt { flex: 1; min-width: 0; }
+  .prow .chip { width: 42px; height: 42px; border-radius: 13px; }
+  .prow .pill { flex: none; height: 36px; padding: 0 14px; font-size: 13.5px; }
+  .prow small.ok { color: var(--ok); font-weight: 600; }
+  .prow small.bad { color: var(--danger); font-weight: 600; }
+  .linkbtn { padding: 8px; border: 0; background: none; color: var(--sub); font-size: 14px; text-decoration: underline; }
+  #perm .pad { padding-bottom: 0; }
   .lb { display: flex; align-items: center; justify-content: space-between; }
   .mini { height: 28px; padding: 0 12px; border: 0; border-radius: 14px; background: var(--accent); color: var(--on-accent); font-size: 12.5px; font-weight: 800; }
   .kstat { display: block; min-height: 18px; margin-top: 6px; font-size: 13px; font-weight: 600; }
@@ -464,11 +475,14 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
       <h1 id="g-ko"></h1>
       <img class="gart" id="gart" alt="">
     </section>
-    <button id="install" class="install">
-      <span class="chip"><span class="ic"></span></span>
-      <span class="mt">앱으로 설치하기<small>홈 화면에 아이콘을 만들어요</small></span>
-      <span class="go"></span>
-    </button>
+    <div id="install" class="install">
+      <button type="button" id="install-go" class="in-main">
+        <span class="chip"><span class="ic"></span></span>
+        <span class="mt">앱으로 설치하기<small>홈 화면에 아이콘을 만들어요</small></span>
+        <span class="go"></span>
+      </button>
+      <button type="button" id="install-x" class="in-x" aria-label="닫기">×</button>
+    </div>
     <button id="m-chat" class="hero">
       <span class="hic"></span>
       <span class="ht"><small>오늘의 학습</small><b>AI 튜터와 대화하기</b><em id="m-chat-sub"></em></span>
@@ -503,9 +517,9 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
       </div>
     </div>
 
-    <p class="sec only-set">소리</p>
+    <p class="sec only-set">말하기</p>
     <div class="group only-set">
-      <button type="button" id="ttstest" class="g-row"><span>영어 소리 확인</span><span class="val" id="ttsstat">테스트</span></button>
+      <button type="button" id="permbtn" class="g-row"><span>마이크 · 소리 점검</span><span class="val"><span id="permstat"></span><span class="chev"></span></span></button>
     </div>
 
     <p class="sec only-set">학습 알림</p>
@@ -561,7 +575,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
     </div>
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v27</p>
+    <p id="ver">버전 v28</p>
   </div>
 </div>
 
@@ -594,6 +608,29 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
 <div id="hist" class="screen">
   <div class="hd"><button id="hback" class="back" aria-label="뒤로" style="visibility:hidden"></button><div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div><span class="sp"></span></div>
   <div class="pad"><h2 class="pg" id="htitle">기록</h2><div id="hlist" class="group"></div><div id="hview"></div></div>
+</div>
+
+<div id="perm" class="screen">
+  <div class="hd"><button id="pback" class="back" aria-label="뒤로" style="visibility:hidden"></button><div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div><span class="sp"></span></div>
+  <div class="pad">
+    <h2 class="pg">말하기 준비</h2>
+    <p class="lead" style="display:block">AI 튜터와 말로 대화하려면 마이크와 소리를 확인해요. 글로만 입력해도 쓸 수 있어요.</p>
+    <div class="group">
+      <div class="prow">
+        <span class="chip t-blue"><span class="ic" id="p-mic-ic"></span></span>
+        <span class="mt">마이크<small id="p-mic-s"></small></span>
+        <button type="button" id="p-mic-btn" class="pill">허용하기</button>
+      </div>
+      <div class="prow">
+        <span class="chip t-orange"><span class="ic" id="p-snd-ic"></span></span>
+        <span class="mt">소리<small id="p-snd-s">영어 발음을 들려줘요</small></span>
+        <button type="button" id="p-snd-btn" class="pill ghost">소리 확인</button>
+      </div>
+    </div>
+    <p class="hint">허용 창이 뜨면 <b>허용</b> 또는 <b>사이트 방문 중 허용</b>을 눌러 주세요. '이번에만 허용'을 고르면 매번 물어봐요. 소리는 별도 허용이 없고, 폰 볼륨과 무음 모드만 확인하면 돼요.</p>
+    <div class="savebar"><button id="p-go" type="button">시작하기</button></div>
+    <p class="hint" style="text-align:center;margin-bottom:24px"><button type="button" id="p-skip" class="linkbtn">나중에 할게요 · 글로 입력할래요</button></p>
+  </div>
 </div>
 
 <nav id="tabs" aria-label="메인 메뉴">
@@ -693,7 +730,7 @@ function show(screen) {
   swap(screen, dir !== 'none' && !calmMotion);
 }
 function swap(screen, fade) {
-  ['menu', 'setup', 'main', 'vocab', 'hist'].forEach(s => {
+  ['menu', 'setup', 'main', 'vocab', 'hist', 'perm'].forEach(s => {
     $(s).style.display = s === screen ? 'flex' : 'none';
   });
   const box = $(screen);
@@ -708,6 +745,7 @@ function swap(screen, fade) {
   stopSpeak();  // 화면을 옮기면 읽던 소리도 멈춤
   if (mode === 'review' && screen !== 'main') exitReview();
   if (screen === 'menu') paintMenu();
+  if (screen === 'perm') { paintPerm(); $('pback').style.visibility = (window.history.state?.d || 0) > 0 ? 'visible' : 'hidden'; }
   if (screen === 'main') $('chat').scrollTop = $('chat').scrollHeight;
 }
 
@@ -771,6 +809,7 @@ function fillForm() {
   $('guide').classList.toggle('open', !apiKey);  // 키가 없으면 발급 안내를 펼침
   $('keystat').className = 'kstat';
   $('keystat').textContent = '';
+  $('permstat').textContent = micState === 'granted' ? '허용됨' : '';
 }
 
 // 저장 버튼: 빈 칸 검사 후 저장
@@ -790,7 +829,7 @@ $('save').onclick = () => {
   localStorage.setItem('gkey', key);
   localStorage.setItem('profile', JSON.stringify(p));
   $('err').textContent = '';
-  if (first) setRoot('menu'); else toast('저장했어요');
+  if (first) setRoot(nextAfterSetup()); else toast('저장했어요');
 };
 
 // 튜터 역할 문장 + 설정 정보
@@ -1578,15 +1617,17 @@ const I_DL = icon('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polylin
 $('install').querySelector('.ic').innerHTML = sz(I_DL, 24);
 $('install').querySelector('.go').innerHTML = sz(I_ARROW, 18);
 const installTx = $('install').querySelector('.mt').innerHTML;
+const installClosed = () => Date.now() - Number(localStorage.getItem('installx') || 0) < 30 * 864e5;  // 닫으면 30일간 안 보임
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   installEv = e;
-  $('install').classList.remove('hint');
+  $('install').classList.remove('howto');
   $('install').querySelector('.mt').innerHTML = installTx;
-  if (!isApp()) $('install').style.display = 'flex';
+  if (!isApp() && !installClosed()) $('install').style.display = 'block';
 });
 window.addEventListener('appinstalled', () => { installEv = null; $('install').style.display = 'none'; });
-$('install').onclick = async () => {
+$('install-x').onclick = () => { $('install').style.display = 'none'; localStorage.setItem('installx', String(Date.now())); };
+$('install-go').onclick = async () => {
   if (!installEv) return;
   installEv.prompt();
   await installEv.userChoice;
@@ -1605,22 +1646,57 @@ $('inapp-copy').onclick = async () => {
   catch (e) { toast('링크를 길게 눌러 복사해 주세요', 3500); }
 };
 setTimeout(() => {
-  if (installEv || isApp() || inApp || localStorage.getItem('installed')) return;
+  if (installEv || isApp() || inApp || installClosed() || localStorage.getItem('installed')) return;
   const ios = /iPhone|iPad/.test(UA);
   $('install').querySelector('.mt').innerHTML = `앱으로 설치하기<small>${ios ? '공유 버튼 → 홈 화면에 추가' : '메뉴(⋮) → 앱 설치 또는 홈 화면에 추가'}</small>`;
-  $('install').classList.add('hint');
-  $('install').style.display = 'flex';
+  $('install').classList.add('howto');
+  $('install').style.display = 'block';
 }, 4500);
 
-// 영어 소리 확인 (설정)
-$('ttstest').onclick = () => {
-  if (!tts || !window.SpeechSynthesisUtterance) { $('ttsstat').textContent = '이 브라우저는 지원하지 않아요'; return; }
-  loadVoices();
-  $('ttsstat').textContent = enVoice ? '재생 중...' : '영어 음성이 없어요';
-  if (!enVoice && tts.getVoices().length) toast(TTS_HELP, 7000);
-  speak('Hello! This is a sound test.');
-  setTimeout(() => { $('ttsstat').textContent = enVoice ? `영어 음성 있음 (${enVoice.lang})` : '테스트'; }, 2600);
+// 말하기 준비: 마이크 허용과 소리 확인 (처음 한 번 보여주고, 설정에서 다시 열 수 있음. 거절해도 글로 쓸 수 있음)
+const permsDone = () => !!localStorage.getItem('permsdone');
+const nextAfterSetup = () => (permsDone() ? 'menu' : 'perm');
+const I_SPK2 = icon('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>');
+$('p-mic-ic').innerHTML = sz(I_MIC, 22);
+$('p-snd-ic').innerHTML = sz(I_SPK2, 22);
+$('pback').innerHTML = I_BACK;
+function paintPerm() {
+  const s = $('p-mic-s'), noApi = !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) || !SR;
+  s.className = '';
+  if (inApp) { s.textContent = '앱 안에서는 어려워요. 크롬에서 열어 주세요'; s.className = 'bad'; }
+  else if (noApi) { s.textContent = '이 브라우저는 말하기를 지원하지 않아요. 글로 입력해 주세요'; s.className = 'bad'; }
+  else if (micState === 'granted') { s.textContent = '허용됨 ✓'; s.className = 'ok'; }
+  else if (micState === 'denied') { s.textContent = '막혀 있어요. 사이트 설정에서 허용으로 바꿔 주세요'; s.className = 'bad'; }
+  else s.textContent = '내 말을 알아듣는 데 써요';
+  $('p-mic-btn').style.display = micState === 'granted' || noApi || inApp ? 'none' : '';
+  $('p-mic-btn').textContent = micState === 'denied' ? '방법 보기' : '허용하기';
+}
+$('p-mic-btn').onclick = async () => {
+  if (micState === 'denied') return toast(MIC_HELP, 7000);
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(t => t.stop());
+    micState = 'granted';
+  } catch (e) {
+    if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) micState = 'denied';
+    else toast('마이크를 찾을 수 없어요. 다른 앱이 쓰고 있는지 확인해 주세요', 4000);
+  }
+  paintPerm();
 };
+$('p-snd-btn').onclick = () => {
+  const t = $('p-snd-s');
+  t.className = '';
+  if (!tts || !window.SpeechSynthesisUtterance) { t.textContent = '이 브라우저는 소리 읽어주기를 지원하지 않아요'; t.className = 'bad'; return; }
+  loadVoices();
+  if (!enVoice && tts.getVoices().length) { t.textContent = '영어 음성이 없어요. 폰 설정에서 설치해 주세요'; t.className = 'bad'; toast(TTS_HELP, 7000); }
+  else t.textContent = '들리나요? 안 들리면 볼륨과 무음 모드를 확인해 주세요';
+  speak('Hello! Nice to meet you.');
+};
+function finishPerm() { localStorage.setItem('permsdone', '1'); if ((window.history.state?.d || 0) > 0) goBack(); else setRoot('menu'); }
+$('p-go').onclick = $('p-skip').onclick = finishPerm;
+$('pback').onclick = goBack;
+$('permbtn').querySelector('.chev').innerHTML = I_CHEV;
+$('permbtn').onclick = () => navTo('perm');
 
 // 학습 알림 설정: 시간(휠), 요일, 폰 캘린더에 반복 알림 추가
 const WEEK = [['월', 1], ['화', 2], ['수', 3], ['목', 4], ['금', 5], ['토', 6], ['일', 0]];
@@ -1769,7 +1845,7 @@ applyTheme();
 history.forEach(m => drawMsg(m, $('chat'), true));
 paint();
 fillForm();
-setRoot(profile && apiKey ? 'menu' : 'setup');
+setRoot(profile && apiKey ? nextAfterSetup() : 'setup');
 const skip = /nosplash/.test(location.search);
 const calm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 setTimeout(() => {
