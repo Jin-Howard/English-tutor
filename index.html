@@ -73,7 +73,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   html { background: var(--bg); }
   html, body { overscroll-behavior-y: contain; }  /* 아래로 당겨 새로고침되는 것 방지 */
   body { margin: 0 auto; max-width: 520px; box-sizing: border-box; height: 100vh; height: 100dvh; display: flex; flex-direction: column; font-family: var(--font);
-         background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+         background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; word-break: keep-all; overflow-wrap: anywhere; }
   html.vh body { height: var(--app-h); }  /* dvh를 모르는 구형 브라우저용 */
   @media (min-width: 560px) { body { border-left: 1px solid var(--line); border-right: 1px solid var(--line); } }
   button { font: inherit; color: inherit; cursor: pointer; transition: transform .12s ease, background .2s ease; }
@@ -208,7 +208,8 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .tag { padding: 3px 10px; border-radius: 11px; background: var(--surface2); font-size: 12px; font-weight: 700; color: var(--sub); }
   .x-en { margin: 0 0 6px; font-size: 21px; line-height: 1.32; font-weight: 800; letter-spacing: -.4px; }
   .x-ko { margin: 0 0 16px; font-size: 15px; color: var(--sub); font-weight: 500; }
-  .x-act { display: flex; align-items: center; gap: 8px; }
+  .x-act { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .x-act .pill { flex: none; }
   .pill { height: 40px; padding: 0 16px; border: 0; border-radius: 20px; background: var(--accent); color: var(--on-accent); font-size: 14px; font-weight: 800; }
   .pill.ghost { background: var(--surface2); color: var(--text); font-weight: 700; }
   .msg.notice .pill { white-space: nowrap; padding: 0 14px; }
@@ -323,6 +324,9 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .gtitle .chip { width: 40px; height: 40px; border-radius: 13px; }
   #guidebody { display: none; }
   .guide.open #guidebody { display: block; }
+  #infobody { display: none; }
+  #info.open #infobody { display: block; }
+  .info .g-row .mt small { display: block; margin-top: 2px; font-size: 13px; color: var(--sub); font-weight: 500; }
   .steps { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 12px; }
   .steps li { display: flex; align-items: flex-start; gap: 12px; font-size: 14px; line-height: 1.55; }
   .steps i { flex: none; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-top: 1px; border-radius: 50%;
@@ -475,7 +479,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .fin p { margin: 6px 0 12px; color: var(--sub); font-size: 14px; }
   #wbanner { border-color: var(--accent-line); background: var(--accent-soft); }
   #wbanner b { display: block; font-size: 16px; }
-  .vdue { margin-left: 6px; font-size: 12px; color: var(--sub); white-space: nowrap; }
+  .vdue { display: block; margin-top: 2px; font-size: 12px; color: var(--sub); }
 
   /* 온보딩 v2: 위쪽 진행 바, 큰 선택 카드, 알파벳 보기, 아래 고정 버튼 */
   .obtop { flex: none; display: flex; align-items: center; gap: 12px; padding: 12px 16px 6px; }
@@ -546,13 +550,16 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .msg.ai { position: relative; min-height: 44px; padding-left: 46px; background: var(--surface); box-shadow: var(--shadow); }
   .msg.ai::before { content: ''; position: absolute; left: 9px; top: 9px; width: 28px; height: 28px; border-radius: 50%;
                     background: var(--avatar) center / cover no-repeat, #ffd43b; }
-  .msg.ko { background: var(--ko); color: var(--on-ko); font-size: 14px; }
+  .msg.ko { background: var(--card); color: var(--text); border: 1px solid var(--card-line); border-radius: 14px; font-size: 14px; margin: -2px 0 10px; }
+  .msg.ko::before { content: '교정'; display: block; margin-bottom: 4px; font-size: 11px; font-weight: 800; letter-spacing: .02em; color: var(--sub); }
   .msg.ai:not(.noTr) { cursor: pointer; }
+  .msg.ai .vspk { display: inline-flex; vertical-align: -4px; margin-left: 6px; color: var(--icon); }
+  .msg.ai .vspk.on { color: var(--accent-text); }
   .msg.ai .trhint { position: absolute; right: 12px; bottom: 11px; width: 14px; height: 14px; color: var(--sub); opacity: .4;
                     transform: rotate(90deg); transition: transform .25s, opacity .25s; pointer-events: none; }
   .msg.ai.tropen .trhint { transform: rotate(270deg); opacity: .75; }
   .msg.ai.noTr .trhint { display: none; }
-  .tr { word-break: keep-all; max-width: 82%; margin: -2px 0 10px; padding: 10px 14px; border-radius: 14px;
+  .tr { max-width: 82%; margin: -2px 0 10px; padding: 10px 14px; border-radius: 14px;
         background: var(--card); border: 1px dashed var(--card-line); font-size: 14px; animation: rise .18s ease both; }
   .tr b { display: block; margin-bottom: 4px; font-size: 11px; font-weight: 800; letter-spacing: .02em; color: var(--sub); }
   .tr .wait { display: inline-flex; align-items: center; height: 14px; }
@@ -581,8 +588,8 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
 
   /* 단어 카드 */
   .w { text-decoration: underline dotted var(--icon); text-underline-offset: 3px; }
-  .card { word-break: keep-all; max-width: 82%; margin: -2px 0 10px; padding: 10px 14px; border-radius: 14px;
-          background: var(--card); border: 1px solid var(--card-line); font-size: 14px; }
+  .card { max-width: 82%; margin: -2px 0 10px; padding: 10px 14px; border-radius: 14px;
+          background: var(--card); border: 1px dashed var(--card-line); font-size: 14px; }
   .vex { color: var(--sub); font-size: 13px; margin-top: 2px; }
   .vsave, .vdel, .vmore { padding: 6px 12px; font-size: 14px; border: 1px solid var(--line2); border-radius: 10px; background: var(--surface2); }
   .vsave, .vmore { margin-top: 8px; }
@@ -711,11 +718,10 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
 
     <p class="sec only-set">AI 모델</p>
     <div class="group only-set">
-      <div class="g-row"><span>대화 모델</span><div class="seg" id="aiseg"><button type="button" data-m="lite">Flash-Lite</button><button type="button" data-m="pro">Flash</button></div></div>
+      <div class="g-blk"><div class="seg s3 full" id="aiseg"><button type="button" data-m="lite">Flash-Lite</button><button type="button" data-m="pro">Flash</button><button type="button" data-m="max">Pro<i class="crown"></i></button></div></div>
     </div>
     <p class="hint only-set" id="aihint"></p>
     <p class="hint only-set" id="aiuse"></p>
-    <p class="hint only-set">참고로 Gemini에는 이보다 더 정교한 Pro 모델도 있어요. 다만 결제 수단을 등록한 유료 키에서만 쓸 수 있어서, 이 앱에는 아직 넣지 않았어요.</p>
 
     <p class="sec only-set">AI 교정 스타일</p>
     <div class="group only-set">
@@ -767,35 +773,43 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
       </div>
     </div>
 
-    <p class="sec only-set">내 정보 (선택)</p>
+    <p class="sec">API 키</p>
     <div class="group fields">
       <label><span class="lb">API 키<button type="button" id="keypaste" class="mini">붙여넣기</button></span>
         <span class="keyrow"><input id="f-key" type="password" placeholder="API 키 붙여넣기" autocomplete="off"><button type="button" id="keyeye" class="eye" aria-label="키 보기"></button></span>
         <span class="kstat" id="keystat"></span>
       </label>
-      <label class="only-set">나이<input id="f-age" type="number" min="5" max="100"></label>
-      <label class="only-set">성별
-        <select id="f-gender">
-          <option value="">선택</option><option>남성</option><option>여성</option>
-        </select>
-      </label>
-      <label class="only-set">영어 시험 점수
-        <select id="f-level">
-          <option value="">없음</option><option>토익</option><option>토플</option>
-          <option>아이엘츠</option><option>초등회화 미만</option>
-        </select>
-        <input id="f-score" type="number" step="any" placeholder="점수 (예: 600)">
-      </label>
-      <label class="only-set">학습 분야 (목표)
-        <input id="f-field" list="fields" placeholder="목록에서 고르거나 직접 입력">
-      </label>
-      <datalist id="fields">
-        <option value="병원"><option value="교회"><option value="학교"><option value="회사">
-      </datalist>
+    </div>
+
+    <div class="group guide only-set" id="info">
+      <button type="button" id="infohead" class="g-row"><span class="gtitle"><span class="mt">내 정보 (선택)<small id="infosum"></small></span></span><span class="chev"></span></button>
+      <div class="g-blk" id="infobody">
+        <div class="fields">
+          <label>나이<input id="f-age" type="number" min="5" max="100"></label>
+          <label>성별
+            <select id="f-gender">
+              <option value="">선택</option><option>남성</option><option>여성</option>
+            </select>
+          </label>
+          <label>영어 시험 점수
+            <select id="f-level">
+              <option value="">없음</option><option>토익</option><option>토플</option>
+              <option>아이엘츠</option><option>초등회화 미만</option>
+            </select>
+            <input id="f-score" type="number" step="any" placeholder="점수 (예: 600)">
+          </label>
+          <label>학습 분야 (목표)
+            <input id="f-field" list="fields" placeholder="목록에서 고르거나 직접 입력">
+          </label>
+          <datalist id="fields">
+            <option value="병원"><option value="교회"><option value="학교"><option value="회사">
+          </datalist>
+        </div>
+      </div>
     </div>
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v37</p>
+    <p id="ver">버전 v38</p>
   </div>
 </div>
 
@@ -909,9 +923,10 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
 // 설정값: 여기만 고치면 됨
 const MAX_TURNS = 6;               // API로 보낼 최근 대화 횟수
 const SILENCE_MS = 5000;           // 이 시간 동안 말이 없으면 마이크 자동 종료
-const MODELS = { lite: 'gemini-3.5-flash-lite', pro: 'gemini-3.5-flash' };  // 빠름: 하루 한도가 넉넉함, 정교: 더 정확하지만 한도가 적음
-const MODEL_NAME = { lite: 'Flash-Lite', pro: 'Flash' };
-let aiMode = localStorage.getItem('aimode') === 'pro' ? 'pro' : 'lite';  // 기본은 빠름
+const MODELS = { lite: 'gemini-3.5-flash-lite', pro: 'gemini-3.5-flash', max: 'gemini-3.1-pro-preview' };  // Flash-Lite: 하루 한도 넉넉함, Flash: 더 정교, Pro: 가장 정교(유료 키 전용)
+const MODEL_NAME = { lite: 'Flash-Lite', pro: 'Flash', max: 'Pro' };
+const FALLBACK = { max: 'pro', pro: 'lite', lite: 'pro' };  // 선택한 모델이 막히면 이어서 시도할 모델
+let aiMode = ['pro', 'max'].includes(localStorage.getItem('aimode')) ? localStorage.getItem('aimode') : 'lite';  // 기본은 Flash-Lite
 const BASE_SYSTEM = `You are a friendly English tutor for a Korean learner. Reply in 1-2 short English sentences and end with a simple question. Be perceptive: use the conversation so far and the learner's field of interest to guess what they most likely meant, and answer that.
 The user's text may come from speech recognition: never comment on repeated words, fillers, capitalization, punctuation or apostrophes.
 If the user asks in Korean how to say something in English: reply with only the natural English sentence (no extra question), then a new line "KO:" followed by "이렇게 말하면 돼요." and, if useful, one short note on a key word.
@@ -962,6 +977,7 @@ const I_REV = icon('<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 
 const I_SUN = icon('<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>', 20);
 const I_MOON = icon('<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>', 20);
 const I_SPK = icon('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>', 18);
+const CROWN = '<svg viewBox="0 0 16 12" width="11" height="9" fill="currentColor"><path d="M1 4.2 3.6 6l2-3.6L8 6l2.4-3.6L12.4 6 15 4.2 13.8 11H2.2z"/></svg>';
 
 // 화면 전환: 탭 바는 홈, 단어장, 기록, 설정에서만 보임
 const TABS = ['menu', 'vocab', 'hist', 'setup'];
@@ -1072,11 +1088,12 @@ $('micseg').onclick = e => {
 
 function paintAI() {
   document.querySelectorAll('#aiseg [data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === aiMode));
-  $('aihint').textContent = aiMode === 'lite'
-    ? 'AI 모델 버전에 따라 하루 사용량과 답변 품질이 달라요. Flash-Lite는 가볍고 빨라서 매일 넉넉히 쓸 수 있어요.'
-    : 'Flash는 더 정교하고 자연스러운 답을 줘요. 대신 하루에 쓸 수 있는 양은 더 적고, 다 되면 Flash-Lite로 자동으로 이어져요.';
+  $('aihint').textContent = aiMode === 'lite' ? 'AI 모델 버전에 따라 하루 사용량과 답변 품질이 달라요. Flash-Lite는 가볍고 빨라서 매일 넉넉히 쓸 수 있어요.'
+    : aiMode === 'pro' ? 'Flash는 더 정교하고 자연스러운 답을 줘요. 하루 사용량은 Flash-Lite보다 적고, 다 되면 Flash-Lite로 자동 전환돼요.'
+    : 'Pro는 Gemini에서 가장 정교한 모델이에요. 결제 수단을 등록한 키가 필요하고, 무료 키라면 Flash로 자동 전환돼요.';
   const u = usageToday();
-  $('aiuse').textContent = `오늘 사용: Flash-Lite ${u.n[MODELS.lite] || 0}번 · Flash ${u.n[MODELS.pro] || 0}번 (한도는 ${resetText()}에 초기화돼요)`;
+  $('aiuse').textContent = `오늘 사용: Flash-Lite ${u.n[MODELS.lite] || 0}번 · Flash ${u.n[MODELS.pro] || 0}번 · Pro ${u.n[MODELS.max] || 0}번 (한도는 ${resetText()}에 초기화돼요)`;
+  $('aiseg').querySelector('.crown').innerHTML = CROWN;
 }
 $('aiseg').onclick = e => {
   const b = e.target.closest('[data-m]');
@@ -1084,6 +1101,7 @@ $('aiseg').onclick = e => {
   aiMode = b.dataset.m;
   localStorage.setItem('aimode', aiMode);
   paintAI();
+  if (aiMode === 'max') toast('Pro 모델은 결제 수단을 등록한 키에서만 사용할 수 있어요. 무료 키라면 Flash로 자동 전환돼요.', 4200);
 };
 
 // ===== 교정 강도: 튜터가 고쳐 주는 정도 (보통은 기존 방식 그대로) =====
@@ -1208,6 +1226,7 @@ function fillForm() {
   document.querySelectorAll('.only-set').forEach(e => e.style.display = profile ? '' : 'none');  // 처음에는 키와 정보만
   $('setuplead').style.display = profile ? 'none' : 'block';
   $('guide').classList.toggle('open', !apiKey);  // 키가 없으면 발급 안내를 펼침
+  $('infosum').textContent = [p.age && `${p.age}세`, p.gender, p.level && p.level !== NONE ? `${p.level} ${p.score}` : '', p.field].filter(Boolean).join(' · ') || '나이, 성별, 목표 등을 선택할 수 있어요';
   $('keystat').className = 'kstat';
   $('keystat').textContent = '';
   $('permstat').textContent = micState === 'granted' ? '허용됨' : '';
@@ -1363,10 +1382,10 @@ function resetText() {  // 한도가 초기화되는 시각을 내 폰 시간으
 }
 // 선택한 모델로 요청하고, 한도(429)가 다 됐거나 모델이 없으면(404) 다른 모델로 한 번 더
 async function askAI(body, meta = {}, prefer = aiMode, quiet = false) {
-  const other = prefer === 'lite' ? 'pro' : 'lite';
+  const other = FALLBACK[prefer] || 'lite';
   try { return await gemini(body, MODELS[prefer], meta); }
   catch (e) {
-    if (e.code !== 429 && e.code !== 404) throw e;
+    if (![429, 404, 403].includes(e.code)) throw e;  // 429 한도 초과, 404 모델 없음, 403 권한 없음(예: 무료 키로 Pro 호출)
     const text = await gemini(body, MODELS[other], meta);
     if (!quiet) toast(`${MODEL_NAME[prefer]} 모델 한도가 다 돼서 ${MODEL_NAME[other]} 모델로 이어갈게요`, 3800);
     return text;
@@ -1531,6 +1550,9 @@ function addAiMsg(text, box = $('chat')) {
     s.onclick = e => { e.stopPropagation(); onWord(d, part, text); };  // 단어 클릭이 번역 열기로 번지지 않게
     d.append(s);
   });
+  const spk = spkBtn(text);
+  spk.addEventListener('click', e => e.stopPropagation());
+  d.append(spk);
   const hint = el('span', 'trhint');
   hint.innerHTML = sz(I_CHEV, 14);
   d.append(hint);
@@ -1631,7 +1653,9 @@ function renderVocab() {
       det.append(more);
     };
     const line = el('div', 'vtxt');
-    line.append(el('span', 'vw', v.w), `${v.base ? ` (${v.base})` : ''} : ${v.meaning}`);
+    const top = el('div', '');
+    top.append(el('span', 'vw', v.w), `${v.base ? ` (${v.base})` : ''} : ${v.meaning}`);
+    line.append(top);
     if (!BASIC[v.w]) line.append(el('span', 'vdue', dueText(v)));
     line.onclick = () => {
       const open = det.style.display === 'none';
@@ -2650,7 +2674,9 @@ $('keyeye').onclick = () => {
 const I_KEY = icon('<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>');
 $('guidehead').querySelector('.ic').innerHTML = sz(I_KEY, 20);
 $('guidehead').querySelector('.chev').innerHTML = I_CHEV;
+$('infohead').querySelector('.chev').innerHTML = I_CHEV;
 $('guidehead').onclick = () => $('guide').classList.toggle('open');
+$('infohead').onclick = () => $('info').classList.toggle('open');
 $('keyopen').onclick = () => window.open('https://aistudio.google.com/apikey', '_blank', 'noopener');
 let keySeq = 0;
 async function checkKey() {  // 키가 맞는지 가볍게 확인 (글 생성 없이 목록만 조회, 사용량이 들지 않음)
