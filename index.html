@@ -157,11 +157,11 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .greet h1 { margin: 0; max-width: 70%; font-size: clamp(22px, 6.4vw, 26px); line-height: 1.3; font-weight: 800; letter-spacing: -.7px; word-break: keep-all; }
   .gart { position: absolute; right: -4px; top: -2px; width: 108px; height: auto; pointer-events: none;
           filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .25)); }
-  .install { display: none; position: relative; margin: 0 0 16px; border: 1px dashed var(--line2); border-radius: 20px;
+  .banner { display: none; position: relative; margin: 0 0 16px; border: 1px dashed var(--line2); border-radius: 20px;
              --tint: var(--accent-text); --tint-bg: var(--accent-soft); }
-  .install .in-main { display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; padding: 12px 14px; border: 0; background: none; text-align: left; }
-  .install .mt { flex: 1; }
-  .install .in-x { position: absolute; top: -10px; right: -6px; width: 26px; height: 26px; padding: 0; border: 1px solid var(--line2); border-radius: 50%;
+  .banner .in-main { display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; padding: 12px 14px; border: 0; background: none; text-align: left; }
+  .banner .mt { flex: 1; }
+  .banner .in-x { position: absolute; top: -10px; right: -6px; width: 26px; height: 26px; padding: 0; border: 1px solid var(--line2); border-radius: 50%;
                    background: var(--surface); color: var(--sub); font-size: 16px; line-height: 1; }
   .chip, .go { display: flex; align-items: center; justify-content: center; flex: none; background: var(--tint-bg); color: var(--tint); line-height: 0; }
   .chip { width: 44px; height: 44px; border-radius: 14px; }
@@ -258,9 +258,10 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .inapp p { margin: 6px 0 12px; font-size: 13.5px; line-height: 1.55; color: var(--sub); }
   .inapp p b { color: var(--text); font-size: 13.5px; }
   .inapp .ia { display: flex; gap: 8px; }
-  .install.howto { border-style: solid; }
-  .install.howto .in-main { pointer-events: none; }
-  .install.howto .go { display: none; }
+  .banner.howto { border-style: solid; }
+  .banner.howto .in-main { pointer-events: none; }
+  .banner.howto .go { display: none; }
+  .banner.accent { border-style: solid; border-color: var(--accent-line); background: var(--accent-soft); }
 
   /* 설정 화면 */
   .sec { display: flex; align-items: center; gap: 8px; margin: 24px 4px 8px; font-size: 13px; font-weight: 700; color: var(--sub); }
@@ -395,7 +396,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .mm:last-child { margin-bottom: 0; }
   .mm small { display: block; margin-bottom: 6px; font-size: 12.5px; font-weight: 700; color: var(--sub); }
   .mchips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .mc { display: inline-flex; align-items: center; padding: 5px 4px 5px 12px; border-radius: 16px; background: var(--accent-soft); color: var(--accent-text); font-size: 13.5px; font-weight: 700; }
+  .mc { display: inline-flex; flex: none; align-items: center; max-width: 100%; padding: 5px 4px 5px 12px; border-radius: 16px; background: var(--accent-soft); color: var(--accent-text); font-size: 13.5px; font-weight: 700; word-break: keep-all; }
   .mc.gray { background: var(--surface2); color: var(--text); }
   .mc button { padding: 2px 8px; border: 0; background: none; color: inherit; font-size: 16px; line-height: 1; opacity: .7; }
   .mempty { margin: 0; font-size: 14px; line-height: 1.6; color: var(--sub); }
@@ -546,6 +547,17 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .msg.ai::before { content: ''; position: absolute; left: 9px; top: 9px; width: 28px; height: 28px; border-radius: 50%;
                     background: var(--avatar) center / cover no-repeat, #ffd43b; }
   .msg.ko { background: var(--ko); color: var(--on-ko); font-size: 14px; }
+  .msg.ai:not(.noTr) { cursor: pointer; }
+  .msg.ai .trhint { position: absolute; right: 12px; bottom: 11px; width: 14px; height: 14px; color: var(--sub); opacity: .4;
+                    transform: rotate(90deg); transition: transform .25s, opacity .25s; pointer-events: none; }
+  .msg.ai.tropen .trhint { transform: rotate(270deg); opacity: .75; }
+  .msg.ai.noTr .trhint { display: none; }
+  .tr { word-break: keep-all; max-width: 82%; margin: -2px 0 10px; padding: 10px 14px; border-radius: 14px;
+        background: var(--card); border: 1px dashed var(--card-line); font-size: 14px; animation: rise .18s ease both; }
+  .tr b { display: block; margin-bottom: 4px; font-size: 11px; font-weight: 800; letter-spacing: .02em; color: var(--sub); }
+  .tr .wait { display: inline-flex; align-items: center; height: 14px; }
+  #micalts { display: none; gap: 8px; margin: 0 12px 8px; overflow-x: auto; }
+  #micalts .malt { flex: none; white-space: nowrap; padding: 8px 14px; font-size: 13.5px; }
   .msg.notice { background: var(--notice); border: 1px solid var(--notice-line); font-size: 14px; }
   .msg.notice b { display: block; margin-bottom: 4px; }
 
@@ -642,7 +654,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
       <h1 id="g-ko"></h1>
       <img class="gart" id="gart" alt="">
     </section>
-    <div id="install" class="install">
+    <div id="install" class="banner">
       <button type="button" id="install-go" class="in-main">
         <span class="chip"><span class="ic"></span></span>
         <span class="mt">앱으로 설치하기<small>홈 화면에 아이콘을 만들어요</small></span>
@@ -665,6 +677,14 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
       <span class="mt">복습하기<small id="m-rev-sub"></small></span>
       <span class="go"></span>
     </button>
+    <div id="lvbanner" class="banner accent" style="display:none">
+      <button type="button" id="lvbanner-go" class="in-main">
+        <span class="chip"><span class="ic"></span></span>
+        <span class="mt"><b>그동안 실력이 늘었을 거예요</b><small>레벨을 다시 확인해 볼까요?</small></span>
+        <span class="go"></span>
+      </button>
+      <button type="button" id="lvbanner-x" class="in-x" aria-label="닫기">×</button>
+    </div>
     <section class="pcard">
       <div class="sec-h"><h3>이번 주 학습</h3><span class="goal"><b class="num" id="w-done">0</b> / <span id="w-goal">5</span>일</span></div>
       <div class="dots" id="w-dots"></div>
@@ -691,14 +711,15 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
 
     <p class="sec only-set">AI 모델</p>
     <div class="group only-set">
-      <div class="g-row"><span>대화 모델</span><div class="seg" id="aiseg"><button type="button" data-m="lite">빠름</button><button type="button" data-m="pro">정교</button></div></div>
+      <div class="g-row"><span>대화 모델</span><div class="seg" id="aiseg"><button type="button" data-m="lite">Flash-Lite</button><button type="button" data-m="pro">Flash</button></div></div>
     </div>
     <p class="hint only-set" id="aihint"></p>
     <p class="hint only-set" id="aiuse"></p>
+    <p class="hint only-set">참고로 Gemini에는 이보다 더 정교한 Pro 모델도 있어요. 다만 결제 수단을 등록한 유료 키에서만 쓸 수 있어서, 이 앱에는 아직 넣지 않았어요.</p>
 
-    <p class="sec only-set">교정 강도</p>
+    <p class="sec only-set">AI 교정 스타일</p>
     <div class="group only-set">
-      <div class="g-blk"><div class="g-top"><span>고쳐 주는 정도</span></div><div class="seg s3 full" id="strictseg"><button type="button" data-k="soft">부드럽게</button><button type="button" data-k="normal">보통</button><button type="button" data-k="strict">엄격</button></div></div>
+      <div class="g-blk"><div class="seg s3 full" id="strictseg"><button type="button" data-k="soft">부드럽게</button><button type="button" data-k="normal">보통</button><button type="button" data-k="strict">엄격</button></div></div>
     </div>
     <p class="hint only-set" id="stricthint"></p>
 
@@ -717,7 +738,9 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
     <p class="sec only-set">말하기</p>
     <div class="group only-set">
       <button type="button" id="permbtn" class="g-row"><span>마이크 · 소리 점검</span><span class="val"><span id="permstat"></span><span class="chev"></span></span></button>
+      <div class="g-blk"><div class="g-top"><span>음성 인식 시</span></div><div class="seg s3 full" id="micseg"><button type="button" data-k="confirm">확인 후 보내기</button><button type="button" data-k="auto">바로 보내기</button></div></div>
     </div>
+    <p class="hint only-set" id="michint2">인식된 글자가 입력칸에 먼저 나오고, 확인하고 보내면 엉뚱한 단어가 그대로 전송되는 걸 막을 수 있어요.</p>
 
     <p class="sec only-set">학습 알림</p>
     <div class="group only-set">
@@ -740,7 +763,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
           <li><i>3</i><span>이 앱으로 돌아와 아래 <b>붙여넣기</b>를 눌러요.</span></li>
         </ol>
         <button type="button" id="keyopen" class="pill wide">Google AI Studio 열기</button>
-        <p class="hint">AI Studio에서 새로 만든 키를 써야 해요. 예전 방식으로 만든 키는 막혔을 수 있어요. 결제 수단을 등록하지 않으면 무료 한도 안에서만 쓰이고, 넘으면 앱이 알려줘요. 무료 등급에서는 대화 내용이 구글 서비스 개선에 쓰일 수 있으니 개인정보는 말하지 마세요.</p>
+        <p class="hint">AI Studio에서 새로 만든 키를 써야 해요. 예전 방식으로 만든 키는 막혔을 수 있어요. 결제 수단을 등록하지 않으면 무료 한도 안에서만 쓰이고, 한도를 넘으면 앱이 알려줘요. 무료 등급에서는 대화 내용이 구글 서비스 개선에 쓰일 수 있으니, 개인정보는 알려주지 않는 게 좋아요.</p>
       </div>
     </div>
 
@@ -772,7 +795,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
     </div>
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v35</p>
+    <p id="ver">버전 v37</p>
   </div>
 </div>
 
@@ -784,6 +807,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   </div>
   <div id="modebar" class="modebar"><span id="mbtxt"><b>복습 모드</b> · 지난 대화에서 골랐어요</span><button type="button" id="revexit">끝내기</button></div>
   <div id="chat"></div>
+  <div id="micalts"></div>
   <form id="bar">
     <button type="button" id="cancel" aria-label="취소"></button>
     <input id="inp" placeholder="영어나 한글로 입력하세요" enterkeyhint="send" autocomplete="off">
@@ -886,7 +910,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
 const MAX_TURNS = 6;               // API로 보낼 최근 대화 횟수
 const SILENCE_MS = 5000;           // 이 시간 동안 말이 없으면 마이크 자동 종료
 const MODELS = { lite: 'gemini-3.5-flash-lite', pro: 'gemini-3.5-flash' };  // 빠름: 하루 한도가 넉넉함, 정교: 더 정확하지만 한도가 적음
-const MODEL_NAME = { lite: '빠름', pro: '정교' };
+const MODEL_NAME = { lite: 'Flash-Lite', pro: 'Flash' };
 let aiMode = localStorage.getItem('aimode') === 'pro' ? 'pro' : 'lite';  // 기본은 빠름
 const BASE_SYSTEM = `You are a friendly English tutor for a Korean learner. Reply in 1-2 short English sentences and end with a simple question. Be perceptive: use the conversation so far and the learner's field of interest to guess what they most likely meant, and answer that.
 The user's text may come from speech recognition: never comment on repeated words, fillers, capitalization, punctuation or apostrophes.
@@ -1035,13 +1059,24 @@ function toggleScore() {
 $('f-level').onchange = toggleScore;
 
 // AI 모델 선택 표시: 선택 상태, 설명, 오늘 사용 횟수
+function paintMicSeg() {
+  document.querySelectorAll('#micseg [data-k]').forEach(b => b.classList.toggle('on', b.dataset.k === (micAuto ? 'auto' : 'confirm')));
+}
+$('micseg').onclick = e => {
+  const b = e.target.closest('[data-k]');
+  if (!b) return;
+  micAuto = b.dataset.k === 'auto';
+  localStorage.setItem('micauto', micAuto ? '1' : '0');
+  paintMicSeg();
+};
+
 function paintAI() {
   document.querySelectorAll('#aiseg [data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === aiMode));
   $('aihint').textContent = aiMode === 'lite'
-    ? '하루 한도가 넉넉해요(무료 기준 약 500번으로 알려져 있어요). 답이 조금 단순할 수 있어요.'
-    : '답이 더 정확해요. 대신 하루 한도가 적고(무료 기준 약 20번), 다 되면 빠름 모델로 이어져요.';
+    ? 'AI 모델 버전에 따라 하루 사용량과 답변 품질이 달라요. Flash-Lite는 가볍고 빨라서 매일 넉넉히 쓸 수 있어요.'
+    : 'Flash는 더 정교하고 자연스러운 답을 줘요. 대신 하루에 쓸 수 있는 양은 더 적고, 다 되면 Flash-Lite로 자동으로 이어져요.';
   const u = usageToday();
-  $('aiuse').textContent = `오늘 사용: 빠름 ${u.n[MODELS.lite] || 0}번 · 정교 ${u.n[MODELS.pro] || 0}번. 한도는 ${resetText()}에 초기화돼요. 정확한 한도는 AI Studio에서 확인하세요.`;
+  $('aiuse').textContent = `오늘 사용: Flash-Lite ${u.n[MODELS.lite] || 0}번 · Flash ${u.n[MODELS.pro] || 0}번 (한도는 ${resetText()}에 초기화돼요)`;
 }
 $('aiseg').onclick = e => {
   const b = e.target.closest('[data-m]');
@@ -1059,7 +1094,7 @@ const STRICT_RULE = {
 };
 const STRICT_HINT = {
   soft: '뜻이 통하면 넘어가고, 꼭 필요한 실수 한 가지만 짚어요.',
-  normal: '문법이나 단어 선택 실수가 있으면 알려줘요. (지금까지의 방식)',
+  normal: '문법이나 단어 선택 실수가 있으면 알려줘요.',
   strict: '관사, 시제, 전치사 같은 작은 실수도 모두 짚어요.'
 };
 function paintStrict() {
@@ -1179,6 +1214,7 @@ function fillForm() {
   paintAI();
   paintStrict();
   paintMemo();
+  paintMicSeg();
   $('lvstat').textContent = ob && ob.lvl ? `레벨 ${ob.lvl} · ${LV_NAME[ob.lvl]}` : '테스트하기';
 }
 
@@ -1450,8 +1486,9 @@ async function onWord(bubble, word, context) {
   speak(w);
   if (bubble.card) bubble.card.remove();
   const card = el('div', 'card', '찾는 중...');
-  const next = bubble.nextElementSibling;
-  (next && next.classList.contains('ko') ? next : bubble).after(card);  // 파란 설명 말풍선이 있으면 그 아래에
+  let after = bubble, sib = bubble.nextElementSibling;
+  while (sib && (sib.classList.contains('ko') || sib.classList.contains('tr'))) { after = sib; sib = sib.nextElementSibling; }
+  after.after(card);  // 설명이나 번역 말풍선이 있으면 그 아래에
   bubble.card = card;
   try {
     const sv = findWord(w);
@@ -1491,11 +1528,48 @@ function addAiMsg(text, box = $('chat')) {
   text.split(/([A-Za-z'’]+)/).forEach((part, i) => {
     if (i % 2 === 0) return d.append(part);  // 단어가 아닌 부분
     const s = el('span', 'w', part);
-    s.onclick = () => onWord(d, part, text);
+    s.onclick = e => { e.stopPropagation(); onWord(d, part, text); };  // 단어 클릭이 번역 열기로 번지지 않게
     d.append(s);
   });
+  const hint = el('span', 'trhint');
+  hint.innerHTML = sz(I_CHEV, 14);
+  d.append(hint);
+  d.onclick = () => toggleTranslate(d, text);
   box.append(d);
   box.scrollTop = box.scrollHeight;
+  return d;
+}
+
+// 말풍선을 누르면 한국어 번역을 펼침/접음 (교정 설명이 이미 있으면 생략)
+const trCache = new Map();
+async function translateLine(text) {
+  const out = await lite({
+    system_instruction: { parts: [{ text: 'Translate the given English into natural, casual spoken Korean for a language learner. Output only the Korean translation. No quotes, no labels, no English.' }] },
+    contents: [{ role: 'user', parts: [{ text }] }],
+    generationConfig: { temperature: 0.2, maxOutputTokens: 300 }
+  });
+  return out.trim().replace(/^["'“]|["'”]$/g, '');
+}
+async function toggleTranslate(bubble, text) {
+  if (bubble.classList.contains('noTr') || bubble.trBusy) return;
+  if (bubble.tr) { bubble.tr.remove(); bubble.tr = null; bubble.classList.remove('tropen'); return; }
+  const box = el('div', 'tr');
+  box.innerHTML = '<b>번역</b><span class="wait"><i></i><i></i><i></i></span>';
+  let after = bubble, sib = bubble.nextElementSibling;
+  while (sib && (sib.classList.contains('ko') || sib.classList.contains('tr'))) { after = sib; sib = sib.nextElementSibling; }
+  after.after(box);
+  bubble.tr = box;
+  bubble.classList.add('tropen');
+  bubble.trBusy = true;
+  try {
+    let tr = trCache.get(text);
+    if (!tr) { tr = await translateLine(text); trCache.set(text, tr); }
+    box.innerHTML = '<b>번역</b>';
+    box.append(document.createTextNode(tr));
+  } catch (e) {
+    box.innerHTML = '<b>번역</b>';
+    box.append(document.createTextNode('번역을 가져오지 못했어요. 다시 눌러보세요'));
+  } finally { bubble.trBusy = false; }
 }
 
 // 저장된 대화 한 줄 그리기 (tap이 true면 단어를 누를 수 있음)
@@ -1503,8 +1577,11 @@ function drawMsg(m, box, tap) {
   const t = m.parts[0].text;
   if (m.role === 'user') return addMsg(t, 'user', box);
   const [en, ko] = t.split('KO:');  // KO: 앞은 영어, 뒤는 한국어 설명
-  if (en.trim()) tap ? addAiMsg(en.trim(), box) : addMsg(en.trim(), 'ai', box);
-  if (ko) addMsg(ko.trim(), 'ko', box);
+  const bubble = en.trim() ? (tap ? addAiMsg(en.trim(), box) : addMsg(en.trim(), 'ai', box)) : null;
+  if (ko) {
+    addMsg(ko.trim(), 'ko', box);
+    if (bubble) bubble.classList.add('noTr');  // 교정 설명이 이미 있으면 번역 보기를 따로 안 보여줌
+  }
 }
 
 // 단어장 목록 그리기 (최근 저장이 위, 검색 가능, 누르면 예문 펼침)
@@ -1798,7 +1875,9 @@ let lang = 'en-US';     // 말하기 언어 (한국어는 한 번 말하면 EN�
 let listening = false;  // 듣는 중 여부
 let heard = '';         // 확정된 말
 let pending = '';       // 확정 전인 말
+let heardAlts = [];     // 마지막 확정 구간의 다른 인식 후보(있으면)
 let silence;            // 무음 타이머
+let micAuto = localStorage.getItem('micauto') === '1';  // true면 듣기가 끝나자마자 바로 전송
 
 const closeCards = () => document.querySelectorAll('.card').forEach(c => c.remove());
 
@@ -1815,7 +1894,7 @@ function paint() {
   bar.classList.toggle('listening', listening);
   act.innerHTML = listening || inp.value.trim() ? I_SEND : I_MIC;
 }
-inp.oninput = paint;
+inp.oninput = () => { paint(); hideMicAlts(); };
 
 // 무음이 계속되면 자동으로 듣기 끝내기
 const arm = () => {
@@ -1833,12 +1912,16 @@ const rec = SR ? new SR() : null;
 if (rec) {
   rec.interimResults = true;
   rec.onspeechstart = arm;
+  rec.maxAlternatives = 3;  // 다른 인식 후보도 함께 받아서, 잘못 알아들었을 때 골라 쓸 수 있게
   rec.onresult = e => {
     arm();  // 말소리가 들어오는 동안 타이머 갱신
     pending = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
-      const t = e.results[i][0].transcript;
-      if (e.results[i].isFinal) heard += ' ' + t; else pending += t;
+      const r = e.results[i];
+      if (r.isFinal) {
+        heard += ' ' + r[0].transcript;
+        heardAlts = [...new Set(Array.from(r, x => x.transcript.trim()).filter(Boolean))];  // 이번 구간의 후보들 (마지막 구간 기준)
+      } else pending += r[0].transcript;
     }
   };
   rec.onend = () => {
@@ -1846,12 +1929,15 @@ if (rec) {
     pending = '';
     if (listening) { rec.lang = lang; return rec.start(); }  // 말이 멈춰 끊겨도 계속 듣기
     clearTimeout(silence);
-    paint();
-    if (heard.trim()) {
-      send(heard.trim());
-      if (lang === 'ko-KR') setLang('en-US');  // 한국어는 한 번만
-    }
+    const said = heard.trim();
     heard = '';
+    if (!said) return paint();
+    if (lang === 'ko-KR') setLang('en-US');  // 한국어는 한 번만
+    if (micAuto) { paint(); return send(said); }
+    inp.value = said;  // 확인 후 보내기: 알아들은 글자를 입력칸에 먼저 보여주고, 사람이 확인해서 보냄
+    paint();
+    inp.focus();
+    showMicAlts(heardAlts.filter(a => a.toLowerCase() !== said.toLowerCase() && a.length > 1), said);
   };
   rec.onerror = e => {
     if (e.error === 'no-speech' || e.error === 'aborted') return;
@@ -1865,15 +1951,32 @@ if (rec) {
     pending = '';
     listening = false;
     rec.abort();
+    hideMicAlts();
   };
 } else {
   $('lang').style.display = 'none';
 }
 
+// 다른 인식 후보를 칩으로 보여줌: 누르면 그 글자로 바꿔 넣음 (짧은 한 마디일 때 가장 잘 맞음)
+function showMicAlts(alts, said) {
+  const box = $('micalts');
+  if (!alts.length) return hideMicAlts();
+  box.innerHTML = '';
+  alts.slice(0, 2).forEach(a => {
+    const b = el('button', 'pill ghost malt', a);
+    b.type = 'button';
+    b.onclick = () => { inp.value = a; hideMicAlts(); paint(); inp.focus(); };
+    box.append(b);
+  });
+  box.style.display = 'flex';
+}
+function hideMicAlts() { $('micalts').style.display = 'none'; $('micalts').innerHTML = ''; }
+
 // 버튼: 듣는 중이면 끝내고 전송 / 글자가 있으면 전송 / 비어 있으면 듣기 시작
 act.onclick = () => {
   if (listening) { listening = false; return rec.stop(); }
   closeCards();  // 단어 카드 닫기
+  hideMicAlts();
   const t = inp.value.trim();
   if (t) { inp.value = ''; paint(); return send(t); }
   if (!rec) return addMsg('이 브라우저는 음성 입력을 지원하지 않아요. 글로 입력해 주세요', 'ai');
@@ -1924,8 +2027,9 @@ $('m-chat').querySelector('.hic').innerHTML = sz(I_WAVE, 28);
 $('m-rev').querySelector('.ic').innerHTML = sz(I_REV, 22);
 $('m-course').querySelector('.ic').innerHTML = sz(I_BOOK, 22);
 $('wbanner').querySelector('.ic').innerHTML = sz(I_REV, 22);
+$('lvbanner').querySelector('.ic').innerHTML = sz(I_REV, 22);
 ['lback', 'uback', 'wback'].forEach(id => { $(id).innerHTML = I_BACK; });
-document.querySelectorAll('.hero .go, .rowcard .go, .install .go').forEach(g => g.innerHTML = sz(I_ARROW, 18));
+document.querySelectorAll('.hero .go, .rowcard .go, .banner .go').forEach(g => g.innerHTML = sz(I_ARROW, 18));
 $('s-flame').innerHTML = sz(I_FLAME, 20);
 $('s-book').innerHTML = sz(I_BOOK, 20);
 document.querySelectorAll('#themesw .ti')[0].innerHTML = I_SUN;
@@ -2017,6 +2121,7 @@ function paintMenu() {
     : !mat.n ? '대화하고 단어를 저장하면 생겨요'
     : doneToday ? '오늘 복습 완료 · 한 번 더 하기' : `지난 대화에서 ${Math.min(3, mat.n)}문제`;
   $('m-rev').disabled = !mat.n && !dueN;
+  $('lvbanner').style.display = checkpointDue() ? 'flex' : 'none';
   const wk = weekDays(), st = streakDays();
   $('w-done').textContent = wk.filter(d => d.done).length;
   $('w-dots').innerHTML = wk.map(d => `<div class="dy${d.done ? ' done' : ''}${d.today ? ' today' : ''}"><span>${d.label}</span><i>${d.done ? I_CHECK : ''}</i></div>`).join('');
@@ -2030,6 +2135,8 @@ function paintMenu() {
 $('m-chat').onclick = $('fab').onclick = () => navTo('main');
 $('m-rev').onclick = () => (dueWords().length ? wrStart() : startReview());
 $('m-course').onclick = () => navTo('learn');
+$('lvbanner-go').onclick = () => navTo('onb');
+$('lvbanner-x').onclick = () => { ob.snoozeUntil = addDays(dayKey, 7); localStorage.setItem('ob', JSON.stringify(ob)); $('lvbanner').style.display = 'none'; };
 $('chatback').onclick = goBack;
 $('revexit').onclick = goBack;
 document.querySelectorAll('#tabs .tab[data-s]').forEach(t => t.onclick = () => tabTo(t.dataset.s));
@@ -2198,6 +2305,26 @@ const G = 0.25, SLOPE = 1.4;          // 4지선다에서 찍어 맞힐 확률, 
 const VMIN = 8, VMAX = 18, SE_STOP = 0.45;  // 단어 문제는 최소 8개, 최대 18개, 충분히 확신되고 점수가 안정되면 끝
 const NREAD = 5;                      // 문장 문제 수
 const clampLv = n => Math.min(5, Math.max(1, n));
+// 유닛 퀴즈나 단어 복습을 마칠 때마다 정답률로 레벨 점수를 아주 조금씩 조정 (화면에 알리지 않음)
+// 방향이 3번 연속 같을 때만 실제 레벨 숫자를 옮겨서, 한두 번의 우연으로 레벨이 출렁이지 않게 함
+function bumpLevel(acc) {
+  if (!ob || !ob.lvl) return;
+  if (ob.th === undefined) ob.th = ob.lvl;
+  const dir = acc >= 0.8 ? 1 : acc <= 0.4 ? -1 : 0;
+  if (!dir) { ob.drift = 0; ob.driftDir = 0; }
+  else {
+    ob.th = Math.min(5.5, Math.max(0.5, ob.th + dir * 0.15));
+    ob.drift = dir === ob.driftDir ? (ob.drift || 0) + 1 : 1;
+    ob.driftDir = dir;
+    const target = clampLv(Math.round(ob.th));
+    if (ob.drift >= 3 && target !== ob.lvl) { ob.lvl = target; ob.drift = 0; }
+  }
+  localStorage.setItem('ob', JSON.stringify(ob));
+}
+const daysSince = k => Math.round((new Date(dayKey + 'T00:00:00') - new Date(k + 'T00:00:00')) / 864e5);  // 오늘까지 며칠 지났는지
+function checkpointDue() {
+  return !!(ob && ob.lvl && ob.lastCheck && daysSince(ob.lastCheck) >= 14 && (!ob.snoozeUntil || ob.snoozeUntil <= dayKey));
+}
 const shuffle = a => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
 const pOk = (th, b, g) => g + (1 - g) / (1 + Math.exp(-SLOPE * (th - b)));
 const newSkill = th => ({ th, n: 0, info: 0, h: [] });  // h: 점수 변화 기록
@@ -2371,7 +2498,8 @@ $('obnext').onclick = () => {
   else if (st === 'plan') { obResult(); obGo('result'); }
   else if (st === 'result') {
     ob = { lvl: obs.lvl, th: +obs.th.toFixed(2), se: +obs.se.toFixed(2), goals: obs.goals, mins: obs.mins, days: obs.days, conf: obs.conf,
-           sig: { self: obs.sig.self, vocab: +obs.sig.vocab.toFixed(2), read: +obs.sig.read.toFixed(2) }, log: obs.log, checked: false, at: dayKey };
+           sig: { self: obs.sig.self, vocab: +obs.sig.vocab.toFixed(2), read: +obs.sig.read.toFixed(2) }, log: obs.log, checked: false, at: dayKey,
+           lastCheck: dayKey, snoozeUntil: null, drift: 0, driftDir: 0 };
     localStorage.setItem('ob', JSON.stringify(ob));
     profile = profile || {};
     profile.field = ob.goals.join(', ');  // 오늘의 표현과 튜터가 쓰는 분야
@@ -2785,6 +2913,7 @@ $('ubody').onclick = e => {
       c.tries++;
       markStudy();
       syncDone(u);
+      bumpLevel(sc);
       uv = 'qres';
     }
     paintUnit();
@@ -2834,6 +2963,7 @@ function paintWrev() {
   if (!wr) { box.innerHTML = '<p class="sub">복습할 단어가 없어요.</p>'; return; }
   $('wbar').style.width = Math.min(100, Math.round((wr.i + (wr.picked !== undefined ? 1 : 0)) / wr.list.length * 100)) + '%';
   if (wr.i >= wr.list.length) {
+    if (!wr.scored) { wr.scored = true; bumpLevel(wr.ok / wr.list.length); }
     const nd = nextDueText(), rm = reviewMaterial().n;
     box.innerHTML = `<div class="lvbig"><small>맞힌 단어</small><b>${wr.ok}/${wr.list.length}</b></div><h2 class="pg c">${wr.ok === wr.list.length ? '전부 맞혔어요!' : '복습 끝!'}</h2>
       <p class="sub c">${nd ? `다음 복습: ${nd}` : '오늘 복습할 단어를 모두 봤어요.'}</p>
