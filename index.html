@@ -450,6 +450,10 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .pill.big { display: block; width: 100%; height: 50px; margin-top: 18px; border-radius: 25px; font-size: 16px; }
   .qlabel.c { text-align: center; margin: 6px 0 12px; }
   #ubody .c, #wbody .c { text-align: center; }
+  #ubody .qword, #wbody .qword { margin: 22px 0 8px; }
+  #ubody .qsent { margin: 14px 0 22px; }
+  #ubody #uopts, #wbody #wopts { display: flex; flex-direction: column; gap: 10px; }
+  #ubody #uopts .opt, #wbody #wopts .opt { margin: 0; }
   .opt.q.lz { justify-content: flex-start; text-align: left; gap: 12px; }
   .opt.q.lz > span.lt { display: flex; align-items: center; justify-content: center; flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--surface2); color: var(--sub); font-size: 13px; font-weight: 800; line-height: 1; }
   .opt.q.lz > span:not(.lt) { flex: 1; }
@@ -768,7 +772,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
     </div>
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v34</p>
+    <p id="ver">버전 v35</p>
   </div>
 </div>
 
@@ -2735,9 +2739,10 @@ function paintUnit() {
   } else if (uv === 'quiz') {
     const q = uq.q[uq.i];
     box.innerHTML = `<p class="qcount">문제 ${uq.i + 1} / ${uq.q.length}</p>
-      ${q.k === 'ex' ? `<p class="qlabel c">이 뜻에 맞는 영어 표현은?</p><div class="qsent">${q.prompt}</div>` : `<p class="qlabel c">이 단어의 뜻은?</p><div class="qword">${q.prompt}</div>`}
+      ${q.k === 'ex' ? `<p class="qlabel c">이 뜻에 맞는 영어 표현은?</p><div class="qsent">${q.prompt}</div>` : `<p class="qlabel c">이 단어의 뜻은?</p><div class="qword">${q.prompt}</div><div class="qhint" id="uspk"></div>`}
       <div id="uopts">${optHtml(q, uq.picked)}</div>
       ${uq.picked !== undefined ? `<button type="button" class="pill big" id="uqnext">${uq.i + 1 < uq.q.length ? '다음' : '결과 보기'}</button>` : ''}`;
+    if (q.k === 'w') $('uspk').append(spkBtn(q.prompt));
   } else {
     const pct = Math.round(uq.ok / uq.q.length * 100);
     box.innerHTML = `<div class="lvbig"><small>점수</small><b>${uq.ok}/${uq.q.length}</b></div><h2 class="pg c">${pct >= 80 ? '잘했어요!' : pct >= 60 ? '좋아요!' : '조금만 더 해 봐요'}</h2>
