@@ -228,7 +228,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .tab .ti-ic svg { display: block; }
   .tab.on { color: var(--text); }
   .tab.on .ti-ic { background: var(--accent-soft); color: var(--accent-text); }
-  .tab.fab { margin-top: -20px; color: var(--text); }
+  .tab.fab { margin-top: -20px; gap: 7px; color: var(--text); }
   .fab .fab-ic { display: flex; align-items: center; justify-content: center; width: 58px; height: 58px; border-radius: 50%; line-height: 0;
                  background: var(--accent); color: var(--on-accent); box-shadow: 0 0 0 6px var(--bg), 0 6px 14px rgba(0, 0, 0, .22); }
   .fab .fab-ic svg { display: block; }
@@ -320,6 +320,9 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .hint { margin: 10px 2px 0; font-size: 12.5px; line-height: 1.55; color: var(--sub); }
   .guide .g-row .chev svg { display: block; transition: transform .2s; }
   .guide.open .g-row .chev svg { transform: rotate(90deg); }
+  #aiseg [data-m="max"] { position: relative; overflow: visible; }
+  #aiseg .crown { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); color: #E8960B; }
+  #aiseg .crown svg { display: block; }
   .gtitle { display: flex; align-items: center; gap: 12px; }
   .gtitle .chip { width: 40px; height: 40px; border-radius: 13px; }
   #guidebody { display: none; }
@@ -553,9 +556,11 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
   .msg.ko { background: var(--card); color: var(--text); border: 1px solid var(--card-line); border-radius: 14px; font-size: 14px; margin: -2px 0 10px; }
   .msg.ko::before { content: '교정'; display: block; margin-bottom: 4px; font-size: 11px; font-weight: 800; letter-spacing: .02em; color: var(--sub); }
   .msg.ai:not(.noTr) { cursor: pointer; }
-  .msg.ai .vspk { display: inline-flex; vertical-align: -4px; margin-left: 6px; color: var(--icon); }
+  .msg.ai { padding-right: 32px; }
+  .msg.ai .vspk { position: absolute; top: 9px; right: 11px; color: var(--icon); }
+  .msg.ai .vspk svg { width: 15px; height: 15px; }
   .msg.ai .vspk.on { color: var(--accent-text); }
-  .msg.ai .trhint { position: absolute; right: 12px; bottom: 11px; width: 14px; height: 14px; color: var(--sub); opacity: .4;
+  .msg.ai .trhint { position: absolute; right: 11px; bottom: 11px; width: 14px; height: 14px; color: var(--sub); opacity: .4;
                     transform: rotate(90deg); transition: transform .25s, opacity .25s; pointer-events: none; }
   .msg.ai.tropen .trhint { transform: rotate(270deg); opacity: .75; }
   .msg.ai.noTr .trhint { display: none; }
@@ -716,6 +721,56 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
       </div>
     </div>
 
+    <p class="lead" id="setuplead">AI 튜터와 대화하려면 <b>API 키</b>가 필요해요. 처음 한 번만 아래 순서대로 해 주세요.</p>
+    <p class="sec only-set">도움말</p>
+    <div class="group guide" id="guide">
+      <button type="button" id="guidehead" class="g-row"><span class="gtitle"><span class="chip t-blue"><span class="ic"></span></span><span class="mt">API 키 발급 방법<small>구글 계정만 있으면 돼요</small></span></span><span class="chev"></span></button>
+      <div class="g-blk" id="guidebody">
+        <ol class="steps">
+          <li><i>1</i><span>아래 버튼으로 <b>Google AI Studio</b>를 열고 구글 계정으로 로그인해요.</span></li>
+          <li><i>2</i><span><b>API 키 만들기</b>(Create API key)를 누르고, 나온 키의 <b>복사</b> 아이콘을 눌러요.</span></li>
+          <li><i>3</i><span>이 앱으로 돌아와 아래 <b>붙여넣기</b>를 눌러요.</span></li>
+        </ol>
+        <button type="button" id="keyopen" class="pill wide">Google AI Studio 열기</button>
+        <p class="hint">AI Studio에서 새로 만든 키를 써야 해요. 예전 방식으로 만든 키는 막혔을 수 있어요. 결제 수단을 등록하지 않으면 무료 한도 안에서만 쓰이고, 한도를 넘으면 앱이 알려줘요. 무료 등급에서는 대화 내용이 구글 서비스 개선에 쓰일 수 있으니, 개인정보는 알려주지 않는 게 좋아요.</p>
+      </div>
+    </div>
+
+    <p class="sec">API 키</p>
+    <div class="group fields">
+      <label><span class="lb">API 키<button type="button" id="keypaste" class="mini">붙여넣기</button></span>
+        <span class="keyrow"><input id="f-key" type="password" placeholder="API 키 붙여넣기" autocomplete="off"><button type="button" id="keyeye" class="eye" aria-label="키 보기"></button></span>
+        <span class="kstat" id="keystat"></span>
+      </label>
+    </div>
+
+    <div class="group guide only-set" id="info">
+      <button type="button" id="infohead" class="g-row"><span class="gtitle"><span class="mt">내 정보</span></span><span class="chev"></span></button>
+      <div class="g-blk" id="infobody">
+        <div class="fields">
+          <label>나이<input id="f-age" type="number" min="5" max="100"></label>
+          <label>성별
+            <select id="f-gender">
+              <option value="">선택</option><option>남성</option><option>여성</option>
+            </select>
+          </label>
+          <label>영어 시험 점수
+            <select id="f-level">
+              <option value="">없음</option><option>토익</option><option>토플</option>
+              <option>아이엘츠</option><option>초등회화 미만</option>
+            </select>
+            <input id="f-score" type="number" step="any" placeholder="점수 (예: 600)">
+          </label>
+          <label>학습 분야 (목표)
+            <input id="f-field" list="fields" placeholder="목록에서 고르거나 직접 입력">
+          </label>
+          <datalist id="fields">
+            <option value="병원"><option value="교회"><option value="학교"><option value="회사">
+          </datalist>
+        </div>
+      </div>
+    </div>
+    
     <p class="sec only-set">AI 모델</p>
     <div class="group only-set">
       <div class="g-blk"><div class="seg s3 full" id="aiseg"><button type="button" data-m="lite">Flash-Lite</button><button type="button" data-m="pro">Flash</button><button type="button" data-m="max">Pro<i class="crown"></i></button></div></div>
@@ -758,58 +813,9 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'ligh
       </div>
     </div>
 
-    <p class="lead" id="setuplead">AI 튜터와 대화하려면 <b>API 키</b>가 필요해요. 처음 한 번만 아래 순서대로 해 주세요.</p>
-    <p class="sec only-set">도움말</p>
-    <div class="group guide" id="guide">
-      <button type="button" id="guidehead" class="g-row"><span class="gtitle"><span class="chip t-blue"><span class="ic"></span></span><span class="mt">API 키 발급 방법<small>구글 계정만 있으면 돼요</small></span></span><span class="chev"></span></button>
-      <div class="g-blk" id="guidebody">
-        <ol class="steps">
-          <li><i>1</i><span>아래 버튼으로 <b>Google AI Studio</b>를 열고 구글 계정으로 로그인해요.</span></li>
-          <li><i>2</i><span><b>API 키 만들기</b>(Create API key)를 누르고, 나온 키의 <b>복사</b> 아이콘을 눌러요.</span></li>
-          <li><i>3</i><span>이 앱으로 돌아와 아래 <b>붙여넣기</b>를 눌러요.</span></li>
-        </ol>
-        <button type="button" id="keyopen" class="pill wide">Google AI Studio 열기</button>
-        <p class="hint">AI Studio에서 새로 만든 키를 써야 해요. 예전 방식으로 만든 키는 막혔을 수 있어요. 결제 수단을 등록하지 않으면 무료 한도 안에서만 쓰이고, 한도를 넘으면 앱이 알려줘요. 무료 등급에서는 대화 내용이 구글 서비스 개선에 쓰일 수 있으니, 개인정보는 알려주지 않는 게 좋아요.</p>
-      </div>
-    </div>
-
-    <p class="sec">API 키</p>
-    <div class="group fields">
-      <label><span class="lb">API 키<button type="button" id="keypaste" class="mini">붙여넣기</button></span>
-        <span class="keyrow"><input id="f-key" type="password" placeholder="API 키 붙여넣기" autocomplete="off"><button type="button" id="keyeye" class="eye" aria-label="키 보기"></button></span>
-        <span class="kstat" id="keystat"></span>
-      </label>
-    </div>
-
-    <div class="group guide only-set" id="info">
-      <button type="button" id="infohead" class="g-row"><span class="gtitle"><span class="mt">내 정보 (선택)<small id="infosum"></small></span></span><span class="chev"></span></button>
-      <div class="g-blk" id="infobody">
-        <div class="fields">
-          <label>나이<input id="f-age" type="number" min="5" max="100"></label>
-          <label>성별
-            <select id="f-gender">
-              <option value="">선택</option><option>남성</option><option>여성</option>
-            </select>
-          </label>
-          <label>영어 시험 점수
-            <select id="f-level">
-              <option value="">없음</option><option>토익</option><option>토플</option>
-              <option>아이엘츠</option><option>초등회화 미만</option>
-            </select>
-            <input id="f-score" type="number" step="any" placeholder="점수 (예: 600)">
-          </label>
-          <label>학습 분야 (목표)
-            <input id="f-field" list="fields" placeholder="목록에서 고르거나 직접 입력">
-          </label>
-          <datalist id="fields">
-            <option value="병원"><option value="교회"><option value="학교"><option value="회사">
-          </datalist>
-        </div>
-      </div>
-    </div>
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v38</p>
+    <p id="ver">버전 v39</p>
   </div>
 </div>
 
@@ -1226,7 +1232,6 @@ function fillForm() {
   document.querySelectorAll('.only-set').forEach(e => e.style.display = profile ? '' : 'none');  // 처음에는 키와 정보만
   $('setuplead').style.display = profile ? 'none' : 'block';
   $('guide').classList.toggle('open', !apiKey);  // 키가 없으면 발급 안내를 펼침
-  $('infosum').textContent = [p.age && `${p.age}세`, p.gender, p.level && p.level !== NONE ? `${p.level} ${p.score}` : '', p.field].filter(Boolean).join(' · ') || '나이, 성별, 목표 등을 선택할 수 있어요';
   $('keystat').className = 'kstat';
   $('keystat').textContent = '';
   $('permstat').textContent = micState === 'granted' ? '허용됨' : '';
