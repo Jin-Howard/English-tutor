@@ -1,7 +1,9 @@
 <!DOCTYPE html>
+<!-- AI E-Tutor | Copyright (c) 2026 Jin Howard. All rights reserved. 무단 복제 및 배포 금지. -->
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<meta name="author" content="Jin Howard">
 <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
 <meta name="theme-color" content="#0E0D0B">
 <link rel="manifest" href="manifest.webmanifest">
@@ -320,8 +322,25 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   #save, #p-go { width: 100%; height: 52px; border: 0; border-radius: 26px; background: var(--accent); color: var(--on-accent);
           font-size: 16px; font-weight: 800; }
   #err { margin: 8px 4px 0; color: var(--danger); min-height: 1.2em; font-size: 14px; }
-  #ver { margin: 2px 0 20px; text-align: center; font-size: 12px; color: var(--sub); user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
-  #devreset { display: none; margin: -8px 0 24px; color: var(--danger); }
+  #ver { margin: 2px 0 4px; text-align: center; font-size: 12px; color: var(--sub); user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+  #devreset { display: none; margin: 4px 0 24px; color: var(--danger); }
+  .copyr { margin: 0 0 22px; text-align: center; font-size: 11.5px; line-height: 1.6; color: var(--sub); opacity: .8; }
+  /* 초대 코드 화면 */
+  #gate { position: fixed; inset: 0; z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center;
+          padding: 32px 24px calc(24px + env(safe-area-inset-bottom)); box-sizing: border-box; background: var(--bg); text-align: center; }
+  #gate.open { display: flex; }
+  .gatebox { width: 100%; max-width: 360px; }
+  .gic { display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 22px; background: var(--accent); color: var(--on-accent); }
+  #gate h2 { margin: 18px 0 6px; font-size: 22px; font-weight: 800; }
+  #gsub { margin: 0 0 22px; font-size: 14.5px; line-height: 1.55; color: var(--sub); }
+  #gcode { display: block; width: 100%; box-sizing: border-box; padding: 15px 16px; border: 1.5px solid var(--line); border-radius: 16px; background: var(--surface);
+           color: var(--text); font-size: 18px; font-weight: 700; letter-spacing: .12em; text-align: center; text-transform: uppercase; }
+  #gcode:focus { outline: none; border-color: var(--accent); }
+  #gcode::placeholder { letter-spacing: .04em; font-weight: 600; text-transform: none; color: var(--sub); opacity: .6; }
+  #gerr { min-height: 20px; margin: 10px 0 6px; font-size: 13.5px; font-weight: 600; color: var(--danger); }
+  #gate .copyr { position: absolute; left: 0; right: 0; bottom: calc(16px + env(safe-area-inset-bottom)); margin: 0; }
+  .shake { animation: gshake .35s; }
+  @keyframes gshake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
   #devreset.on { display: flex; }
   .sw { position: relative; flex: none; width: 50px; height: 30px; padding: 0; border: 0; border-radius: 15px; background: var(--surface2); transition: background .2s; }
   .sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%;
@@ -918,7 +937,8 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v1.1</p>
+    <p id="ver">버전 v1.2</p>
+    <p class="copyr">© 2026 Jin Howard. All rights reserved.<br>무단 복제 및 배포를 금지합니다.</p>
     <button type="button" id="devreset" class="pill wide ghost">처음부터 다시 하기 (개발자)</button>
   </div>
 </div>
@@ -1015,6 +1035,17 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   <div class="ia"><button type="button" id="inapp-go" class="pill" style="display:none">다시 열기</button><button type="button" id="inapp-copy" class="pill">링크 복사</button><button type="button" id="inapp-x" class="pill ghost">닫기</button></div>
 </div>
 <div id="toast" role="status"></div>
+<div id="gate" role="dialog" aria-label="초대 코드">
+  <div class="gatebox">
+    <span class="gic" id="gic"></span>
+    <h2>초대 코드를 입력해 주세요</h2>
+    <p id="gsub">앱을 알려준 사람에게 받은 코드를 넣어 주세요.</p>
+    <input id="gcode" placeholder="ET-XXXX-XXXX" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="go">
+    <p id="gerr"></p>
+    <button type="button" id="gok" class="pill wide">시작하기</button>
+  </div>
+  <p class="copyr">© 2026 Jin Howard. All rights reserved.</p>
+</div>
 <div id="qrwrap" class="qrwrap" role="dialog" aria-label="QR 코드">
   <div class="qrcard"><b>폰 카메라로 찍어 주세요</b><p>찍으면 바로 앱이 열려요</p><div id="qrimg"></div><button type="button" id="qrx" class="pill wide ghost">닫기</button></div>
 </div>
@@ -2085,8 +2116,8 @@ async function startReview() {
 const MIX_RULE = `Transcription rules: write exactly what was said, word for word, like a court stenographer. Never translate, answer, explain, summarize, or fix anything inside the transcription, even if the learner is asking a question. Keep each word in the language it was spoken: Korean speech stays in Hangul, English speech stays in English letters. English spoken with a strong Korean accent is still English. Example 1, English with an accent. Right: "What's up, my name is 민수". Wrong: "와썹 마이 네임 이즈 민수". Example 2, a question spoken in Korean. Right: "겨울왕국을 영어로 뭐라고 해?". Wrong: "How do you say Frozen in English?".`;  // 받아쓰기는 들은 그대로: 번역/대답 금지, 말한 언어 그대로 (양방향 예시)
 const VOICE_REPLY = 'The learner answered by voice (audio above). Listen to it and reply as the tutor in your usual way.';
 // 받아쓰기 전용 요청: 대답할 일이 없어서 들은 그대로만 적음 (가장 가벼운 모델)
-const transcribe = audio => lite({ system_instruction: { parts: [{ text: TRANSCRIBE }] }, contents: [{ role: 'user', parts: [audio] }],
-  generationConfig: { temperature: 0, maxOutputTokens: 400 } }).then(t => t.trim());
+const transcribe = (audio, onText) => askAI({ system_instruction: { parts: [{ text: TRANSCRIBE }] }, contents: [{ role: 'user', parts: [audio] }],
+  generationConfig: { temperature: 0, maxOutputTokens: 400 } }, onText ? { onText } : {}, 'lite', true).then(t => t.trim());  // onText가 있으면 스트리밍으로 받아쓴 글자를 바로바로 넘겨줌
 function typer(node) {  // 받은 글자를 한 번에 붙이지 않고 앞에서부터 써 내려감 (평소 초당 약 80자, 밀리면 빨라짐)
   let target = '', shown = 0, raf = 0, go = false, end = null;
   const tick = () => {
@@ -2118,8 +2149,8 @@ async function send(text, audio, vb) {
     if (m0 === 'unit') trackUnit(text);
   } else {  // 음성: 받아쓰기(A)와 대답(B)을 동시에 출발시켜 기다리는 시간은 그대로
     uTurn = { role: 'user', parts: [{ text: '(voice message)' }] };  // 기록에는 소리 대신 받아쓴 글만 (다음 요청에 소리를 다시 안 보냄)
-    setTimeout(() => open(), 2500);  // 받아쓰기가 늦어도 2.5초 뒤엔 튜터 대답을 보여줌
-    transcribe(audio).catch(() => '').then(said => {
+    setTimeout(() => open(), 8000);  // 받아쓰기가 멈춰버린 경우에만 대비 (평소엔 반드시 내 문장이 먼저)
+    transcribe(audio, t => { if (t.trim()) setVoiceText(ub, t.trim()); }).catch(() => '').then(said => {  // 받아쓴 글자가 오는 대로 내 말풍선에 채움
       saidA = said;
       setTimeout(() => open(), 250);  // 내 문장이 채워지고 한 박자 쉬었다가 튜터 차례
       if (said) {
@@ -3152,6 +3183,79 @@ $('keyeye').onclick = () => {
 const I_KEY = icon('<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>');
 $('guidehead').querySelector('.ic').innerHTML = sz(I_KEY, 20);
 $('guidehead').querySelector('.chev').innerHTML = I_CHEV;
+
+function sha256(ascii) {  // 초대 코드 확인용 SHA-256 (어떤 브라우저든 똑같이 동작하도록 직접 계산, 영문/숫자 전용)
+  const rr = (v, n) => (v >>> n) | (v << (32 - n)), P = 2 ** 32, words = [], bits = ascii.length * 8;
+  let hash = [], k = [], i, j, out = '';
+  for (let c = 2, found = 0; found < 64; c++) {  // 처음 64개 소수로 상수 만들기
+    let prime = true;
+    for (let d = 2; d * d <= c; d++) if (c % d === 0) { prime = false; break; }
+    if (!prime) continue;
+    if (found < 8) hash[found] = (Math.pow(c, 1 / 2) * P) | 0;
+    k[found++] = (Math.pow(c, 1 / 3) * P) | 0;
+  }
+  ascii += '\x80';
+  while (ascii.length % 64 - 56) ascii += '\x00';
+  for (i = 0; i < ascii.length; i++) words[i >> 2] |= ascii.charCodeAt(i) << ((3 - i) % 4) * 8;
+  words[words.length] = (bits / P) | 0;
+  words[words.length] = bits;
+  for (j = 0; j < words.length;) {
+    const w = words.slice(j, j += 16), old = hash;
+    hash = hash.slice(0, 8);
+    for (i = 0; i < 64; i++) {
+      const w15 = w[i - 15], w2 = w[i - 2], a = hash[0], e = hash[4];
+      const t1 = hash[7] + (rr(e, 6) ^ rr(e, 11) ^ rr(e, 25)) + ((e & hash[5]) ^ (~e & hash[6])) + k[i]
+        + (w[i] = i < 16 ? w[i] : (w[i - 16] + (rr(w15, 7) ^ rr(w15, 18) ^ (w15 >>> 3)) + w[i - 7] + (rr(w2, 17) ^ rr(w2, 19) ^ (w2 >>> 10))) | 0);
+      const t2 = (rr(a, 2) ^ rr(a, 13) ^ rr(a, 22)) + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+      hash = [(t1 + t2) | 0].concat(hash);
+      hash[4] = (hash[4] + t1) | 0;
+    }
+    for (i = 0; i < 8; i++) hash[i] = (hash[i] + old[i]) | 0;
+  }
+  for (i = 0; i < 8; i++) for (j = 3; j + 1; j--) { const b = (hash[i] >> (j * 8)) & 255; out += (b < 16 ? '0' : '') + b.toString(16); }
+  return out;
+}
+// 초대 코드: 코드 원문 대신 해시만 저장해서, 파일을 열어봐도 코드를 알 수 없음
+// 강퇴하려면 해당 번호 줄을 지우고 GitHub에 올리면 됨 (그 코드를 쓰던 폰은 다음에 앱을 열 때 잠김)
+const INVITES = {
+  '09202200b6eb2f7b6824e942': '#01',
+  'c467a17e42480a41238d54f4': '#02',
+  'e2b719bcfacef6022f90f89d': '#03',
+  '7bb44ac6102cd02a0b9bec32': '#04',
+  '12b3dc8c66202fc25e972a27': '#05',
+  '1f9ac1e419b7d62d6d67db31': '#06',
+  '054483d7100916f189f984a1': '#07',
+  '616b4adb4752b0d960092681': '#08',
+  'e04f8d9d047393fb33316c70': '#09',
+  '5aa30ad35b4339af170916bf': '#10'
+};
+const codeHash = c => sha256('etutor:' + String(c).toUpperCase().replace(/[^A-Z0-9]/g, '')).slice(0, 24);
+const gateOn = () => $('gate').classList.contains('open');
+$('gic').innerHTML = sz(I_KEY, 30);
+function checkGate() {  // 저장된 코드가 목록에 있으면 통과, 없거나 지워졌으면 잠금
+  const h = localStorage.getItem('invite');
+  if (h && INVITES[h]) return true;
+  if (h) $('gsub').textContent = '이 코드는 더 이상 쓸 수 없어요. 앱을 알려준 사람에게 새 코드를 받아 주세요.';
+  $('gate').classList.add('open');
+  return false;
+}
+$('gok').onclick = () => {
+  const h = codeHash($('gcode').value);
+  if (!INVITES[h]) {
+    $('gerr').textContent = $('gcode').value.trim() ? '코드가 맞지 않아요. 다시 확인해 주세요.' : '코드를 입력해 주세요.';
+    $('gcode').classList.remove('shake');
+    void $('gcode').offsetWidth;  // 흔들림을 매번 다시 재생
+    $('gcode').classList.add('shake');
+    return;
+  }
+  localStorage.setItem('invite', h);
+  $('gate').classList.remove('open');
+  autoCoach();  // 처음 실행이면 이어서 설정 안내
+};
+$('gcode').onkeydown = e => { if (e.key === 'Enter') $('gok').click(); };
+$('gcode').oninput = () => { $('gerr').textContent = ''; };
+checkGate();
+
 $('infohead').querySelector('.chev').innerHTML = I_CHEV;
 $('guidehead').onclick = () => $('guide').classList.toggle('open');
 $('infohead').onclick = () => $('info').classList.toggle('open');
@@ -3215,7 +3319,7 @@ function closeCoach() {
   localStorage.setItem('coachseen', '1');
 }
 function autoCoach() {  // 키가 없고 설정 화면이면 처음 한 번만
-  if (!apiKey && !inApp && !coachOn() && $('setup').style.display === 'flex' && !localStorage.getItem('coachseen')) openCoach();  // 앱 안 브라우저면 크롬으로 가라는 안내가 먼저 (크롬에서 처음 열 때 코치마크가 뜸)
+  if (!apiKey && !inApp && !gateOn() && !coachOn() && $('setup').style.display === 'flex' && !localStorage.getItem('coachseen')) openCoach();  // 앱 안 브라우저면 크롬으로 가라는 안내가 먼저 (크롬에서 처음 열 때 코치마크가 뜸)
 }
 $('coachskip').onclick = () => (window.history.state?.coach ? window.history.back() : closeCoach());
 addEventListener('resize', coachPlace);
