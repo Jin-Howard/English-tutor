@@ -697,6 +697,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .msg.live::after { content: ''; display: inline-block; width: 2px; height: 1.05em; margin-left: 2px; vertical-align: -3px;
                      background: currentColor; animation: caret 1s steps(1) infinite; }
   @keyframes caret { 50% { opacity: 0; } }
+  .msg.user.voice { opacity: .6; font-style: italic; }
   @keyframes blink { 0%, 80%, 100% { opacity: .2; } 40% { opacity: 1; } }
 </style>
 
@@ -859,6 +860,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     <p class="sec only-set">말하기</p>
     <div class="group only-set">
       <button type="button" id="permbtn" class="g-row"><span>마이크 · 소리 점검</span><span class="val"><span id="permstat"></span><span class="chev"></span></span></button>
+      <div class="g-blk"><div class="g-top"><span>음성 인식 방식</span></div><div class="seg s3 full" id="asrseg"><button type="button" data-k="ai">정확하게 (AI)</button><button type="button" data-k="device">빠르게 (기기)</button></div></div>
       <div class="g-blk"><div class="g-top"><span>음성 인식 시</span></div><div class="seg s3 full" id="micseg"><button type="button" data-k="confirm">확인 후 보내기</button><button type="button" data-k="auto">바로 보내기</button></div></div>
     </div>
     <p class="hint only-set" id="michint2">인식된 글자가 입력칸에 먼저 나오고, 확인하고 보내면 엉뚱한 단어가 그대로 전송되는 걸 막을 수 있어요.</p>
@@ -1115,6 +1117,7 @@ function swap(screen, fade) {
   $('tabs').style.display = profile && !detail && TABS.includes(screen) ? 'flex' : 'none';
   document.querySelectorAll('#tabs .tab[data-s]').forEach(t => t.classList.toggle('on', t.dataset.s === screen));
   stopSpeak();  // 화면을 옮기면 읽던 소리도 멈춤
+  if (recCtx) stopRecord(false);  // 녹음 중이었으면 버림
   if (mode !== 'chat' && screen !== 'main') exitReview();  // 복습이나 역할극 중에 다른 화면으로 가면 마무리
   if (screen === 'menu') paintMenu();
   if (screen === 'onb') obStart();
@@ -1178,14 +1181,28 @@ function toggleScore() {
 $('f-level').onchange = toggleScore;
 
 // AI 모델 선택 표시: 선택 상태, 설명, 오늘 사용 횟수
+let asr = localStorage.getItem('asr') === 'device' ? 'device' : 'ai';  // 음성 인식: ai(제미나이가 녹음을 직접 들음, 기본) | device(브라우저 인식기)
 function paintMicSeg() {
   document.querySelectorAll('#micseg [data-k]').forEach(b => b.classList.toggle('on', b.dataset.k === (micAuto ? 'auto' : 'confirm')));
+  document.querySelectorAll('#asrseg [data-k]').forEach(b => b.classList.toggle('on', b.dataset.k === asr));
+  $('michint2').textContent = asr === 'ai'
+    ? 'AI가 녹음을 직접 들어서 발음이 서툴러도, 영어와 한국어가 섞여도 잘 알아들어요. 말을 마치면 1~2초 뒤에 글자가 나와요. '
+      + (micAuto ? '바로 보내기는 받아쓰기와 대답을 한 번에 처리해서 사용량도 아껴요.' : '확인 후 보내기는 받아쓴 글을 먼저 보여주고, 확인하고 보내요.')
+    : '폰이 바로 받아써서 빠르지만, 발음이 서툴면 엉뚱한 단어로 바뀔 수 있어요. 한국어로 말하려면 입력칸의 EN을 눌러 한으로 바꿔 주세요.';
+  $('lang').style.display = asr === 'device' && rec ? '' : 'none';  // 언어 스위치는 기기 인식에서만 필요
 }
 $('micseg').onclick = e => {
   const b = e.target.closest('[data-k]');
   if (!b) return;
   micAuto = b.dataset.k === 'auto';
   localStorage.setItem('micauto', micAuto ? '1' : '0');
+  paintMicSeg();
+};
+$('asrseg').onclick = e => {
+  const b = e.target.closest('[data-k]');
+  if (!b) return;
+  asr = b.dataset.k;
+  localStorage.setItem('asr', asr);
   paintMicSeg();
 };
 
@@ -1410,6 +1427,7 @@ function addMsg(text, cls, box = $('chat')) {
   d.textContent = text;
   box.appendChild(d);
   box.scrollTop = box.scrollHeight;
+  return d;
 }
 
 // 읽는 중인 문장 하나만 추적: 스피커 버튼은 읽는 동안 노란색
@@ -2009,26 +2027,50 @@ async function startReview() {
 }
 
 // 제미나이에게 보내고 답 받기 (복습 모드에서는 기록에 저장하지 않음)
-async function send(text) {
+const VOICE_TURN = 'The learner answered by voice (audio above). First write one line starting with "HEARD: " and an exact transcription of what they said. Keep their grammar mistakes, and write any Korean words in Korean. Then, on a new line, reply as the tutor in your usual way.';
+const splitHeard = t => {  // "HEARD: 받아쓴 말" 첫 줄과 나머지 대답을 나눔 (형식을 안 지켰으면 전체를 대답으로)
+  const i = t.indexOf('\n'), first = i < 0 ? t : t.slice(0, i);
+  if (!/^[\s*]*HEARD\b/i.test(first)) return { said: '', rest: t };
+  return { said: first.replace(/^[\s*]*HEARD[\s*]*:?[\s*]*/i, '').trim(), rest: i < 0 ? '' : t.slice(i + 1).trim() };
+};
+async function send(text, audio) {
   const m0 = mode, arr = H();
-  addMsg(text, 'user');
-  arr.push({ role: 'user', parts: [{ text }] });
-  if (m0 === 'unit') trackUnit(text);
+  const ub = addMsg(audio ? '받아쓰는 중...' : text, audio ? 'user voice' : 'user');
+  if (!audio) {
+    arr.push({ role: 'user', parts: [{ text }] });
+    if (m0 === 'unit') trackUnit(text);
+  }
   const wait = el('div', 'msg ai wait');  // 답변 기다리는 표시
   wait.innerHTML = '답변 정리하는 중<i></i><i></i><i></i>';
   $('chat').append(wait);
   $('chat').scrollTop = $('chat').scrollHeight;
   try {
     const meta = { onText: t => {  // 스트리밍 중에는 영어 부분만 흘려 보여주고, 끝나면 showReply가 완성본으로 교체
+      if (audio) {  // 첫 줄(받아쓴 말)이 다 오면 내 말풍선에 넣고, 나머지만 대답으로 흘림
+        if (!t.includes('\n')) return;
+        const s = splitHeard(t);
+        if (s.said) { ub.textContent = s.said; ub.classList.remove('voice'); }
+        t = s.rest;
+      }
       wait.className = 'msg ai live';
       wait.textContent = t.split('KO:')[0].trim();
       $('chat').scrollTop = $('chat').scrollHeight;
     } };
-    const reply = await askAI({
+    let reply = await askAI({
       system_instruction: { parts: [{ text: m0 === 'review' ? reviewSystem(revMat) : m0 === 'unit' ? unitSystem(activeUnit) : buildSystem() }] },
-      contents: arr.slice(-(MAX_TURNS * 2 - 1)),
+      contents: audio ? [...arr.slice(-(MAX_TURNS * 2 - 2)), { role: 'user', parts: [audio, { text: VOICE_TURN }] }]
+        : arr.slice(-(MAX_TURNS * 2 - 1)),
       generationConfig: { temperature: 0.7, maxOutputTokens: 1500 }
     }, meta);
+    if (audio) {  // 기록에는 소리 대신 받아쓴 글만 남김 (다음 요청에 소리를 다시 보내지 않아 토큰 절약)
+      const s = splitHeard(reply);
+      if (!s.rest) throw new Error('빈 응답');
+      reply = s.rest;
+      ub.textContent = s.said || '(음성 메시지)';
+      ub.classList.remove('voice');
+      arr.push({ role: 'user', parts: [{ text: s.said || '(voice message)' }] });
+      if (m0 === 'unit' && s.said) trackUnit(s.said);
+    }
     arr.push({ role: 'model', parts: [{ text: reply }] });
     if (m0 === 'chat') { chats[dayKey] = history; saveChats(); }
     if (mode !== m0) return;  // 그 사이 화면을 옮겼으면 저장만 하고 끝
@@ -2038,7 +2080,8 @@ async function send(text) {
       addNote((why[meta.finish] || `답변이 중간에 멈췄어요 (${meta.finish})`) + '. 다시 물어봐 주세요.');
     }
   } catch (e) {
-    arr.pop();  // 실패한 질문은 기록에서 제거
+    if (audio) { ub.textContent = '(보내지 못한 음성)'; ub.classList.remove('voice'); }
+    else arr.pop();  // 실패한 질문은 기록에서 제거
     if (mode === m0) addNotice(e);
   } finally {
     wait.remove();
@@ -2053,8 +2096,7 @@ $('wave').innerHTML = '<span class="bars">'
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);  // 아이패드는 맥으로 보고됨
 const IOS_MIC = '아이폰은 설정 → Siri에서 Siri를 켜고, 설정 → 일반 → 키보드에서 받아쓰기를 켜야 말하기가 돼요.';
-const NO_SR = IOS ? '이 브라우저에서는 말하기 버튼이 안 돼요. 사파리로 열거나, 키보드의 마이크(받아쓰기) 버튼으로 말해 주세요.'
-  : '이 브라우저는 음성 입력을 지원하지 않아요. 키보드의 마이크 버튼으로 말하거나 글로 입력해 주세요.';
+const NO_SR = '이 브라우저는 기기 음성 인식을 지원하지 않아요. 설정 → 말하기에서 "정확하게 (AI)"로 바꿔 주세요.';
 let lang = 'en-US';     // 말하기 언어 (한국어는 한 번 말하면 EN으로 자동 복귀)
 let listening = false;  // 듣는 중 여부
 let heard = '';         // 확정된 말
@@ -2129,16 +2171,123 @@ if (rec) {
     const why = { 'not-allowed': MIC_HELP, 'service-not-allowed': IOS ? IOS_MIC : MIC_HELP, 'audio-capture': '마이크를 찾을 수 없어요. 다른 앱이 마이크를 쓰고 있는지 확인해 주세요.', network: '인터넷 연결을 확인해 주세요.' }[e.error];
     addMsg(why || '마이크 오류: ' + e.error, 'ai');
   };
-  // 취소: 말한 내용을 버리고 끝내기
-  $('cancel').onclick = () => {
-    heard = '';
-    pending = '';
-    listening = false;
-    rec.abort();
-    hideMicAlts();
-  };
 } else {
   $('lang').style.display = 'none';
+}
+// 취소: 말한 내용을 버리고 끝내기
+$('cancel').onclick = () => {
+  hideMicAlts();
+  if (recCtx) return stopRecord(false);
+  heard = '';
+  pending = '';
+  listening = false;
+  if (rec) rec.abort();
+};
+
+// ===== AI 받아쓰기: 녹음해서 제미나이에 보냄 =====
+const VOICE_QUIET_MS = 2500;   // 말을 시작한 뒤 이만큼 조용하면 자동 종료 (생각하며 쉬는 시간 고려)
+const VOICE_NONE_MS = 8000;    // 이 시간 동안 목소리가 없으면 취소
+const VOICE_MAX_MS = 60000;    // 한 번에 최대 1분 (약 1,920토큰)
+const TRANSCRIBE = 'Transcribe this speech from a Korean learner of English exactly as spoken. Keep their grammar mistakes. Write English in English and Korean in Korean. Output only the transcription.';
+const PH = $('inp').placeholder;
+let recCtx = null, recSrc = null, recNode = null, recStream = null, recBufs = [], vFirst = -1, vLast = -1, voiced = false, recT0 = 0, quietT0 = 0, asrBusy = false;
+async function startRecord() {
+  recBufs = [];  // 이전 녹음 흔적은 누르는 순간 비움 (허용 창 도중 연타해도 예전 소리가 안 나가게)
+  vFirst = vLast = -1;
+  voiced = false;
+  recCtx = new (window.AudioContext || window.webkitAudioContext)();  // 누른 순간 만들어야 아이폰에서도 소리가 켜짐
+  const ctx = recCtx;
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+  if (recCtx !== ctx) return stream.getTracks().forEach(t => t.stop());  // 허용 창이 떠 있는 사이 취소됐으면 마이크 바로 끔
+  recStream = stream;
+  await recCtx.resume();
+  recSrc = recCtx.createMediaStreamSource(recStream);
+  recNode = recCtx.createScriptProcessor(4096, 1, 1);  // 모든 폰에서 되는 방식 (AudioWorklet은 파일이 따로 필요해 단일 파일 구조에 안 맞음)
+  recT0 = quietT0 = performance.now();
+  recNode.onaudioprocess = e => {
+    const d = e.inputBuffer.getChannelData(0);
+    recBufs.push(new Float32Array(d));
+    let s = 0;
+    for (let i = 0; i < d.length; i += 4) s += d[i] * d[i];
+    const now = performance.now();
+    if (Math.sqrt(s / (d.length / 4)) > 0.015) {  // 목소리 크기로 말하는 중인지 판단
+      voiced = true;
+      quietT0 = now;
+      if (vFirst < 0) vFirst = recBufs.length - 1;
+      vLast = recBufs.length - 1;
+    }
+    if ((voiced && now - quietT0 > VOICE_QUIET_MS) || now - recT0 > VOICE_MAX_MS) stopRecord(true);
+    else if (!voiced && now - recT0 > VOICE_NONE_MS) stopRecord(false, true);
+  };
+  recSrc.connect(recNode);
+  recNode.connect(recCtx.destination);
+}
+function stopRecord(keep, silent) {
+  if (!recCtx) return;
+  const bufs = recBufs.slice(Math.max(0, vFirst - 3), vLast + 4), rate = recCtx.sampleRate, ok = keep && voiced;  // 말 앞뒤 조용한 구간은 잘라 토큰 절약 (앞뒤로 0.25초쯤 여유)
+  if (recNode) { recNode.onaudioprocess = null; recNode.disconnect(); }  // 허용 창 도중 취소면 아직 없을 수 있음
+  if (recSrc) recSrc.disconnect();
+  if (recStream) recStream.getTracks().forEach(t => t.stop());
+  recCtx.close();
+  recCtx = recSrc = recNode = recStream = null;
+  recBufs = [];  // 쓴 녹음은 바로 버림
+  voiced = false;
+  listening = false;
+  paint();
+  if (silent || (keep && !voiced)) toast('목소리가 들리지 않았어요. 다시 눌러서 말해 주세요', 2600);
+  if (ok) handleVoice(toWav(bufs, rate));
+}
+function toWav(bufs, inRate) {  // 16kHz 모노 16비트 WAV (구간 평균으로 줄여서 소리가 뭉개지지 않게)
+  const n = bufs.reduce((a, b) => a + b.length, 0), all = new Float32Array(n);
+  let o = 0;
+  bufs.forEach(b => { all.set(b, o); o += b.length; });
+  const r = inRate / 16000, len = Math.floor(n / r), v = new DataView(new ArrayBuffer(44 + len * 2));
+  const w = (p, s) => { for (let i = 0; i < s.length; i++) v.setUint8(p + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + len * 2, true); w(8, 'WAVE'); w(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, 16000, true);
+  v.setUint32(28, 32000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, len * 2, true);
+  for (let i = 0; i < len; i++) {
+    const a = Math.floor(i * r), b = Math.max(a + 1, Math.floor((i + 1) * r));
+    let s = 0;
+    for (let j = a; j < b; j++) s += all[j];
+    const x = Math.max(-1, Math.min(1, s / (b - a)));
+    v.setInt16(44 + i * 2, x < 0 ? x * 0x8000 : x * 0x7FFF, true);
+  }
+  return v.buffer;
+}
+const toB64 = buf => new Promise(res => { const f = new FileReader(); f.onload = () => res(f.result.split(',')[1]); f.readAsDataURL(new Blob([buf])); });
+async function handleVoice(buf) {
+  const audio = { inline_data: { mime_type: 'audio/wav', data: await toB64(buf) } };
+  if (micAuto) return send('', audio);  // 바로 보내기: 받아쓰기와 대답을 요청 한 번에
+  asrBusy = true;  // 확인 후 보내기: 받아쓴 글을 입력칸에 먼저 보여줌 (가벼운 모델로 받아쓰기만)
+  inp.placeholder = '받아쓰는 중...';
+  try {
+    const t = (await lite({ system_instruction: { parts: [{ text: TRANSCRIBE }] }, contents: [{ role: 'user', parts: [audio] }],
+      generationConfig: { temperature: 0, maxOutputTokens: 400 } })).trim();
+    inp.value = t;
+    inp.focus();
+  } catch (e) {
+    if (e.message === '빈 응답') toast('알아들을 수 있는 말이 없었어요. 다시 말해 주세요', 2600);
+    else addNotice(e);
+  } finally {
+    asrBusy = false;
+    inp.placeholder = PH;
+    paint();
+  }
+}
+async function startVoice() {
+  if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) return addMsg('이 브라우저는 마이크를 쓸 수 없어요. 크롬이나 사파리에서 열어 주세요.', 'ai');
+  stopSpeak();
+  listening = true;
+  paint();
+  try { await startRecord(); }
+  catch (e) {
+    if (recCtx) { recCtx.close(); recCtx = recSrc = recNode = recStream = null; }
+    listening = false;
+    paint();
+    if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) { micState = 'denied'; addMsg(MIC_HELP, 'ai'); }
+    else addMsg('마이크를 찾을 수 없어요. 다른 앱이 마이크를 쓰고 있는지 확인해 주세요.', 'ai');
+  }
 }
 
 // 다른 인식 후보를 칩으로 보여줌: 누르면 그 글자로 바꿔 넣음 (짧은 한 마디일 때 가장 잘 맞음)
@@ -2158,17 +2307,23 @@ function hideMicAlts() { $('micalts').style.display = 'none'; $('micalts').inner
 
 // 버튼: 듣는 중이면 끝내고 전송 / 글자가 있으면 전송 / 비어 있으면 듣기 시작
 act.onclick = () => {
-  if (listening) { listening = false; return rec.stop(); }
+  if (listening) {
+    if (recCtx) return stopRecord(true);  // AI 받아쓰기: 녹음 끝내고 보냄
+    listening = false;
+    return rec.stop();
+  }
+  if (asrBusy) return;  // 받아쓰는 중에는 기다림
   closeCards();  // 단어 카드 닫기
   hideMicAlts();
   const t = inp.value.trim();
   if (t) { inp.value = ''; paint(); return send(t); }
-  if (!rec) return addMsg(NO_SR, 'ai');
+  if (asr === 'device' && !rec) return addMsg(NO_SR, 'ai');
   if (micState === 'denied') return addMsg(MIC_HELP, 'ai');
   if (micState === 'prompt' && !sessionStorage.getItem('michint')) {  // 처음 한 번, 허용 창에서 무엇을 눌러야 하는지 안내
     sessionStorage.setItem('michint', '1');
     addMsg("마이크 허용 창이 뜨면 '허용'(또는 '사이트 방문 중 허용')을 눌러 주세요. '이번에만 허용'을 고르면 매번 물어봐요.", 'ai');
   }
+  if (asr === 'ai') return startVoice();
   stopSpeak();
   heard = '';
   pending = '';
@@ -2377,13 +2532,13 @@ $('p-mic-ic').innerHTML = sz(I_MIC, 22);
 $('p-snd-ic').innerHTML = sz(I_SPK2, 22);
 $('pback').innerHTML = I_BACK;
 function paintPerm() {
-  const s = $('p-mic-s'), noApi = !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) || !SR;
+  const s = $('p-mic-s'), noApi = !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) || (asr === 'device' && !SR);
   s.className = '';
   if (inApp) { s.textContent = '앱 안에서는 어려워요. 크롬에서 열어 주세요'; s.className = 'bad'; }
-  else if (noApi) { s.textContent = IOS ? '말하기 버튼 대신 키보드의 받아쓰기(마이크)를 써 주세요' : '이 브라우저는 말하기를 지원하지 않아요. 글로 입력해 주세요'; s.className = 'bad'; }
+  else if (noApi) { s.textContent = asr === 'device' ? '기기 인식이 안 돼요. 설정에서 "정확하게 (AI)"로 바꿔 주세요' : '이 브라우저는 마이크를 쓸 수 없어요. 글로 입력해 주세요'; s.className = 'bad'; }
   else if (micState === 'granted') { s.textContent = '허용됨 ✓'; s.className = 'ok'; }
   else if (micState === 'denied') { s.textContent = '막혀 있어요. 사이트 설정에서 허용으로 바꿔 주세요'; s.className = 'bad'; }
-  else s.textContent = IOS ? '아이폰은 Siri와 받아쓰기가 켜져 있어야 해요' : '내 말을 알아듣는 데 써요';
+  else s.textContent = IOS && asr === 'device' ? '아이폰 기기 인식은 Siri와 받아쓰기가 켜져 있어야 해요' : '내 말을 알아듣는 데 써요';
   $('p-mic-btn').style.display = micState === 'granted' || noApi || inApp ? 'none' : '';
   $('p-mic-btn').textContent = micState === 'denied' ? '방법 보기' : '허용하기';
 }
