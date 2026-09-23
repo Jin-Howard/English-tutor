@@ -692,6 +692,9 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .msg.live::after { content: ''; display: inline-block; width: 2px; height: 1.05em; margin-left: 2px; vertical-align: -3px;
                      background: currentColor; animation: caret 1s steps(1) infinite; }
   @keyframes caret { 50% { opacity: 0; } }
+  .msg.ko.enter { animation: koin .4s .2s both; }
+  @keyframes koin { from { opacity: 0; transform: translateY(8px); } }
+  @media (prefers-reduced-motion: reduce) { .msg.ko.enter { animation: none; } }
   /* 음성 메시지 말풍선: 보내는 순간 파형과 길이가 진하게 뜨고, 받아쓴 문장은 아래에 채워짐 */
   .msg.vmsg { white-space: normal; }  /* 코드 속 줄바꿈이 빈 줄로 보이지 않게 */
   .vtx { white-space: pre-wrap; }  /* 내가 한 말이 주인공 */
@@ -1982,6 +1985,8 @@ function showReply(reply) {
   const done = mode === 'review' && /review complete/i.test(reply);
   const shown = mode === 'review' ? reply.replace(/\s*Review complete\.?/i, '') : reply;
   drawMsg({ role: 'model', parts: [{ text: shown }] }, $('chat'), true);
+  const last = $('chat').lastElementChild;
+  if (last && last.classList.contains('ko')) last.classList.add('enter');  // 교정 카드는 한 박자 늦게 등장
   speak(shown.split('KO:')[0]);
   if (done) finishReview();
   maybeAskLevel();
@@ -2042,6 +2047,28 @@ const VOICE_REPLY = 'The learner answered by voice (audio above). Listen to it a
 // 받아쓰기 전용 요청: 대답할 일이 없어서 들은 그대로만 적음 (가장 가벼운 모델)
 const transcribe = audio => lite({ system_instruction: { parts: [{ text: TRANSCRIBE }] }, contents: [{ role: 'user', parts: [audio] }],
   generationConfig: { temperature: 0, maxOutputTokens: 400 } }).then(t => t.trim());
+function typer(node) {  // 받은 글자를 한 번에 붙이지 않고 앞에서부터 써 내려감 (평소 초당 약 80자, 밀리면 빨라짐)
+  let target = '', shown = 0, raf = 0, go = false, end = null;
+  const tick = () => {
+    raf = 0;
+    const left = target.length - shown;
+    if (left > 0) {
+      shown = Math.min(target.length, shown + Math.max(1.4, left / 50));
+      node.className = 'msg ai live';
+      node.textContent = target.slice(0, Math.floor(shown));
+      $('chat').scrollTop = $('chat').scrollHeight;
+    }
+    if (shown < target.length) raf = requestAnimationFrame(tick);
+    else if (end) end();
+  };
+  const kick = () => { if (go && !raf && shown < target.length) raf = requestAnimationFrame(tick); };
+  return {
+    set(t) { target = t; kick(); },
+    start() { go = true; kick(); },
+    finish() { return new Promise(r => { end = r; go = true; if (shown >= target.length) r(); else kick(); }); },
+    stop() { cancelAnimationFrame(raf); raf = 0; }
+  };
+}
 async function send(text, audio, vb) {
   const m0 = mode, arr = H();
   const ub = audio ? vb : addMsg(text, 'user');
@@ -2051,8 +2078,10 @@ async function send(text, audio, vb) {
     if (m0 === 'unit') trackUnit(text);
   } else {  // 음성: 받아쓰기(A)와 대답(B)을 동시에 출발시켜 기다리는 시간은 그대로
     uTurn = { role: 'user', parts: [{ text: '(voice message)' }] };  // 기록에는 소리 대신 받아쓴 글만 (다음 요청에 소리를 다시 안 보냄)
+    setTimeout(() => open(), 2500);  // 받아쓰기가 늦어도 2.5초 뒤엔 튜터 대답을 보여줌
     transcribe(audio).catch(() => '').then(said => {
       saidA = said;
+      setTimeout(() => open(), 250);  // 내 문장이 채워지고 한 박자 쉬었다가 튜터 차례
       if (said) {
         setVoiceText(ub, said);
         uTurn.parts[0].text = said;
@@ -2061,16 +2090,22 @@ async function send(text, audio, vb) {
       } else setVoiceText(ub, sendFailed ? '보내지 못했어요' : '받아쓰지 못했어요', true);
     });
   }
-  const wait = el('div', 'msg ai wait');  // 답변 기다리는 표시
-  wait.innerHTML = '답변 정리하는 중<i></i><i></i><i></i>';
-  $('chat').append(wait);
-  $('chat').scrollTop = $('chat').scrollHeight;
+  const wait = el('div', 'msg ai wait');  // 튜터 입력 중 표시
+  wait.innerHTML = '<i></i><i></i><i></i>';
+  const ty = typer(wait);
+  let opened = false, openRes;
+  const gate = new Promise(r => { openRes = r; });  // 대화 순서: 내 말이 확정된 뒤에 튜터 차례
+  function open() {
+    if (opened) return;
+    opened = true;
+    $('chat').append(wait);
+    $('chat').scrollTop = $('chat').scrollHeight;
+    ty.start();
+    openRes();
+  }
+  if (!audio) open();
   try {
-    const meta = { onText: t => {  // 스트리밍 중에는 영어 부분만 흘려 보여주고, 끝나면 showReply가 완성본으로 교체
-      wait.className = 'msg ai live';
-      wait.textContent = t.split('KO:')[0].trim();
-      $('chat').scrollTop = $('chat').scrollHeight;
-    } };
+    const meta = { onText: t => ty.set(t.split('KO:')[0].trim()) };  // 영어 부분만 써 내려가고, 끝나면 showReply가 완성본으로 교체
     const reply = await askAI({
       system_instruction: { parts: [{ text: m0 === 'review' ? reviewSystem(revMat) : m0 === 'unit' ? unitSystem(activeUnit) : buildSystem() }] },
       contents: audio ? [...arr.slice(-(MAX_TURNS * 2 - 2)), { role: 'user', parts: [audio, { text: VOICE_REPLY }] }]  // 튜터는 실제 목소리를 듣고 대답
@@ -2080,6 +2115,9 @@ async function send(text, audio, vb) {
     if (audio) arr.push(uTurn);
     arr.push({ role: 'model', parts: [{ text: reply }] });
     if (m0 === 'chat') { chats[dayKey] = history; saveChats(); }
+    await gate;  // 음성이면 내 문장이 먼저 뜬 뒤에
+    ty.set(reply.split('KO:')[0].trim());
+    await ty.finish();  // 다 써 내려간 다음에 완성 말풍선으로 교체
     if (mode !== m0) return;  // 그 사이 화면을 옮겼으면 저장만 하고 끝
     showReply(reply);
     if (meta.finish && meta.finish !== 'STOP') {
@@ -2087,6 +2125,7 @@ async function send(text, audio, vb) {
       addNote((why[meta.finish] || `답변이 중간에 멈췄어요 (${meta.finish})`) + '. 다시 물어봐 주세요.');
     }
   } catch (e) {
+    ty.stop();
     if (audio) { sendFailed = true; if (saidA === '') setVoiceText(ub, '보내지 못했어요', true); }  // 받아쓰기는 됐으면 그 글은 남겨 둠
     else arr.pop();  // 실패한 질문은 기록에서 제거
     if (mode === m0) addNotice(e);
