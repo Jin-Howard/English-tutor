@@ -289,7 +289,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
          font-size: 16px; font-weight: 400; color: var(--text); border: 0; border-radius: 12px; background: var(--surface2); outline: 0; }
   #setup input::placeholder { color: var(--sub); }
   .keyrow { position: relative; display: block; }
-  .keyrow input { padding-right: 46px; }
+  #setup .keyrow input { padding-right: 50px; }  /* #setup input 규칙보다 강하게: 키가 길어도 눈 아이콘 자리는 비워 둠 */
   #f-key.mask { -webkit-text-security: disc; text-security: disc; }  /* 글자는 가리되 키보드는 일반 칸으로 인식 */
   .eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); margin-top: 3px; width: 40px; height: 40px; padding: 0;
          border: 0; background: none; color: var(--sub); display: flex; align-items: center; justify-content: center; }
@@ -375,7 +375,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   #perm .pad { padding-bottom: 0; }
   .lb { display: flex; align-items: center; justify-content: space-between; }
   .mini { height: 28px; padding: 0 12px; border: 0; border-radius: 14px; background: var(--accent); color: var(--on-accent); font-size: 12.5px; font-weight: 800; }
-  .kstat { display: block; margin-top: 6px; font-size: 13px; font-weight: 600; }
+  .kstat { display: block; margin: 4px 0 0 6px; font-size: 13px; font-weight: 600; }
   .kstat:empty { display: none; }  /* 상태 문구가 없으면 빈 줄을 남기지 않음 */
   #info { margin-top: 12px; }
   .kstat.ok { color: var(--ok); }
