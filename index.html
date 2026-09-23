@@ -2103,7 +2103,7 @@ let heard = '';         // 확정된 말
 let pending = '';       // 확정 전인 말
 let heardAlts = [];     // 마지막 확정 구간의 다른 인식 후보(있으면)
 let silence;            // 무음 타이머
-let micAuto = localStorage.getItem('micauto') === '1';  // true면 듣기가 끝나자마자 바로 전송
+let micAuto = localStorage.getItem('micauto') !== '0';  // 기본은 바로 전송 (직접 '확인 후 보내기'를 고른 사람만 확인 모드)
 
 const closeCards = () => document.querySelectorAll('.card').forEach(c => c.remove());
 
@@ -2234,7 +2234,7 @@ function stopRecord(keep, silent) {
   voiced = false;
   listening = false;
   paint();
-  if (silent || (keep && !voiced)) toast('목소리가 들리지 않았어요. 다시 눌러서 말해 주세요', 2600);
+  if (silent || (keep && !ok)) toast('목소리가 들리지 않았어요. 다시 눌러서 말해 주세요', 2600);  // 위에서 지운 voiced 대신, 지우기 전에 챙긴 ok로 판단
   if (ok) handleVoice(toWav(bufs, rate));
 }
 function toWav(bufs, inRate) {  // 16kHz 모노 16비트 WAV (구간 평균으로 줄여서 소리가 뭉개지지 않게)
