@@ -606,17 +606,17 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .msg { box-sizing: border-box; max-width: 82%; margin: 8px 0; padding: 10px 14px; border-radius: 18px; white-space: pre-wrap;
          line-height: 1.45; word-break: keep-all; overflow-wrap: anywhere; }
   .msg.user { background: var(--user); color: var(--on-user); margin-left: auto; }
-  .msg.ai { position: relative; min-height: 44px; padding-left: 46px; background: var(--surface); box-shadow: var(--shadow); }
+  .msg.ai { position: relative; min-height: 62px; padding-left: 46px; background: var(--surface); box-shadow: var(--shadow); }
   .msg.ai::before { content: ''; position: absolute; left: 9px; top: 9px; width: 28px; height: 28px; border-radius: 50%;
                     background: var(--avatar) center / cover no-repeat, #ffd43b; }
   .msg.ko { background: var(--card); color: var(--text); border: 1px solid var(--card-line); border-radius: 14px; font-size: 14px; margin: -2px 0 10px; }
   .msg.ko::before { content: '교정'; display: block; margin-bottom: 4px; font-size: 11px; font-weight: 800; letter-spacing: .02em; color: var(--sub); }
   .msg.ai:not(.noTr) { cursor: pointer; }
-  .msg.ai { padding-right: 32px; }
-  .msg.ai .vspk { position: absolute; top: 9px; right: 11px; color: var(--icon); }
-  .msg.ai .vspk svg { width: 15px; height: 15px; }
+  .msg.ai { padding-right: 38px; }  /* 커진 스피커와 글자가 겹치지 않게 */
+  .msg.ai .vspk { position: absolute; top: 12.5px; right: 5px; color: var(--icon); }  /* 첫 줄 글자와 세로 중심을 맞춤 */
+  .msg.ai .vspk svg { width: 18px; height: 18px; }
   .msg.ai .vspk.on { color: var(--accent-text); }
-  .msg.ai .trhint { position: absolute; right: 11px; bottom: 11px; width: 14px; height: 14px; color: var(--sub); opacity: .4;
+  .msg.ai .trhint { position: absolute; right: 13px; bottom: 11px; width: 14px; height: 14px; color: var(--sub); opacity: .4;
                     transform: rotate(90deg); transition: transform .25s, opacity .25s; pointer-events: none; }
   .msg.ai.tropen .trhint { transform: rotate(270deg); opacity: .75; }
   .msg.ai.noTr .trhint { display: none; }
