@@ -440,10 +440,6 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     .opt.q { padding: 11px 14px; margin-bottom: 8px; font-size: 15px; }
     .qword { margin-top: 12px; font-size: 36px; }
   }
-  .gauge { display: flex; align-items: center; gap: 10px; margin: 12px 0 4px; font-size: 12.5px; font-weight: 700; color: var(--sub); }
-  .gauge .gt { flex: 1; height: 8px; border-radius: 4px; background: var(--surface2); overflow: hidden; }
-  .gauge .gt i { display: block; height: 100%; border-radius: 4px; background: var(--accent); transition: width .6s cubic-bezier(.2, .8, .3, 1); }
-  .gauge b { min-width: 58px; text-align: right; color: var(--text); font-size: 14px; }
   .qtip { margin: 6px 0 0; text-align: center; font-size: 12.5px; color: var(--sub); }
   .skills { margin: 4px 0 14px; }
   .sk { display: flex; align-items: center; gap: 10px; margin: 8px 0; font-size: 13.5px; font-weight: 700; }
@@ -541,10 +537,9 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .vdue { display: block; margin-top: 2px; font-size: 12px; color: var(--sub); }
 
   /* 온보딩 v2: 위쪽 진행 바, 큰 선택 카드, 알파벳 보기, 아래 고정 버튼 */
-  .obtop { flex: none; display: flex; align-items: center; gap: 12px; padding: 12px 16px 6px; }
+  .obtop { flex: none; display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 12px 20px 6px; box-sizing: border-box; }  /* 뒤로가기 유무와 상관없이 높이 고정 */
   .obtop .obprog { flex: 1; margin: 0; height: 6px; border-radius: 3px; }
   .obtop .obprog i { border-radius: 3px; }
-  .obstep { min-width: 34px; text-align: right; font-size: 13px; font-weight: 700; color: var(--sub); font-variant-numeric: tabular-nums; }
   #obbody { padding: 20px 20px 12px; }
   #obbody h2 { margin: 0 0 8px; font-size: 27px; line-height: 1.28; letter-spacing: -.7px; }
   #obbody .sub { margin: 0 0 24px; font-size: 15.5px; line-height: 1.6; }
@@ -697,7 +692,21 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .msg.live::after { content: ''; display: inline-block; width: 2px; height: 1.05em; margin-left: 2px; vertical-align: -3px;
                      background: currentColor; animation: caret 1s steps(1) infinite; }
   @keyframes caret { 50% { opacity: 0; } }
-  .msg.user.voice { opacity: .6; font-style: italic; }
+  /* 음성 메시지 말풍선: 보내는 순간 파형과 길이가 진하게 뜨고, 받아쓴 문장은 아래에 채워짐 */
+  .msg.vmsg { min-width: 220px; white-space: normal; }  /* 코드 속 줄바꿈이 빈 줄로 보이지 않게 */
+  .vrow { display: flex; align-items: center; gap: 10px; }
+  .vplay { flex: none; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%;
+           background: rgba(0, 0, 0, .1); color: var(--on-user); }
+  .vplay svg { display: block; }
+  .vwave { flex: 1; display: flex; align-items: center; justify-content: space-between; height: 26px; }  /* 막대를 칸 전체에 고르게 */
+  .vwave i { flex: none; width: 3px; border-radius: 2px; background: currentColor; opacity: .35; transition: opacity .15s; }
+  .vwave i.on { opacity: 1; }
+  .vdur { flex: none; font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; opacity: .75; }
+  .vtx { margin-top: 6px; white-space: pre-wrap; }
+  .vtx.dim { opacity: .6; font-size: 13.5px; }
+  .vtx.wait { height: 20px; display: flex; align-items: center; }
+  .vtx.wait i { background: currentColor; opacity: .45; }
+  .vtx.wait i:first-child { margin-left: 0; }
   @keyframes blink { 0%, 80%, 100% { opacity: .2; } 40% { opacity: 1; } }
 </style>
 
@@ -917,7 +926,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 </div>
 
 <div id="onb" class="screen">
-  <div class="obtop"><button id="obback" class="back" aria-label="이전" style="visibility:hidden"></button><div class="obprog"><i id="obbar"></i></div><span class="obstep" id="obstep"></span></div>
+  <div class="obtop"><button id="obback" class="back" aria-label="이전" style="display:none"></button><div class="obprog"><i id="obbar"></i></div></div>
   <div class="pad" id="obbody"></div>
   <div class="obfoot" id="obfoot"><button type="button" id="obnext" class="obbtn">다음</button><button type="button" id="obskip" class="linkbtn">나중에 할게요</button></div>
 </div>
@@ -1118,6 +1127,7 @@ function swap(screen, fade) {
   document.querySelectorAll('#tabs .tab[data-s]').forEach(t => t.classList.toggle('on', t.dataset.s === screen));
   stopSpeak();  // 화면을 옮기면 읽던 소리도 멈춤
   if (recCtx) stopRecord(false);  // 녹음 중이었으면 버림
+  stopMyVoice();
   if (mode !== 'chat' && screen !== 'main') exitReview();  // 복습이나 역할극 중에 다른 화면으로 가면 마무리
   if (screen === 'menu') paintMenu();
   if (screen === 'onb') obStart();
@@ -2027,15 +2037,16 @@ async function startReview() {
 }
 
 // 제미나이에게 보내고 답 받기 (복습 모드에서는 기록에 저장하지 않음)
-const VOICE_TURN = 'The learner answered by voice (audio above). First write one line starting with "HEARD: " and an exact transcription of what they said. Keep their grammar mistakes, and write any Korean words in Korean. Then, on a new line, reply as the tutor in your usual way.';
+const MIX_RULE = `Script rule: every English word must be written in English letters, even with a strong Korean accent. Never write English words in Hangul. Use Hangul only for words actually spoken in Korean, such as Korean names or Korean phrases. Wrong: "와썹 마이 네임 이즈 민수". Right: "What's up, my name is 민수".`;  // 억양 섞인 영어를 한글로 받아적지 않게: 규칙 + 틀린 예/맞는 예
+const VOICE_TURN = 'The learner answered by voice (audio above). First write one line starting with "HEARD: " and an exact transcription of what they said, keeping their grammar mistakes. ' + MIX_RULE + ' Then, on a new line, reply as the tutor in your usual way.';
 const splitHeard = t => {  // "HEARD: 받아쓴 말" 첫 줄과 나머지 대답을 나눔 (형식을 안 지켰으면 전체를 대답으로)
   const i = t.indexOf('\n'), first = i < 0 ? t : t.slice(0, i);
   if (!/^[\s*]*HEARD\b/i.test(first)) return { said: '', rest: t };
   return { said: first.replace(/^[\s*]*HEARD[\s*]*:?[\s*]*/i, '').trim(), rest: i < 0 ? '' : t.slice(i + 1).trim() };
 };
-async function send(text, audio) {
+async function send(text, audio, vb) {
   const m0 = mode, arr = H();
-  const ub = addMsg(audio ? '받아쓰는 중...' : text, audio ? 'user voice' : 'user');
+  const ub = audio ? vb : addMsg(text, 'user');
   if (!audio) {
     arr.push({ role: 'user', parts: [{ text }] });
     if (m0 === 'unit') trackUnit(text);
@@ -2049,7 +2060,7 @@ async function send(text, audio) {
       if (audio) {  // 첫 줄(받아쓴 말)이 다 오면 내 말풍선에 넣고, 나머지만 대답으로 흘림
         if (!t.includes('\n')) return;
         const s = splitHeard(t);
-        if (s.said) { ub.textContent = s.said; ub.classList.remove('voice'); }
+        if (s.said) setVoiceText(ub, s.said);
         t = s.rest;
       }
       wait.className = 'msg ai live';
@@ -2066,8 +2077,7 @@ async function send(text, audio) {
       const s = splitHeard(reply);
       if (!s.rest) throw new Error('빈 응답');
       reply = s.rest;
-      ub.textContent = s.said || '(음성 메시지)';
-      ub.classList.remove('voice');
+      if (s.said) setVoiceText(ub, s.said); else setVoiceText(ub, '받아쓰지 못했어요', true);
       arr.push({ role: 'user', parts: [{ text: s.said || '(voice message)' }] });
       if (m0 === 'unit' && s.said) trackUnit(s.said);
     }
@@ -2080,7 +2090,7 @@ async function send(text, audio) {
       addNote((why[meta.finish] || `답변이 중간에 멈췄어요 (${meta.finish})`) + '. 다시 물어봐 주세요.');
     }
   } catch (e) {
-    if (audio) { ub.textContent = '(보내지 못한 음성)'; ub.classList.remove('voice'); }
+    if (audio) setVoiceText(ub, '보내지 못했어요', true);
     else arr.pop();  // 실패한 질문은 기록에서 제거
     if (mode === m0) addNotice(e);
   } finally {
@@ -2188,7 +2198,7 @@ $('cancel').onclick = () => {
 const VOICE_QUIET_MS = 2500;   // 말을 시작한 뒤 이만큼 조용하면 자동 종료 (생각하며 쉬는 시간 고려)
 const VOICE_NONE_MS = 8000;    // 이 시간 동안 목소리가 없으면 취소
 const VOICE_MAX_MS = 60000;    // 한 번에 최대 1분 (약 1,920토큰)
-const TRANSCRIBE = 'Transcribe this speech from a Korean learner of English exactly as spoken. Keep their grammar mistakes. Write English in English and Korean in Korean. Output only the transcription.';
+const TRANSCRIBE = 'Transcribe this speech from a Korean learner of English exactly as spoken, keeping their grammar mistakes. ' + MIX_RULE + ' Output only the transcription.';
 const PH = $('inp').placeholder;
 let recCtx = null, recSrc = null, recNode = null, recStream = null, recBufs = [], vFirst = -1, vLast = -1, voiced = false, recT0 = 0, quietT0 = 0, asrBusy = false;
 async function startRecord() {
@@ -2235,7 +2245,7 @@ function stopRecord(keep, silent) {
   listening = false;
   paint();
   if (silent || (keep && !ok)) toast('목소리가 들리지 않았어요. 다시 눌러서 말해 주세요', 2600);  // 위에서 지운 voiced 대신, 지우기 전에 챙긴 ok로 판단
-  if (ok) handleVoice(toWav(bufs, rate));
+  if (ok) handleVoice(toWav(bufs, rate), bufs, rate);
 }
 function toWav(bufs, inRate) {  // 16kHz 모노 16비트 WAV (구간 평균으로 줄여서 소리가 뭉개지지 않게)
   const n = bufs.reduce((a, b) => a + b.length, 0), all = new Float32Array(n);
@@ -2256,9 +2266,54 @@ function toWav(bufs, inRate) {  // 16kHz 모노 16비트 WAV (구간 평균으�
   return v.buffer;
 }
 const toB64 = buf => new Promise(res => { const f = new FileReader(); f.onload = () => res(f.result.split(',')[1]); f.readAsDataURL(new Blob([buf])); });
-async function handleVoice(buf) {
+const I_PLAY = icon('<polygon points="7 4 19 12 7 20 7 4" fill="currentColor"/>', 16);
+const I_PAUSE = icon('<rect x="6" y="5" width="4" height="14" fill="currentColor"/><rect x="14" y="5" width="4" height="14" fill="currentColor"/>', 16);
+let myVoice = null;  // 지금 재생 중인 내 목소리 (한 번에 하나만)
+function stopMyVoice() { if (myVoice) { myVoice.pause(); myVoice.currentTime = 0; myVoice.onpause(); } }
+function voiceBubble(buf, bufs, rate) {  // 보낸 순간 확실히 보이는 음성 말풍선 (파형, 길이, 다시 듣기)
+  const n = bufs.reduce((a, b) => a + b.length, 0), N = 28, peaks = [];
+  let k = 0, i = 0;
+  const all = new Float32Array(n);
+  bufs.forEach(b => { all.set(b, k); k += b.length; });
+  for (; i < N; i++) {  // 구간마다 소리 크기를 재서 막대 높이로
+    const a = Math.floor(i * n / N), z = Math.floor((i + 1) * n / N);
+    let s = 0;
+    for (let j = a; j < z; j += 8) s += all[j] * all[j];
+    peaks.push(Math.sqrt(s / Math.max(1, (z - a) / 8)));
+  }
+  const top = Math.max(...peaks) || 1, sec = Math.max(1, Math.round(n / rate));
+  const d = el('div', 'msg user vmsg');
+  d.innerHTML = `<div class="vrow"><button type="button" class="vplay" aria-label="내 목소리 듣기">${I_PLAY}</button>
+    <span class="vwave">${peaks.map(p => `<i style="height:${Math.round(4 + 22 * Math.sqrt(p / top))}px"></i>`).join('')}</span>
+    <span class="vdur">${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}</span></div>
+    <div class="vtx wait"><i></i><i></i><i></i></div>`;
+  const au = new Audio(URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }))), btn = d.querySelector('.vplay'), bars = d.querySelectorAll('.vwave i');
+  const mark = r => bars.forEach((b, j) => b.classList.toggle('on', j < r * N));  // 재생된 만큼 막대를 진하게
+  au.ontimeupdate = () => mark(au.currentTime / (au.duration || sec));
+  au.onpause = au.onended = () => { btn.innerHTML = I_PLAY; mark(0); if (myVoice === au) myVoice = null; };
+  btn.onclick = e => {
+    e.stopPropagation();
+    if (myVoice === au) return stopMyVoice();
+    stopMyVoice();
+    stopSpeak();  // 튜터 목소리와 겹치지 않게
+    myVoice = au;
+    btn.innerHTML = I_PAUSE;
+    au.play().catch(() => au.onpause());
+  };
+  $('chat').append(d);
+  $('chat').scrollTop = $('chat').scrollHeight;
+  return d;
+}
+function setVoiceText(b, t, dim) {  // 음성 말풍선 아래에 받아쓴 문장 채우기
+  const x = b.querySelector('.vtx');
+  x.classList.remove('wait');
+  x.classList.toggle('dim', !!dim);
+  x.textContent = t;
+  $('chat').scrollTop = $('chat').scrollHeight;
+}
+async function handleVoice(buf, bufs, rate) {
   const audio = { inline_data: { mime_type: 'audio/wav', data: await toB64(buf) } };
-  if (micAuto) return send('', audio);  // 바로 보내기: 받아쓰기와 대답을 요청 한 번에
+  if (micAuto) return send('', audio, voiceBubble(buf, bufs, rate));  // 바로 보내기: 받아쓰기와 대답을 요청 한 번에
   asrBusy = true;  // 확인 후 보내기: 받아쓴 글을 입력칸에 먼저 보여줌 (가벼운 모델로 받아쓰기만)
   inp.placeholder = '받아쓰는 중...';
   try {
@@ -2727,7 +2782,7 @@ function renderOb(anim = true) {
   const chip = (a, v, t, on) => `<button type="button" class="chipb${on ? ' on' : ''}" data-a="${a}" data-v="${v}" aria-pressed="${on}"><span class="ck">${sz(I_CHECK, 16)}</span>${t}</button>`;
   const opts = (a, q, idk) => `<div class="opts">${q.opts.map((o, i) => `<button type="button" class="opt q lz" data-a="${a}" data-v="${i}"><span class="lt">${LET[i]}</span><span>${escH(o)}</span></button>`).join('')}<button type="button" class="opt q idk" data-a="${a}" data-v="-1"><span>${idk}</span></button></div>`;
   const seg = (a, list, cur, unit) => `<div class="seg full">${list.map(n => `<button type="button" class="${cur === n ? 'on' : ''}" data-a="${a}" data-v="${n}">${n}${unit}</button>`).join('')}</div>`;
-  let h = '', next = '다음', can = true, showNext = true, g1 = null;
+  let h = '', next = '다음', can = true, showNext = true;
   if (st === 'goal') {
     h = `<h2>어떤 영어가 필요하세요?</h2><p class="sub">가장 필요한 것을 최대 2개 골라 주세요.<br>연습 상황과 예문이 여기에 맞춰져요.</p>
       <div class="chips">${GOALS.map(g => chip('goal', g, g, obs.goals.includes(g))).join('')}</div><p class="tip">${obs.goals.length}/2개 선택</p>`;
@@ -2737,15 +2792,12 @@ function renderOb(anim = true) {
     h = `<h2>영어 공부는 해 보셨어요?</h2><p class="sub">시작 난이도만 정해요.<br>실제 레벨은 다음 문제로 확인해요.</p>
       <div class="opts">${START.map((s, i) => `<button type="button" class="opt big${obs.start === s[2] ? ' on' : ''}" data-a="start" data-v="${i}"><span><b>${s[0]}</b><small>${s[1]}</small></span><i class="radio"></i></button>`).join('')}</div>`;
   } else if (st === 'vocab' || st === 'read') {
-    showNext = false;
-    const e = estimate(), val = Math.min(5, Math.max(1, e.th)), cur = lvPct(val);
-    g1 = cur;
-    const gauge = `<div class="gauge"><span>지금 실력</span><div class="gt"><i id="gf" style="width:${obs.gPrev ?? cur}%"></i></div><b>Lv ${val.toFixed(1)}</b></div>`;
+    showNext = false;  // 진행은 맨 위 바 하나로만 보여줌 (테스트 중 점수는 숨겨서 긴장을 줄이고, 결과 화면에서 공개)
     if (st === 'vocab') {
-      h = `<p class="qcount">단어 ${obs.v.n + 1}번째</p>${gauge}${obs.v.n === 0 ? '<p class="qtip">정답이면 어려운 문제가, 모르면 쉬운 문제가 나와요</p>' : ''}
+      h = `${obs.v.n === 0 ? '<p class="qtip">정답이면 어려운 문제가, 모르면 쉬운 문제가 나와요</p>' : ''}
         <div class="qword">${obs.q.en}</div><div class="qhint" id="qspk"></div>${opts('w', obs.q, '모르겠어요')}`;
     } else {
-      h = `<p class="qcount">문장 ${obs.r.n + 1} / ${NREAD}</p>${gauge}<div class="qsent">${obs.q.en}</div>${opts('s', obs.q, '잘 모르겠어요')}`;
+      h = `<div class="qsent">${obs.q.en}</div>${opts('s', obs.q, '잘 모르겠어요')}`;
     }
   } else if (st === 'plan') {
     h = `<h2>학습 계획을 정해요</h2><p class="sub">부담 없는 목표로 시작하세요.</p>
@@ -2765,18 +2817,13 @@ function renderOb(anim = true) {
   }
   box.innerHTML = h;
   if (st === 'vocab') $('qspk').append(spkBtn(obs.q.en));
-  if (g1 !== null) {  // 막대가 이전 값에서 새 값으로 움직이게
-    requestAnimationFrame(() => { const f = $('gf'); if (f) f.style.width = g1 + '%'; });
-    obs.gPrev = g1;
-  }
   box.classList.remove('obin');
   if (anim) { void box.offsetWidth; box.classList.add('obin'); }
   $('obbar').style.width = Math.round(obFraction() * 100) + '%';
-  $('obstep').textContent = { goal: '1/5', start: '2/5', vocab: '3/5', read: '4/5', plan: '5/5' }[st] || '';
   $('obnext').style.display = showNext ? '' : 'none';
   $('obnext').textContent = next;
   $('obnext').disabled = !can;
-  $('obback').style.visibility = st === 'start' || st === 'result' || (st === 'goal' && inSettings) ? 'visible' : 'hidden';
+  $('obback').style.display = st === 'start' || st === 'result' || (st === 'goal' && inSettings) ? '' : 'none';  // 없을 땐 자리도 비움
   $('obskip').style.display = st === 'goal' && !inSettings ? '' : 'none';
   $('obfoot').style.display = showNext || st === 'goal' ? '' : 'none';
 }
