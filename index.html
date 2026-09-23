@@ -357,6 +357,28 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   @keyframes iris { from { transform: scale(5); box-shadow: 0 0 0 999px rgba(0, 0, 0, 0); } to { transform: none; box-shadow: 0 0 0 999px rgba(0, 0, 0, .5); } }
   @keyframes ringin { from { opacity: 0; transform: scale(1.3); } to { opacity: 1; transform: none; } }
   @keyframes ringpulse { from { opacity: .8; transform: none; } to { opacity: 0; transform: scale(1.45); } }
+  /* 첫 실행 코치마크: 발급 안내 카드만 뚫어서 밝게, 나머지는 어둡게 */
+  #coach { position: fixed; inset: 0; z-index: 85; display: none; pointer-events: none; }
+  #coach.open { display: block; }
+  #coachdim { position: absolute; inset: 0; background: rgba(0, 0, 0, .58); pointer-events: auto; animation: cfade .3s ease-out; }
+  #coachring { position: absolute; border: 3px solid var(--accent); border-radius: 30px; box-sizing: border-box;
+               box-shadow: 0 0 0 6px rgba(255, 212, 59, .22); animation: ringin .3s .4s both; }
+  #coachtip { position: absolute; left: 16px; right: 16px; max-width: 460px; margin: 0 auto; padding: 16px 18px 12px; box-sizing: border-box;
+              border-radius: 20px; background: var(--surface); color: var(--text); box-shadow: 0 14px 36px rgba(0, 0, 0, .28); pointer-events: auto;
+              animation: ctip .35s .5s both; }
+  #coachtip::before { content: ''; position: absolute; left: 50%; top: -7px; width: 14px; height: 14px; background: var(--surface); transform: translateX(-50%) rotate(45deg); }
+  #coachtip.up::before { top: auto; bottom: -7px; }
+  #coachtip b { display: block; margin-bottom: 4px; font-size: 16px; font-weight: 800; }
+  #coachtip p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--sub); }
+  #coachtip p em { font-style: normal; font-weight: 800; color: var(--text); }
+  #coachskip { display: block; margin: 8px 0 0 auto; padding: 6px 2px; border: 0; background: none; font-size: 13px; font-weight: 700; color: var(--sub); }
+  .coaching .savebar { visibility: hidden; }  /* 안내 중에는 고정 저장 버튼이 조명 안으로 끼어들지 않게 */
+  .coaching #keyopen { background: var(--surface2); color: var(--sub); }  /* 누를 버튼 하나만 강조 */
+  #tourbtn.coachpulse { background: var(--accent); color: var(--on-accent); animation: cpulse 1.4s .8s ease-out infinite; }
+  @keyframes cfade { from { opacity: 0; } }
+  @keyframes ctip { from { opacity: 0; transform: translateY(8px); } }
+  @keyframes cpulse { from { box-shadow: 0 0 0 0 rgba(255, 212, 59, .75); } to { box-shadow: 0 0 0 14px rgba(255, 212, 59, 0); } }
+  @media (prefers-reduced-motion: reduce) { #coachdim, #coachring, #coachtip, #tourbtn.coachpulse { animation: none; } }
   @media (prefers-reduced-motion: reduce) { .play .cmspot, .play .cmspot::before, .play .cmspot::after { animation-duration: .01s; animation-iteration-count: 1; } }
   .tourpg h3 { margin: 0; font-size: 18px; font-weight: 800; }
   .tourpg p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--sub); }
@@ -947,6 +969,15 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   <div class="ia"><button type="button" id="inapp-copy" class="pill">링크 복사</button><button type="button" id="inapp-x" class="pill ghost">닫기</button></div>
 </div>
 <div id="toast" role="status"></div>
+<div id="coach" aria-live="polite">
+  <div id="coachdim"></div>
+  <div id="coachring"></div>
+  <div id="coachtip" role="dialog" aria-label="처음 안내">
+    <b>먼저 API 키가 필요해요</b>
+    <p>AI 튜터와 대화할 때 쓰는 무료 키예요. 구글에서 받고, 이 폰에만 저장돼요. 노란 테두리 안의 <em>그림으로 순서 보기</em>를 눌러 따라 해 보세요.</p>
+    <button type="button" id="coachskip">건너뛰기</button>
+  </div>
+</div>
 <div id="tour" class="tourwrap">
   <button type="button" id="tourx" class="tourx">×</button>
   <div id="tourtrack" class="tourtrack">
@@ -1130,6 +1161,7 @@ window.addEventListener('popstate', e => {  // 시스템 뒤로가기
   const st = e.state || { s: 'menu', d: 0 };
   if (sheetOpen) { closeSheet(); if (st.s === 'setup') return; }  // 시간 시트가 열려 있으면 시트만 닫기
   if (tourOn()) { closeTour(); if (st.s === 'setup') return; }  // 워크스루도 같은 방식
+  if (coachOn()) { closeCoach(); if (st.s === 'setup') return; }
   if (st.s === 'vocab') renderVocab();
   if (st.s === 'setup') fillForm();
   if (st.s === 'hist') (st.day && chats[st.day] ? openDay(st.day) : renderHistList());
@@ -2790,15 +2822,55 @@ function openTour() {  // 열 때마다 애니메이션을 처음부터, 뒤로�
   $('tour').classList.add('open');
   $('tourtrack').scrollLeft = 0;
   tourPaint();
-  localStorage.setItem('tourseen', '1');
-  try { window.history.pushState({ s: 'setup', d: (window.history.state?.d || 0) + 1, tour: true }, ''); } catch (e) {}
+  try {  // 코치마크에서 왔으면 그 기록 칸을 재사용해서 뒤로가기 한 번에 설정 화면으로
+    const st = window.history.state || {};
+    if (st.coach) window.history.replaceState({ s: 'setup', d: st.d, tour: true }, '');
+    else window.history.pushState({ s: 'setup', d: (st.d || 0) + 1, tour: true }, '');
+  } catch (e) {}
 }
 const closeTour = () => $('tour').classList.remove('open');
 const exitTour = () => (window.history.state?.tour ? window.history.back() : closeTour());
-function autoTour() {  // 첫 실행: 키가 없고 설정 화면이면 한 번만 자동으로 띄움
-  if (!apiKey && !tourOn() && $('setup').style.display === 'flex' && !localStorage.getItem('tourseen')) openTour();
+// 첫 실행 코치마크: 발급 안내 카드를 비추고, 사용자가 그림으로 순서 보기를 직접 누르면 워크스루로 이어짐
+const coachOn = () => $('coach').classList.contains('open');
+let coachT0 = 0;
+function coachPlace() {  // 카드 위치에 맞춰 어두운 막에 둥근 구멍을 뚫고, 말풍선은 공간 넓은 쪽에
+  if (!coachOn()) return;
+  const r = $('guide').getBoundingClientRect(), W = innerWidth, H = innerHeight, pad = 8;
+  const k = Math.max(0, 1 - (performance.now() - coachT0) / 450);
+  const e = pad + k * k * 160;  // 처음 0.45초는 구멍이 크게 시작해 카드 쪽으로 좁혀짐
+  const x = r.left - e, y = r.top - e, w = r.width + e * 2, h = r.height + e * 2, q = 30 + e * 0.3;
+  $('coachdim').style.clipPath = `path(evenodd, 'M0 0H${W}V${H}H0Z M${x + q} ${y}H${x + w - q}A${q} ${q} 0 0 1 ${x + w} ${y + q}V${y + h - q}A${q} ${q} 0 0 1 ${x + w - q} ${y + h}H${x + q}A${q} ${q} 0 0 1 ${x} ${y + h - q}V${y + q}A${q} ${q} 0 0 1 ${x + q} ${y}Z')`;
+  Object.assign($('coachring').style, { left: r.left - pad + 'px', top: r.top - pad + 'px', width: r.width + pad * 2 + 'px', height: r.height + pad * 2 + 'px' });
+  const tip = $('coachtip'), th = tip.offsetHeight, below = H - r.bottom - pad - 18, above = r.top - pad - 18;
+  const down = below >= th || below >= above;
+  tip.classList.toggle('up', !down);
+  tip.style.top = Math.min(H - th - 10, Math.max(10, down ? r.bottom + pad + 16 : r.top - pad - 16 - th)) + 'px';
+  if (k > 0) requestAnimationFrame(coachPlace);
 }
-$('tourbtn').onclick = openTour;
+function openCoach() {
+  $('guide').classList.add('open');
+  $('guide').scrollIntoView({ block: 'nearest' });
+  $('coach').classList.add('open');
+  $('setup').classList.add('coaching');
+  $('tourbtn').classList.add('coachpulse');
+  coachT0 = performance.now();
+  coachPlace();
+  try { window.history.pushState({ s: 'setup', d: (window.history.state?.d || 0) + 1, coach: true }, ''); } catch (e) {}
+}
+function closeCoach() {
+  $('coach').classList.remove('open');
+  $('setup').classList.remove('coaching');
+  $('tourbtn').classList.remove('coachpulse');
+  localStorage.setItem('coachseen', '1');
+}
+function autoCoach() {  // 키가 없고 설정 화면이면 처음 한 번만
+  if (!apiKey && !coachOn() && $('setup').style.display === 'flex' && !localStorage.getItem('coachseen')) openCoach();
+}
+$('coachskip').onclick = () => (window.history.state?.coach ? window.history.back() : closeCoach());
+addEventListener('resize', coachPlace);
+document.addEventListener('scroll', coachPlace, true);
+if (window.ResizeObserver) new ResizeObserver(coachPlace).observe($('guide'));  // 카드를 접거나 펴도 구멍이 따라감
+$('tourbtn').onclick = () => { if (coachOn()) closeCoach(); openTour(); };
 $('tourx').onclick = exitTour;
 $('tournext').onclick = () => {
   const i = Math.round($('tourtrack').scrollLeft / $('tourtrack').clientWidth);
@@ -3188,7 +3260,7 @@ const skip = /nosplash/.test(location.search);
 const calm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 setTimeout(() => {
   $('splash').classList.add('out');
-  setTimeout(() => { $('splash').remove(); applyTheme(); autoTour(); }, 450);  // 스플래시가 걷힌 뒤라 애니메이션이 보임
+  setTimeout(() => { $('splash').remove(); applyTheme(); autoCoach(); }, 450);  // 스플래시가 걷힌 뒤에 코치마크 시작
 }, skip ? 0 : calm ? 900 : 2000);
 window.__ready = true;  // 여기까지 오면 시작 성공
 </script>
