@@ -290,6 +290,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   #setup input::placeholder { color: var(--sub); }
   .keyrow { position: relative; display: block; }
   .keyrow input { padding-right: 46px; }
+  #f-key.mask { -webkit-text-security: disc; text-security: disc; }  /* 글자는 가리되 키보드는 일반 칸으로 인식 */
   .eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); margin-top: 3px; width: 40px; height: 40px; padding: 0;
          border: 0; background: none; color: var(--sub); display: flex; align-items: center; justify-content: center; }
   .eye svg { display: block; }
@@ -321,7 +322,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .guide .g-row .chev svg { display: block; transition: transform .2s; }
   .guide.open .g-row .chev svg { transform: rotate(90deg); }
   #aiseg [data-m="max"] { position: relative; overflow: visible; }
-  #aiseg .crown { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); color: #E8960B; }
+  #aiseg .crown { position: absolute; top: -4px; left: 50%; transform: translateX(-50%); color: #E8960B; }
   #aiseg .crown svg { display: block; }
   .gtitle { display: flex; align-items: center; gap: 12px; }
   .gtitle .chip { width: 40px; height: 40px; border-radius: 13px; }
@@ -374,7 +375,9 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   #perm .pad { padding-bottom: 0; }
   .lb { display: flex; align-items: center; justify-content: space-between; }
   .mini { height: 28px; padding: 0 12px; border: 0; border-radius: 14px; background: var(--accent); color: var(--on-accent); font-size: 12.5px; font-weight: 800; }
-  .kstat { display: block; min-height: 18px; margin-top: 6px; font-size: 13px; font-weight: 600; }
+  .kstat { display: block; margin-top: 6px; font-size: 13px; font-weight: 600; }
+  .kstat:empty { display: none; }  /* 상태 문구가 없으면 빈 줄을 남기지 않음 */
+  #info { margin-top: 12px; }
   .kstat.ok { color: var(--ok); }
   .kstat.bad, .kstat.warn { color: var(--danger); }
 
@@ -772,7 +775,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     <p class="sec">API 키</p>
     <div class="group fields">
       <label><span class="lb">API 키<button type="button" id="keypaste" class="mini">붙여넣기</button></span>
-        <span class="keyrow"><input id="f-key" type="password" placeholder="API 키 붙여넣기" autocomplete="off"><button type="button" id="keyeye" class="eye" aria-label="키 보기"></button></span>
+        <span class="keyrow"><input id="f-key" class="mask" type="text" placeholder="API 키 붙여넣기" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"><button type="button" id="keyeye" class="eye" aria-label="키 보기"></button></span>
         <span class="kstat" id="keystat"></span>
       </label>
     </div>
@@ -1041,7 +1044,7 @@ const I_REV = icon('<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 
 const I_SUN = icon('<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>', 20);
 const I_MOON = icon('<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>', 20);
 const I_SPK = icon('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>', 18);
-const CROWN = '<svg viewBox="0 0 16 12" width="11" height="9" fill="currentColor"><path d="M1 4.2 3.6 6l2-3.6L8 6l2.4-3.6L12.4 6 15 4.2 13.8 11H2.2z"/></svg>';
+const CROWN = '<svg viewBox="0 0 16 12" width="16" height="12" fill="currentColor"><path d="M1 4.2 3.6 6l2-3.6L8 6l2.4-3.6L12.4 6 15 4.2 13.8 11H2.2z"/></svg>';
 
 // 화면 전환: 탭 바는 홈, 단어장, 기록, 설정에서만 보임
 const TABS = ['menu', 'vocab', 'hist', 'setup'];
@@ -2760,7 +2763,7 @@ let keyShown = false;
 $('keyeye').innerHTML = I_EYE;
 $('keyeye').onclick = () => {
   keyShown = !keyShown;
-  $('f-key').type = keyShown ? 'text' : 'password';
+  $('f-key').classList.toggle('mask', !keyShown);
   $('keyeye').innerHTML = keyShown ? I_EYE_OFF : I_EYE;
 };
 const I_KEY = icon('<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>');
@@ -2825,16 +2828,32 @@ async function checkKey() {  // 키가 맞는지 가볍게 확인 (글 생성 �
   st.className = 'kstat ' + r;
   st.textContent = { ok: '✓ 사용할 수 있는 키예요', bad: '키가 올바르지 않아요. 다시 복사해 붙여넣어 주세요', warn: '이 키는 사용이 어려울 수 있어요. AI Studio에서 새 키를 만들어 보세요' }[r] || '';
 }
+const pickKey = t => { const m = String(t).match(/AIza[\w-]{35}/); return m ? m[0] : String(t).trim(); };  // 딸려온 공백, 글자 정리
+function keyFilled() {  // 키가 들어오면 바로 확인하고, 안내는 접고 입력칸을 보여줌
+  checkKey();
+  $('guide').classList.remove('open');
+  setTimeout(() => $('f-key').scrollIntoView({ block: 'center', behavior: 'smooth' }), 50);
+}
 $('f-key').onchange = checkKey;
+$('f-key').addEventListener('paste', e => {  // 길게 눌러 붙여넣기, 키보드 클립보드 추천도 바로 확인
+  const t = e.clipboardData?.getData('text');
+  if (!t) return;
+  e.preventDefault();
+  $('f-key').value = pickKey(t);
+  keyFilled();
+});
 $('keypaste').onclick = async () => {
   try {
-    const t = (await navigator.clipboard.readText()).trim();
-    if (!t) return toast('복사된 내용이 없어요');
+    const t = pickKey(await navigator.clipboard.readText());
+    if (!t) return toast('복사된 내용이 없어요. AI Studio에서 복사 아이콘을 먼저 눌러 주세요', 3500);
     $('f-key').value = t;
-    checkKey();
-    $('guide').classList.remove('open');  // 키를 넣었으면 안내는 접고 입력칸을 보여줌
-    setTimeout(() => $('f-key').scrollIntoView({ block: 'center', behavior: 'smooth' }), 50);
-  } catch { toast('붙여넣기가 막혔어요. 입력칸을 길게 눌러 붙여넣어 주세요', 3000); }
+    keyFilled();
+  } catch {  // 브라우저가 클립보드 읽기를 막은 경우: 입력칸을 열어 직접 붙여넣게 이어줌
+    $('f-key').focus();
+    const st = $('keystat');
+    st.className = 'kstat warn';
+    st.textContent = '입력칸을 길게 눌러 붙여넣기를 누르거나, 키보드 위의 복사한 내용을 눌러 주세요';
+  }
 };
 $('vsearch').oninput = renderVocab;
 $('vsearch').parentNode.querySelector('.si').innerHTML = I_SEARCH;
