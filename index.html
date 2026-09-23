@@ -2037,19 +2037,29 @@ async function startReview() {
 }
 
 // 제미나이에게 보내고 답 받기 (복습 모드에서는 기록에 저장하지 않음)
-const MIX_RULE = `Script rule: every English word must be written in English letters, even with a strong Korean accent. Never write English words in Hangul. Use Hangul only for words actually spoken in Korean, such as Korean names or Korean phrases. Wrong: "와썹 마이 네임 이즈 민수". Right: "What's up, my name is 민수".`;  // 억양 섞인 영어를 한글로 받아적지 않게: 규칙 + 틀린 예/맞는 예
-const VOICE_TURN = 'The learner answered by voice (audio above). First write one line starting with "HEARD: " and an exact transcription of what they said, keeping their grammar mistakes. ' + MIX_RULE + ' Then, on a new line, reply as the tutor in your usual way.';
-const splitHeard = t => {  // "HEARD: 받아쓴 말" 첫 줄과 나머지 대답을 나눔 (형식을 안 지켰으면 전체를 대답으로)
-  const i = t.indexOf('\n'), first = i < 0 ? t : t.slice(0, i);
-  if (!/^[\s*]*HEARD\b/i.test(first)) return { said: '', rest: t };
-  return { said: first.replace(/^[\s*]*HEARD[\s*]*:?[\s*]*/i, '').trim(), rest: i < 0 ? '' : t.slice(i + 1).trim() };
-};
+const MIX_RULE = `Transcription rules: write exactly what was said, word for word, like a court stenographer. Never translate, answer, explain, summarize, or fix anything inside the transcription, even if the learner is asking a question. Keep each word in the language it was spoken: Korean speech stays in Hangul, English speech stays in English letters. English spoken with a strong Korean accent is still English. Example 1, English with an accent. Right: "What's up, my name is 민수". Wrong: "와썹 마이 네임 이즈 민수". Example 2, a question spoken in Korean. Right: "겨울왕국을 영어로 뭐라고 해?". Wrong: "How do you say Frozen in English?".`;  // 받아쓰기는 들은 그대로: 번역/대답 금지, 말한 언어 그대로 (양방향 예시)
+const VOICE_REPLY = 'The learner answered by voice (audio above). Listen to it and reply as the tutor in your usual way.';
+// 받아쓰기 전용 요청: 대답할 일이 없어서 들은 그대로만 적음 (가장 가벼운 모델)
+const transcribe = audio => lite({ system_instruction: { parts: [{ text: TRANSCRIBE }] }, contents: [{ role: 'user', parts: [audio] }],
+  generationConfig: { temperature: 0, maxOutputTokens: 400 } }).then(t => t.trim());
 async function send(text, audio, vb) {
   const m0 = mode, arr = H();
   const ub = audio ? vb : addMsg(text, 'user');
+  let uTurn = null, sendFailed = false, saidA = null;  // 받아쓰기 결과 (null이면 아직 도착 전)
   if (!audio) {
     arr.push({ role: 'user', parts: [{ text }] });
     if (m0 === 'unit') trackUnit(text);
+  } else {  // 음성: 받아쓰기(A)와 대답(B)을 동시에 출발시켜 기다리는 시간은 그대로
+    uTurn = { role: 'user', parts: [{ text: '(voice message)' }] };  // 기록에는 소리 대신 받아쓴 글만 (다음 요청에 소리를 다시 안 보냄)
+    transcribe(audio).catch(() => '').then(said => {
+      saidA = said;
+      if (said) {
+        setVoiceText(ub, said);
+        uTurn.parts[0].text = said;
+        if (m0 === 'unit') trackUnit(said);
+        if (m0 === 'chat' && arr.includes(uTurn)) { chats[dayKey] = history; saveChats(); }  // 대답이 먼저 끝났으면 기록 갱신
+      } else setVoiceText(ub, sendFailed ? '보내지 못했어요' : '받아쓰지 못했어요', true);
+    });
   }
   const wait = el('div', 'msg ai wait');  // 답변 기다리는 표시
   wait.innerHTML = '답변 정리하는 중<i></i><i></i><i></i>';
@@ -2057,30 +2067,17 @@ async function send(text, audio, vb) {
   $('chat').scrollTop = $('chat').scrollHeight;
   try {
     const meta = { onText: t => {  // 스트리밍 중에는 영어 부분만 흘려 보여주고, 끝나면 showReply가 완성본으로 교체
-      if (audio) {  // 첫 줄(받아쓴 말)이 다 오면 내 말풍선에 넣고, 나머지만 대답으로 흘림
-        if (!t.includes('\n')) return;
-        const s = splitHeard(t);
-        if (s.said) setVoiceText(ub, s.said);
-        t = s.rest;
-      }
       wait.className = 'msg ai live';
       wait.textContent = t.split('KO:')[0].trim();
       $('chat').scrollTop = $('chat').scrollHeight;
     } };
-    let reply = await askAI({
+    const reply = await askAI({
       system_instruction: { parts: [{ text: m0 === 'review' ? reviewSystem(revMat) : m0 === 'unit' ? unitSystem(activeUnit) : buildSystem() }] },
-      contents: audio ? [...arr.slice(-(MAX_TURNS * 2 - 2)), { role: 'user', parts: [audio, { text: VOICE_TURN }] }]
+      contents: audio ? [...arr.slice(-(MAX_TURNS * 2 - 2)), { role: 'user', parts: [audio, { text: VOICE_REPLY }] }]  // 튜터는 실제 목소리를 듣고 대답
         : arr.slice(-(MAX_TURNS * 2 - 1)),
       generationConfig: { temperature: 0.7, maxOutputTokens: 1500 }
     }, meta);
-    if (audio) {  // 기록에는 소리 대신 받아쓴 글만 남김 (다음 요청에 소리를 다시 보내지 않아 토큰 절약)
-      const s = splitHeard(reply);
-      if (!s.rest) throw new Error('빈 응답');
-      reply = s.rest;
-      if (s.said) setVoiceText(ub, s.said); else setVoiceText(ub, '받아쓰지 못했어요', true);
-      arr.push({ role: 'user', parts: [{ text: s.said || '(voice message)' }] });
-      if (m0 === 'unit' && s.said) trackUnit(s.said);
-    }
+    if (audio) arr.push(uTurn);
     arr.push({ role: 'model', parts: [{ text: reply }] });
     if (m0 === 'chat') { chats[dayKey] = history; saveChats(); }
     if (mode !== m0) return;  // 그 사이 화면을 옮겼으면 저장만 하고 끝
@@ -2090,7 +2087,7 @@ async function send(text, audio, vb) {
       addNote((why[meta.finish] || `답변이 중간에 멈췄어요 (${meta.finish})`) + '. 다시 물어봐 주세요.');
     }
   } catch (e) {
-    if (audio) setVoiceText(ub, '보내지 못했어요', true);
+    if (audio) { sendFailed = true; if (saidA === '') setVoiceText(ub, '보내지 못했어요', true); }  // 받아쓰기는 됐으면 그 글은 남겨 둠
     else arr.pop();  // 실패한 질문은 기록에서 제거
     if (mode === m0) addNotice(e);
   } finally {
@@ -2318,8 +2315,7 @@ async function handleVoice(buf, bufs, rate) {
   asrBusy = true;  // 확인 후 보내기: 받아쓴 글을 입력칸에 먼저 보여줌 (가벼운 모델로 받아쓰기만)
   inp.placeholder = '받아쓰는 중...';
   try {
-    const t = (await lite({ system_instruction: { parts: [{ text: TRANSCRIBE }] }, contents: [{ role: 'user', parts: [audio] }],
-      generationConfig: { temperature: 0, maxOutputTokens: 400 } })).trim();
+    const t = await transcribe(audio);
     inp.value = t;
     inp.focus();
   } catch (e) {
