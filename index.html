@@ -166,20 +166,23 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 
   /* 홈 화면 */
   /* 홈: 옅은 바탕 위 흰 카드, 노랑은 대화 버튼에만 */
-  :root[data-theme="light"] { --home-bg: #F4F5F7; --home-card: #FFFFFF; --home-line: rgba(17, 17, 17, .06); --today-bg: #FFF7D9; --today-line: rgba(214, 170, 0, .22); --tile-ic: #FFF3C4; }
-  :root, :root[data-theme="dark"] { --home-bg: #0A0A0A; --home-card: #161616; --home-line: rgba(255, 255, 255, .07); --today-bg: #1D1A10; --today-line: rgba(255, 212, 59, .2); --tile-ic: rgba(255, 212, 59, .14); }
+  :root[data-theme="light"] { --home-bg: #F4F5F7; --home-card: #FFFFFF; --home-line: rgba(17, 17, 17, .06); --today-bg: linear-gradient(150deg, #FFEFA8 0%, #FFF6D3 45%, #FFFBEE 100%); --today-glow: rgba(255, 255, 255, .95); --tile-ic: #FFF3C4; }
+  :root, :root[data-theme="dark"] { --home-bg: #0A0A0A; --home-card: #161616; --home-line: rgba(255, 255, 255, .07); --today-bg: linear-gradient(150deg, #2E2710 0%, #1E1A0E 50%, #151410 100%); --today-glow: rgba(255, 212, 59, .12); --tile-ic: rgba(255, 212, 59, .14); }
   #menu { background: var(--home-bg); }
   #menu .hd { border-bottom-color: transparent; background: var(--home-bg); }
   #menu .pad { padding-top: 6px; }
   .hello { padding: 4px 4px 18px; }
   .hello .gh { margin: 0 0 4px; font-size: 14px; font-weight: 700; color: var(--sub); }
   .hello h1 { margin: 0; font-size: 24px; line-height: 1.32; font-weight: 800; letter-spacing: -.7px; word-break: keep-all; }
-  .talkcard { position: relative; margin: 0 0 12px; padding: 20px 18px 18px; border: 1px solid var(--today-line); border-radius: 26px; background: var(--today-bg); overflow: hidden; }
-  .talkcard .gart { position: absolute; right: -6px; top: 6px; width: 112px; height: auto; pointer-events: none; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .16)); }
-  .lvchip { display: inline-block; margin-bottom: 10px; padding: 4px 10px; border-radius: 999px; background: var(--home-card);
-            font-size: 12.5px; font-weight: 800; color: var(--accent-text); }
-  .talkcard h2 { margin: 0 0 4px; max-width: 64%; font-size: 21px; line-height: 1.3; font-weight: 800; letter-spacing: -.5px; word-break: keep-all; }
-  .talkcard .tsub { margin: 0 0 20px; max-width: 64%; font-size: 14px; line-height: 1.45; color: var(--sub); }
+  .talkcard { position: relative; margin: 0 0 12px; padding: 22px 20px 20px; border-radius: 28px; background: var(--today-bg); overflow: hidden; isolation: isolate; }
+  .talkcard::before { content: ''; position: absolute; right: -40px; bottom: -50px; z-index: -1; width: 230px; height: 230px; border-radius: 50%;
+                      background: radial-gradient(circle, var(--today-glow) 0%, transparent 68%); }  /* 로봇 뒤 은은한 빛 */
+  .talkcard .gart { position: absolute; right: -2px; bottom: -22px; width: 124px; height: auto; pointer-events: none; filter: drop-shadow(0 10px 18px rgba(120, 90, 0, .18)); }  /* 발밑 구름이 가장자리에서 살짝 잘리게 */
+  .lvchip { display: inline-block; margin-bottom: 12px; padding: 5px 11px; border-radius: 999px; background: rgba(255, 255, 255, .7);
+            font-size: 12px; font-weight: 800; letter-spacing: .01em; color: var(--accent-text); }
+  :root[data-theme="dark"] .lvchip, :root:not([data-theme]) .lvchip { background: rgba(255, 212, 59, .12); }
+  .talkcard h2 { margin: 0 0 6px; max-width: 64%; font-size: clamp(19px, 5.5vw, 22px); line-height: 1.28; font-weight: 800; letter-spacing: -.6px; word-break: keep-all; }
+  .talkcard .tsub { margin: 0 0 22px; max-width: 58%; font-size: 14px; line-height: 1.5; color: var(--sub); }
   .banner { display: none; position: relative; margin: 0 0 16px; border: 1px dashed var(--line2); border-radius: 20px;
              --tint: var(--accent-text); --tint-bg: var(--accent-soft); }
   .banner .in-main { display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; padding: 12px 14px; border: 0; background: none; text-align: left; }
@@ -192,14 +195,18 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .chip svg, .go svg { display: block; }
   .mt { font-size: 16px; font-weight: 800; line-height: 1.3; letter-spacing: -.2px; text-align: left; }
   .mt small { display: block; margin-top: 2px; font-size: 13px; font-weight: 500; color: var(--sub); letter-spacing: 0; }
-  /* 대화 시작 버튼: 홈에서 유일한 진한 노랑 */
-  .hero { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; width: 100%; height: 56px; box-sizing: border-box; padding: 0 8px 0 18px;
-          border: 0; border-radius: 18px; background: var(--accent); color: #111111; text-align: left; }
-  .hero .hic { flex: none; display: flex; line-height: 0; }
-  .hero .hic svg { display: block; }
-  .hero .ht { flex: 1; min-width: 0; }
-  .hero .ht b { display: block; font-size: 17px; font-weight: 800; letter-spacing: -.3px; }
-  .hero .go { width: 40px; height: 40px; border-radius: 12px; background: rgba(0, 0, 0, .08); color: #111111; }
+  /* 대화 시작 버튼: 제목 아래 왼쪽의 작은 알약 (라이트는 흰 버튼 + 노란 아이콘, 다크는 노란 버튼) */
+  :root[data-theme="light"] { --cta-bg: #FFFFFF; --cta-fg: #111111; --cta-ic: var(--accent); --cta-icfg: #111111; --cta-line: transparent; --cta-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 8px 20px rgba(170, 120, 0, .16); }
+  :root, :root[data-theme="dark"] { --cta-bg: var(--accent); --cta-fg: #111111; --cta-ic: #111111; --cta-icfg: var(--accent); --cta-line: transparent; --cta-shadow: none; }
+  .hero { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 10px; height: 48px; box-sizing: border-box; padding: 0 14px 0 6px;
+          border: 1px solid var(--cta-line); border-radius: 999px; background: var(--cta-bg); color: var(--cta-fg); box-shadow: var(--cta-shadow); }
+  .hero .hic { flex: none; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%;
+               background: var(--cta-ic); color: var(--cta-icfg); line-height: 0; }
+  .hero .hic svg { display: block; width: 20px; height: 20px; }
+  .hero .ht b { display: block; font-size: 15px; font-weight: 800; letter-spacing: -.2px; white-space: nowrap; }
+  .hero .go { width: 18px; height: 18px; margin-left: -2px; background: none; color: var(--cta-fg); opacity: .5; }
+  .hero .go svg { width: 16px; height: 16px; }
+  .hero:active { transform: scale(.97); }
   /* 학습 코스, 복습: 같은 크기의 흰 카드 2칸 */
   .bento { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 12px; }
   .bento .rowcard { position: relative; flex-direction: column; align-items: flex-start; gap: 16px; margin: 0; min-height: 148px; padding: 16px;
