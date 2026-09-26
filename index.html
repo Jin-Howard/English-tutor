@@ -230,6 +230,16 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   #menu .stat .chip { width: 36px; height: 36px; border-radius: 11px; background: var(--tile-ic); }
   #menu #expr .tag { background: var(--tile-ic); color: var(--accent-text); }
   #menu #expr .x-en { font-size: 20px; }
+  /* 오늘의 학습 카드: 표현 | 단어 탭 */
+  .xhead { align-items: center; }
+  .xtabs { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface2); }
+  .xtabs button { height: 30px; padding: 0 12px; border: 0; border-radius: 999px; background: none; color: var(--sub); font: inherit; font-size: 13.5px; font-weight: 700; }
+  .xtabs button.on { background: var(--home-card); color: var(--text); box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
+  .xword { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; margin: 14px 0 6px; }
+  .xword b { font-size: 26px; font-weight: 800; letter-spacing: -.5px; }
+  .xwpos { font-size: 15px; font-weight: 700; color: var(--accent-text); }
+  .xwex { margin: 0 0 2px; font-size: 15px; line-height: 1.45; font-weight: 600; }
+  #menu .x-act .pill:disabled { opacity: .6; }
   #menu .x-act .pill.ghost { background: var(--surface2); }
   #menu .banner { margin: 0 0 12px; background: var(--home-card); }
   .rowcard { display: flex; align-items: center; gap: 14px; width: 100%; box-sizing: border-box; margin: 0 0 12px; padding: 14px 16px;
@@ -319,6 +329,33 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .qrcard { width: 100%; max-width: 300px; box-sizing: border-box; padding: 22px 20px 16px; border-radius: 26px; background: var(--surface); text-align: center; animation: ctip .25s both; }
   .qrcard b { display: block; font-size: 17px; font-weight: 800; }
   .qrcard p { margin: 4px 0 14px; font-size: 13.5px; color: var(--sub); }
+  /* 대화 마무리 요약 (아래에서 올라오는 시트) */
+  .rcwrap { position: fixed; inset: 0; z-index: 94; display: none; align-items: flex-end; justify-content: center; background: rgba(0, 0, 0, .45); }
+  .rcwrap.open { display: flex; animation: cfade .2s ease-out; }
+  .rcsheet { width: 100%; max-width: 520px; box-sizing: border-box; padding: 10px 20px calc(18px + env(safe-area-inset-bottom)); border-radius: 28px 28px 0 0;
+             background: var(--surface); animation: rcup .32s cubic-bezier(.2, .8, .2, 1); }
+  @keyframes rcup { from { transform: translateY(40px); opacity: 0; } }
+  .rchandle { display: block; width: 40px; height: 5px; margin: 0 auto 14px; border-radius: 3px; background: var(--line2); }
+  .rceye { margin: 0 0 4px; font-size: 13px; font-weight: 800; color: var(--accent-text); }
+  #rc-title { margin: 0 0 16px; font-size: 21px; font-weight: 800; letter-spacing: -.5px; }
+  .rcstats { display: grid; grid-template-columns: repeat(3, 1fr); margin-bottom: 16px; padding: 14px 0; border-radius: 18px; background: var(--surface2); text-align: center; }
+  .rcstats div + div { border-left: 1px solid var(--line); }
+  .rcstats b { display: block; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .rcstats span { font-size: 12.5px; font-weight: 600; color: var(--sub); }
+  .rcitem { padding: 12px 14px; margin-bottom: 8px; border-radius: 16px; border: 1px solid var(--line); }
+  .rcitem s { display: block; font-size: 13.5px; color: var(--sub); text-decoration-color: var(--danger); }
+  .rcitem b { display: block; margin-top: 4px; font-size: 15px; font-weight: 700; }
+  .rcitem b::before { content: '→ '; color: var(--accent-text); }
+  .rcnote { margin: 6px 0 14px; font-size: 13px; line-height: 1.5; color: var(--sub); }
+  #rc-x { margin-top: 8px; }
+  /* 고급 설정 (접힘) */
+  .adv { margin: 22px 0 8px; }
+  .advsum { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line);
+            font-size: 15px; font-weight: 700; list-style: none; cursor: pointer; }
+  .advsum::-webkit-details-marker { display: none; }
+  .advsum .chev { display: flex; transition: transform .2s; }
+  .adv[open] .advsum .chev { transform: rotate(90deg); }
+  .adv[open] .advsum { margin-bottom: 8px; }
   #qrimg { margin-bottom: 14px; padding: 12px; border-radius: 16px; background: #fff; }  /* 다크 모드에서도 QR은 흰 바탕 (카메라 인식용) */
   #qrimg svg { display: block; width: 100%; height: auto; }
   .banner.howto { border-style: solid; }
@@ -942,13 +979,6 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
       </div>
     </div>
     
-    <p class="sec only-set">AI 모델</p>
-    <div class="group only-set">
-      <div class="g-blk"><div class="seg s3 full" id="aiseg"><button type="button" data-m="lite">Flash-Lite</button><button type="button" data-m="pro">Flash</button><button type="button" data-m="max">Pro<i class="crown"></i></button></div></div>
-    </div>
-    <p class="hint only-set" id="aihint"></p>
-    <p class="hint only-set" id="aiuse"></p>
-
     <p class="sec only-set">AI 교정 스타일</p>
     <div class="group only-set">
       <div class="g-blk"><div class="seg s3 full" id="strictseg"><button type="button" data-k="soft">부드럽게</button><button type="button" data-k="normal">보통</button><button type="button" data-k="strict">엄격</button></div></div>
@@ -970,10 +1000,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     <p class="sec only-set">말하기</p>
     <div class="group only-set">
       <button type="button" id="permbtn" class="g-row"><span>마이크 · 소리 점검</span><span class="val"><span id="permstat"></span><span class="chev"></span></span></button>
-      <div class="g-blk"><div class="g-top"><span>음성 인식 방식</span></div><div class="seg s3 full" id="asrseg"><button type="button" data-k="ai">정확하게 (AI)</button><button type="button" data-k="device">빠르게 (기기)</button></div></div>
-      <div class="g-blk"><div class="g-top"><span>음성 인식 시</span></div><div class="seg s3 full" id="micseg"><button type="button" data-k="confirm">확인 후 보내기</button><button type="button" data-k="auto">바로 보내기</button></div></div>
     </div>
-    <p class="hint only-set" id="michint2">인식된 글자가 입력칸에 먼저 나오고, 확인하고 보내면 엉뚱한 단어가 그대로 전송되는 걸 막을 수 있어요.</p>
 
     <p class="sec only-set">튜터 목소리</p>
     <div class="group only-set">
@@ -1003,9 +1030,26 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
       </div>
     </div>
 
+    <details class="adv only-set" id="adv">
+      <summary class="advsum"><span>고급 설정</span><span class="chev"></span></summary>
+      <p class="hint">잘 모르겠다면 그대로 두세요. 기본값이 가장 잘 맞아요.</p>
+      <p class="sec only-set">AI 모델</p>
+    <div class="group only-set">
+      <div class="g-blk"><div class="seg s3 full" id="aiseg"><button type="button" data-m="lite">Flash-Lite</button><button type="button" data-m="pro">Flash</button><button type="button" data-m="max">Pro<i class="crown"></i></button></div></div>
+    </div>
+    <p class="hint only-set" id="aihint"></p>
+    <p class="hint only-set" id="aiuse"></p>
+      <p class="sec only-set">음성 인식</p>
+      <div class="group only-set">
+      <div class="g-blk"><div class="g-top"><span>음성 인식 방식</span></div><div class="seg s3 full" id="asrseg"><button type="button" data-k="ai">정확하게 (AI)</button><button type="button" data-k="device">빠르게 (기기)</button></div></div>
+      <div class="g-blk"><div class="g-top"><span>음성 인식 시</span></div><div class="seg s3 full" id="micseg"><button type="button" data-k="confirm">확인 후 보내기</button><button type="button" data-k="auto">바로 보내기</button></div></div>
+      </div>
+    <p class="hint only-set" id="michint2">인식된 글자가 입력칸에 먼저 나오고, 확인하고 보내면 엉뚱한 단어가 그대로 전송되는 걸 막을 수 있어요.</p>
+    </details>
+
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v1.5</p>
+    <p id="ver">버전 v1.6</p>
     <p class="copyr">© 2026 Jin Howard. All rights reserved.<br>무단 복제 및 배포를 금지합니다.</p>
     <button type="button" id="devreset" class="pill wide ghost">처음부터 다시 하기 (개발자)</button>
   </div>
@@ -1104,6 +1148,18 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   <div class="ia"><button type="button" id="inapp-go" class="pill" style="display:none">다시 열기</button><button type="button" id="inapp-copy" class="pill">링크 복사</button><button type="button" id="inapp-x" class="pill ghost">닫기</button></div>
 </div>
 <div id="toast" role="status"></div>
+<div id="recap" class="rcwrap" role="dialog" aria-label="오늘 대화 정리">
+  <div class="rcsheet">
+    <span class="rchandle"></span>
+    <p class="rceye">오늘 대화 정리</p>
+    <h3 id="rc-title"></h3>
+    <div class="rcstats"><div><b id="rc-said">0</b><span>말한 문장</span></div><div><b id="rc-fix">0</b><span>교정</span></div><div><b id="rc-words">0</b><span>저장한 단어</span></div></div>
+    <div id="rc-list"></div>
+    <p class="rcnote" id="rc-note"></p>
+    <button type="button" id="rc-go" class="pill wide">틀린 표현 복습하기</button>
+    <button type="button" id="rc-x" class="pill wide ghost">닫기</button>
+  </div>
+</div>
 <div id="qrwrap" class="qrwrap" role="dialog" aria-label="QR 코드">
   <div class="qrcard"><b>폰 카메라로 찍어 주세요</b><p>찍으면 바로 앱이 열려요</p><div id="qrimg"></div><button type="button" id="qrx" class="pill wide ghost">닫기</button></div>
 </div>
@@ -1244,7 +1300,10 @@ function show(screen) {
   }
   swap(screen, dir !== 'none' && !calmMotion);
 }
+let prevScr = '', sessInfo = null;  // 대화 마무리 요약: 대화 화면에 들어온 시점의 기록 길이, 단어 수, 시각
 function swap(screen, fade) {
+  const from = prevScr;
+  prevScr = screen;
   ['menu', 'setup', 'main', 'vocab', 'hist', 'perm', 'onb', 'learn', 'unit', 'wrev'].forEach(s => {
     $(s).style.display = s === screen ? 'flex' : 'none';
   });
@@ -1269,6 +1328,8 @@ function swap(screen, fade) {
   if (screen === 'unit') paintUnit();
   if (screen === 'wrev') paintWrev();
   if (screen === 'perm') { paintPerm(); $('pback').style.visibility = (window.history.state?.d || 0) > 0 ? 'visible' : 'hidden'; }
+  if (from === 'main' && screen !== 'main' && sessInfo) setTimeout(showRecap, 280);  // 자유 대화에서 나가면 오늘 대화 정리
+  if (screen === 'main' && from !== 'main') sessInfo = mode === 'chat' ? { start: H().length, words: vocab.length, t0: Date.now() } : null;
   if (screen === 'main') {
     $('chat').scrollTop = $('chat').scrollHeight;
     if (mode === 'chat') makeMemo().then(r => { if (r === 'ok') paintMemo(); });  // 하루 한 번, 뒤에서 조용히
@@ -1313,6 +1374,7 @@ window.addEventListener('popstate', e => {  // 시스템 뒤로가기
   if (tourOn()) { closeTour(); if (st.s === 'setup') return; }  // 워크스루도 같은 방식
   if (coachOn()) { try { window.history.pushState({ s: st.s, d: (st.d || 0) + 1, coach: true }, ''); } catch (x) {} return; }  // 안내 중에는 뒤로가기로 빠져나가지 못함
   if (qrOn()) { $('qrwrap').classList.remove('open'); if (st.s === 'setup') return; }
+  if (recapOn()) closeRecap();  // 뒤로가기로도 닫힘
   if (st.s === 'vocab') renderVocab();
   if (st.s === 'setup') fillForm();
   if (st.s === 'hist') (st.day && chats[st.day] ? openDay(st.day) : renderHistList());
@@ -2727,24 +2789,67 @@ const EXPR = {  // 학습분야별 오늘의 표현 [영어, 한국어]
     ["It's nice to meet you.", '만나서 반가워요.'], ['Thank you for your prayers.', '기도해 주셔서 감사합니다.'], ['The service starts at eleven.', '예배는 11시에 시작해요.']]
 };
 let xShift = 0;  // 다른 표현 보기 횟수
-function paintExpr() {
+let xTab = localStorage.getItem('xtab') === 'word' ? 'word' : 'expr', wShift = 0;  // 오늘의 학습 카드: 표현 | 단어
+function todayKind() {  // 목표 분야 (둘이면 날마다 번갈아)
   const f = String((profile && profile.field) || '');
-  const dn = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);  // 오늘이 며칠째인지
+  const dn = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
   const map = { 병원: '병원', 회사: '회사', 직장: '회사', 학교: '학교', 교회: '교회', 여행: '여행' };
-  const kinds = [...new Set(f.split(/[,\s]+/).map(t => map[t]).filter(Boolean))];  // 목표가 둘이면 날마다 번갈아
-  const kind = kinds.length ? kinds[dn % kinds.length] : '일상';
-  const list = EXPR[kind];
-  const [en, ko] = list[(dn + xShift) % list.length];
-  const head = el('div', 'sec-h');
-  head.append(el('h3', '', '오늘의 표현'), el('span', 'tag', kind === '일상' ? '일상 회화' : kind));
-  const next = el('button', 'pill ghost', '다른 표현');
-  next.onclick = () => { xShift++; paintExpr(); };
-  const use = el('button', 'pill', '대화에서 써보기');
-  use.onclick = () => { navTo('main'); $('inp').value = `Let's practice: "${en}"`; paint(); };
+  const kinds = [...new Set(f.split(/[,\s]+/).map(t => map[t]).filter(Boolean))];
+  return { dn, kind: kinds.length ? kinds[dn % kinds.length] : '일상' };
+}
+function wordPool(kind) {  // 학습 코스 단어에서 뽑음 (내 분야 상황 먼저, 예문은 같은 상황의 문장에서)
+  const goal = { 병원: '병원', 회사: '직장', 학교: '학교', 교회: '교회', 여행: '여행' }[kind];
+  const units = Object.values(COURSE).flat(), mine = units.filter(u => goal && (u.goals || []).includes(goal));
+  const seen = new Set(), pool = [];
+  for (const u of (mine.length ? mine : units)) for (const [w, ko, pos] of u.words || []) {
+    if (seen.has(w)) continue;
+    seen.add(w);
+    const ex = (u.ex || []).find(e => new RegExp('\\b' + w.slice(0, Math.max(4, w.length - 2)), 'i').test(e[0]));
+    pool.push({ w, ko, pos, ex });
+  }
+  return pool;
+}
+function paintExpr() {
+  const { dn, kind } = todayKind();
+  const box = $('expr'), head = el('div', 'sec-h xhead'), tabs = el('div', 'xtabs');
+  [['expr', '오늘의 표현'], ['word', '오늘의 단어']].forEach(([k, t]) => {
+    const b = el('button', xTab === k ? 'on' : '', t);
+    b.type = 'button';
+    b.onclick = () => { xTab = k; localStorage.setItem('xtab', k); paintExpr(); };
+    tabs.append(b);
+  });
+  head.append(tabs, el('span', 'tag', kind === '일상' ? '일상 회화' : kind));
+  box.textContent = '';
+  box.append(head);
   const act = el('div', 'x-act');
-  act.append(spkBtn(en), next, use);
-  $('expr').textContent = '';
-  $('expr').append(head, el('p', 'x-en', en), el('p', 'x-ko', ko), act);
+  if (xTab === 'expr') {
+    const list = EXPR[kind], [en, ko] = list[(dn + xShift) % list.length];
+    const next = el('button', 'pill ghost', '다른 표현');
+    next.onclick = () => { xShift++; paintExpr(); };
+    const use = el('button', 'pill', '대화에서 써보기');
+    use.onclick = () => { navTo('main'); $('inp').value = `Let's practice: "${en}"`; paint(); };
+    act.append(spkBtn(en), next, use);
+    box.append(el('p', 'x-en', en), el('p', 'x-ko', ko), act);
+    return;
+  }
+  const pool = wordPool(kind), it = pool[(dn + wShift) % pool.length];
+  const saved = !!findWord(it.w);
+  const next = el('button', 'pill ghost', '다른 단어');
+  next.onclick = () => { wShift++; paintExpr(); };
+  const save = el('button', 'pill', saved ? '저장됨 ✓' : '단어장에 저장');
+  save.disabled = saved;
+  save.onclick = () => {  // 저장하면 바로 복습 재료가 되고, 내일부터 단어 복습에도 나옴
+    vocab.push({ w: it.w, base: '', meaning: `${POSMARK[it.pos]} ${it.ko}`, exs: it.ex ? [{ ex: it.ex[0], exko: it.ex[1] }] : [], box: 1, due: addDays(dayKey, 1), src: 'today' });
+    saveVocab();
+    toast('단어장에 저장했어요. 복습하기에서 바로 연습할 수 있어요', 3000);
+    paintMenu();
+  };
+  act.append(spkBtn(it.ex ? it.ex[0] : it.w), next, save);
+  const word = el('div', 'xword');
+  word.append(el('b', '', it.w), el('span', 'xwpos', `${POSMARK[it.pos] || ''} ${it.ko}`.trim()));
+  box.append(word);
+  if (it.ex) box.append(el('p', 'xwex', it.ex[0]), el('p', 'x-ko', it.ex[1]));
+  box.append(act);
 }
 function paintMenu() {
   const [en, ko] = greeting();
@@ -2760,9 +2865,9 @@ function paintMenu() {
   const mat = reviewMaterial();
   const doneToday = (JSON.parse(localStorage.getItem('review') || 'null') || {}).date === dayKey;
   $('m-rev-sub').textContent = dueN ? `복습할 단어 ${dueN}개${mat.n ? ` · 말하기 ${Math.min(3, mat.n)}문제` : ''}`
-    : !mat.n ? '대화하고 단어를 저장하면 생겨요'
+    : !mat.n ? '오늘의 단어를 저장하면 시작돼요'
     : doneToday ? '오늘 복습 완료 · 한 번 더 하기' : `지난 대화에서 ${Math.min(3, mat.n)}문제`;
-  $('m-rev').disabled = !mat.n && !dueN;
+  $('m-rev').dataset.empty = !mat.n && !dueN ? '1' : '';  // 비어도 또렷하게 보여주고, 누르면 할 일을 안내
   $('lvbanner').style.display = checkpointDue() ? 'flex' : 'none';
   const wk = weekDays(), st = streakDays();
   $('w-done').textContent = wk.filter(d => d.done).length;
@@ -2775,13 +2880,58 @@ function paintMenu() {
   paintExpr();
 }
 $('m-chat').onclick = $('fab').onclick = () => navTo('main');
-$('m-rev').onclick = () => (dueWords().length ? wrStart() : startReview());
+$('m-rev').onclick = () => {
+  if ($('m-rev').dataset.empty) {  // 복습할 게 없으면 오늘의 단어로 데려감
+    xTab = 'word';
+    localStorage.setItem('xtab', 'word');
+    paintExpr();
+    $('expr').scrollIntoView({ block: 'center', behavior: 'smooth' });
+    $('expr').classList.add('spotlight');
+    setTimeout(() => $('expr').classList.remove('spotlight'), 2400);
+    return toast('아직 복습할 게 없어요. 오늘의 단어를 저장해 볼까요?', 3000);
+  }
+  dueWords().length ? wrStart() : startReview();
+};
 $('m-course').onclick = () => navTo('learn');
 $('lvbanner-go').onclick = () => navTo('onb');
 $('lvbanner-x').onclick = () => { ob.snoozeUntil = addDays(dayKey, 7); localStorage.setItem('ob', JSON.stringify(ob)); $('lvbanner').style.display = 'none'; };
 $('chatback').onclick = goBack;
 $('revexit').onclick = goBack;
 document.querySelectorAll('#tabs .tab[data-s]').forEach(t => t.onclick = () => tabTo(t.dataset.s));
+
+// 대화 마무리 요약: 이번에 말한 문장, 교정받은 표현(복습에 자동으로 담김), 저장한 단어
+const recapOn = () => $('recap').classList.contains('open');
+function showRecap() {
+  const s = sessInfo;
+  sessInfo = null;
+  if (!s) return;
+  const list = (chats[dayKey] || []).slice(s.start), fixes = [];
+  const said = list.filter(x => x.role === 'user').length;
+  if (said < 2) return;  // 한두 마디면 요약할 게 없음
+  for (let i = 1; i < list.length; i++) {
+    if (list[i].role !== 'model' || list[i - 1].role !== 'user') continue;
+    const ko = splitKo(list[i].parts[0].text)[1], k = ko.indexOf('→');
+    if (k >= 0) fixes.push({ said: list[i - 1].parts[0].text.trim(), better: ko.slice(k + 1).trim().replace(/^["'“]|["'”]$/g, '') });
+  }
+  const words = Math.max(0, vocab.length - s.words), mins = Math.max(1, Math.round((Date.now() - s.t0) / 60000));
+  $('rc-title').textContent = fixes.length ? `${mins}분 동안 대화했어요` : `완벽했어요! ${mins}분 동안 대화했어요`;
+  $('rc-said').textContent = said;
+  $('rc-fix').textContent = fixes.length;
+  $('rc-words').textContent = words;
+  $('rc-list').textContent = '';
+  fixes.slice(-3).forEach(f => {
+    const it = el('div', 'rcitem');
+    it.append(el('s', '', f.said), el('b', '', f.better));
+    $('rc-list').append(it);
+  });
+  $('rc-note').textContent = fixes.length ? '교정받은 표현은 복습하기에 자동으로 담겼어요.' : '교정받은 표현이 없어요. 오늘의 단어로 표현을 늘려 보세요.';
+  $('rc-go').style.display = fixes.length ? '' : 'none';
+  $('recap').classList.add('open');
+}
+const closeRecap = () => $('recap').classList.remove('open');
+$('rc-x').onclick = closeRecap;
+$('recap').onclick = e => { if (e.target === $('recap')) closeRecap(); };
+$('rc-go').onclick = () => { closeRecap(); startReview(); };
 
 // 친구에게 소개: 폰의 공유 창(카카오톡 등)으로 링크 보내기, QR 보여주기
 const APP_URL = location.origin + location.pathname;  // 주소 뒤 ?, # 은 뺀 앱 주소
@@ -3371,6 +3521,7 @@ $('keyeye').onclick = () => {
 const I_KEY = icon('<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>');
 $('guidehead').querySelector('.ic').innerHTML = sz(I_KEY, 20);
 $('guidehead').querySelector('.chev').innerHTML = I_CHEV;
+$('adv').querySelector('.chev').innerHTML = I_CHEV;
 
 
 $('infohead').querySelector('.chev').innerHTML = I_CHEV;
