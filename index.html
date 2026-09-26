@@ -235,10 +235,15 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .xtabs { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface2); }
   .xtabs button { height: 30px; padding: 0 12px; border: 0; border-radius: 999px; background: none; color: var(--sub); font: inherit; font-size: 13.5px; font-weight: 700; }
   .xtabs button.on { background: var(--home-card); color: var(--text); box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
-  .xword { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; margin: 14px 0 6px; }
-  .xword b { font-size: 26px; font-weight: 800; letter-spacing: -.5px; }
-  .xwpos { font-size: 15px; font-weight: 700; color: var(--accent-text); }
-  .xwex { margin: 0 0 2px; font-size: 15px; line-height: 1.45; font-weight: 600; }
+  #expr .x-ko.tight { margin-bottom: 10px; }
+  .xwex, .xwexko { margin: 0; padding-left: 12px; border-left: 3px solid var(--tile-ic); }  /* 예문은 인용처럼 작게 */
+  .xwex { font-size: 14px; line-height: 1.45; font-weight: 600; }
+  .xwskel { height: 41px; margin: 0 0 16px; padding-left: 12px; border-left: 3px solid var(--tile-ic); box-sizing: border-box; }  /* 예문과 같은 높이의 로딩 막대 */
+  .xwskel i { display: block; height: 12px; margin-top: 4px; border-radius: 6px; background: var(--surface2); animation: skel 1.1s ease-in-out infinite alternate; }
+  .xwskel i + i { width: 55%; margin-top: 9px; }
+  .xwskel i:first-child { width: 80%; }
+  @keyframes skel { to { opacity: .45; } }
+  .xwexko { margin-bottom: 16px; padding-top: 2px; font-size: 13px; line-height: 1.45; color: var(--sub); }
   #menu .x-act .pill:disabled { opacity: .6; }
   #menu .x-act .pill.ghost { background: var(--surface2); }
   #menu .banner { margin: 0 0 12px; background: var(--home-card); }
@@ -356,6 +361,32 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .advsum .chev { display: flex; transition: transform .2s; }
   .adv[open] .advsum .chev { transform: rotate(90deg); }
   .adv[open] .advsum { margin-bottom: 8px; }
+  /* 단어장 제목 줄과 메뉴 */
+  .pgrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 6px; }  /* 위 여백은 줄 전체에 줘야 제목과 버튼 중심이 맞음 */
+  .pgrow .pg { margin: 0; line-height: 1.25; }
+  .vopts { position: relative; flex: none; margin-top: 4px; }  /* 한글 잉크가 아래로 치우친 만큼 버튼도 내려 눈으로 보기에 한 줄로 */
+  .optbtn { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 12px; background: var(--surface2); color: var(--text); }
+  .popmenu { position: absolute; top: 46px; right: 0; z-index: 20; display: none; min-width: 170px; padding: 6px; border-radius: 16px; background: var(--surface);
+             border: 1px solid var(--line); box-shadow: 0 12px 32px rgba(0, 0, 0, .16); }
+  .popmenu.open { display: block; animation: ctip .16s both; }
+  .popmenu button { display: flex; align-items: center; gap: 10px; width: 100%; height: 44px; padding: 0 12px; border: 0; border-radius: 11px; background: none;
+                    color: var(--text); font: inherit; font-size: 15px; font-weight: 600; text-align: left; }
+  .popmenu button:active { background: var(--surface2); }
+  .popmenu button.danger { color: var(--danger); }
+  .popmenu button:disabled { opacity: .4; }
+  .popmenu .ic { display: flex; }
+  /* 단어장 검색: 목록보다 가벼운 채워진 검색창, 스크롤해도 위에 붙음 */
+  .vsearchbar { position: sticky; top: -18px; z-index: 5; margin: 14px -18px 10px; padding: 8px 18px; background: var(--bg); }
+  #vocab .search input { height: 44px; border: 0; border-radius: 14px; background: var(--surface2); }
+  #vocab .search input:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+  /* 확인 창 */
+  .surewrap { position: fixed; inset: 0; z-index: 96; display: none; align-items: center; justify-content: center; padding: 28px; background: rgba(0, 0, 0, .45); }
+  .surewrap.open { display: flex; animation: cfade .18s ease-out; }
+  .surebox { width: 100%; max-width: 320px; box-sizing: border-box; padding: 22px 20px 16px; border-radius: 24px; background: var(--surface); text-align: center; animation: ctip .22s both; }
+  .surebox b { display: block; font-size: 18px; font-weight: 800; }
+  .surebox p { margin: 8px 0 18px; font-size: 14px; line-height: 1.55; color: var(--sub); word-break: keep-all; }
+  .sureact { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  #sureok.danger { background: var(--danger); color: #FFFFFF; }
   #qrimg { margin-bottom: 14px; padding: 12px; border-radius: 16px; background: #fff; }  /* 다크 모드에서도 QR은 흰 바탕 (카메라 인식용) */
   #qrimg svg { display: block; width: 100%; height: auto; }
   .banner.howto { border-style: solid; }
@@ -636,6 +667,12 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .wchip b { margin-right: 4px; }
   .pill.big { display: block; width: 100%; height: 50px; margin-top: 18px; border-radius: 25px; font-size: 16px; }
   .qlabel.c { text-align: center; margin: 6px 0 12px; }
+  @media (max-height: 600px) {  /* 크롬 주소창, 글자 확대 등으로 보이는 높이가 짧을 때 */
+    #obbody h2 { font-size: 22px; }
+    #obbody .sub { margin-bottom: 4px; }
+    .qlabel { margin: 14px 0 8px; }
+    #obbody .seg.full button { padding: 10px 0; }
+  }
   #ubody .c, #wbody .c { text-align: center; }
   #ubody .qword, #wbody .qword { margin: 22px 0 8px; }
   #ubody .qsent { margin: 14px 0 22px; }
@@ -1049,7 +1086,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v1.6</p>
+    <p id="ver">버전 v1.8</p>
     <p class="copyr">© 2026 Jin Howard. All rights reserved.<br>무단 복제 및 배포를 금지합니다.</p>
     <button type="button" id="devreset" class="pill wide ghost">처음부터 다시 하기 (개발자)</button>
   </div>
@@ -1076,10 +1113,19 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 <div id="vocab" class="screen">
   <div class="hd"><span class="sp"></span><div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div><span class="sp"></span></div>
   <div class="pad">
-    <h2 class="pg">단어장<span class="cnt" id="vcount"></span></h2>
+    <div class="pgrow">
+      <h2 class="pg">단어장<span class="cnt" id="vcount"></span></h2>
+      <div class="vopts">
+        <button type="button" id="vopts" class="optbtn" aria-label="단어장 메뉴" aria-haspopup="true"></button>
+        <div id="vmenu" class="popmenu" role="menu">
+          <button type="button" id="vexport" role="menuitem"><span class="ic"></span>전체 내보내기</button>
+          <button type="button" id="vclear" class="danger" role="menuitem"><span class="ic"></span>전체 삭제</button>
+        </div>
+      </div>
+    </div>
     <button type="button" id="wbanner" class="rowcard" style="display:none"><span class="chip"><span class="ic"></span></span><span class="mt"><b id="wbn"></b><small>눌러서 오늘 복습을 시작해요</small></span><span class="go"></span></button>
     <p id="wnext" class="hint" style="display:none"></p>
-    <label class="search"><span class="si"></span><input id="vsearch" placeholder="단어나 뜻 검색" autocomplete="off"></label>
+    <div class="vsearchbar"><label class="search"><span class="si"></span><input id="vsearch" placeholder="단어나 뜻 검색" autocomplete="off"></label></div>
     <div id="vlist" class="group"></div>
   </div>
 </div>
@@ -1148,6 +1194,9 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   <div class="ia"><button type="button" id="inapp-go" class="pill" style="display:none">다시 열기</button><button type="button" id="inapp-copy" class="pill">링크 복사</button><button type="button" id="inapp-x" class="pill ghost">닫기</button></div>
 </div>
 <div id="toast" role="status"></div>
+<div id="sure" class="surewrap" role="alertdialog" aria-modal="true" aria-labelledby="sure-t">
+  <div class="surebox"><b id="sure-t"></b><p id="sure-p"></p><div class="sureact"><button type="button" id="surex" class="pill ghost">취소</button><button type="button" id="sureok" class="pill">확인</button></div></div>
+</div>
 <div id="recap" class="rcwrap" role="dialog" aria-label="오늘 대화 정리">
   <div class="rcsheet">
     <span class="rchandle"></span>
@@ -2019,6 +2068,65 @@ function drawMsg(m, box, tap) {
 }
 
 // 단어장 목록 그리기 (최근 저장이 위, 검색 가능, 누르면 예문 펼침)
+// 확인 창: 되돌릴 수 없는 일 앞에서 한 번 더 물어봄 (예 → true)
+function askSure(title, text, ok, danger) {
+  return new Promise(res => {
+    $('sure-t').textContent = title;
+    $('sure-p').textContent = text;
+    $('sureok').textContent = ok;
+    $('sureok').classList.toggle('danger', !!danger);
+    $('sure').classList.add('open');
+    const done = v => { $('sure').classList.remove('open'); $('sureok').onclick = $('surex').onclick = $('sure').onclick = null; res(v); };
+    $('sureok').onclick = () => done(true);
+    $('surex').onclick = () => done(false);
+    $('sure').onclick = e => { if (e.target === $('sure')) done(false); };
+  });
+}
+// 단어장 메뉴: 전체 내보내기, 전체 삭제
+const I_MORE = icon('<circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/>', 22);
+const I_DOWN = icon('<path d="M12 4v11"/><polyline points="7 10 12 15 17 10"/><path d="M5 20h14"/>', 20);
+const I_TRASH2 = icon('<polyline points="4 7 20 7"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/>', 20);
+$('vopts').innerHTML = I_MORE;
+$('vexport').querySelector('.ic').innerHTML = I_DOWN;
+$('vclear').querySelector('.ic').innerHTML = I_TRASH2;
+const closeVmenu = () => $('vmenu').classList.remove('open');
+$('vopts').onclick = e => {
+  e.stopPropagation();
+  $('vexport').disabled = $('vclear').disabled = !vocab.length;
+  $('vmenu').classList.toggle('open');
+};
+document.addEventListener('click', e => { if (!e.target.closest('.vopts')) closeVmenu(); });
+function exportVocab() {  // 단어, 뜻, 예문까지 한 파일로 (쭉 훑어보며 공부용)
+  const esc = t => String(t || '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const items = [...vocab].reverse().map((v, i) => {
+    const exs = (v.exs || []).filter(x => x && x.ex).map(x => `<p class="ex">${esc(x.ex)}${x.exko ? `<span>${esc(x.exko)}</span>` : ''}</p>`).join('');
+    return `<section><h2><i>${i + 1}</i>${esc(v.w)}${v.base ? ` <small>(${esc(v.base)})</small>` : ''}</h2><p class="m">${esc(v.meaning)}</p>${exs}</section>`;
+  }).join('');
+  const css = 'body{font:17px/1.6 -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;max-width:680px;margin:0 auto;padding:20px 16px 40px;color:#1a1a1a;background:#f6f7f9}'
+    + 'h1{font-size:24px;margin:0 0 4px}.sub{color:#777;margin:0 0 20px;font-size:14px}'
+    + 'section{background:#fff;border:1px solid #eceef1;border-radius:16px;padding:14px 16px;margin:0 0 10px;break-inside:avoid}'
+    + 'h2{font-size:20px;margin:0}h2 i{font-style:normal;font-size:12px;color:#b08900;background:#fff4cc;border-radius:8px;padding:2px 7px;margin-right:8px;vertical-align:3px}'
+    + 'h2 small{font-size:14px;color:#888;font-weight:500}.m{margin:4px 0 0;color:#444}'
+    + '.ex{margin:10px 0 0;padding-left:12px;border-left:3px solid #ffd43b;font-weight:600}.ex span{display:block;font-weight:400;font-size:14px;color:#777}'
+    + '@media print{body{background:#fff}section{border-color:#ddd}}';
+  const html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">`
+    + `<title>나의 단어장 ${dayKey}</title><style>${css}</style></head><body><h1>나의 단어장</h1><p class="sub">${dayKey} · 단어 ${vocab.length}개</p>${items}</body></html>`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+  a.download = `my-words-${dayKey}.html`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast(`단어 ${vocab.length}개를 파일로 내보냈어요`, 2600);
+}
+$('vexport').onclick = () => { closeVmenu(); exportVocab(); };
+$('vclear').onclick = async () => {
+  closeVmenu();
+  if (!await askSure('단어장을 모두 삭제할까요?', `저장한 단어 ${vocab.length}개와 복습 기록이 모두 지워져요. 되돌릴 수 없어요.`, '모두 삭제', true)) return;
+  vocab.length = 0;
+  saveVocab();
+  renderVocab();
+  toast('단어장을 비웠어요', 2400);
+};
 function renderVocab() {
   const box = $('vlist');
   const q = $('vsearch').value.trim().toLowerCase();
@@ -2797,6 +2905,8 @@ function todayKind() {  // 목표 분야 (둘이면 날마다 번갈아)
   const kinds = [...new Set(f.split(/[,\s]+/).map(t => map[t]).filter(Boolean))];
   return { dn, kind: kinds.length ? kinds[dn % kinds.length] : '일상' };
 }
+let exAll = null;
+const allEx = () => exAll || (exAll = [...Object.values(COURSE).flat().flatMap(u => u.ex || []), ...Object.values(EXPR).flat()]);  // 코스 예문 + 오늘의 표현 문장
 function wordPool(kind) {  // 학습 코스 단어에서 뽑음 (내 분야 상황 먼저, 예문은 같은 상황의 문장에서)
   const goal = { 병원: '병원', 회사: '직장', 학교: '학교', 교회: '교회', 여행: '여행' }[kind];
   const units = Object.values(COURSE).flat(), mine = units.filter(u => goal && (u.goals || []).includes(goal));
@@ -2804,10 +2914,40 @@ function wordPool(kind) {  // 학습 코스 단어에서 뽑음 (내 분야 상�
   for (const u of (mine.length ? mine : units)) for (const [w, ko, pos] of u.words || []) {
     if (seen.has(w)) continue;
     seen.add(w);
-    const ex = (u.ex || []).find(e => new RegExp('\\b' + w.slice(0, Math.max(4, w.length - 2)), 'i').test(e[0]));
+    const re = new RegExp('\\b' + w.replace(/e$/, '') + '(e|es|s|ed|d|ing)?\\b', 'i');  // appointment(s), rest(ed) 처럼 형태가 바뀌어도 찾음
+    const ex = (u.ex || []).find(e => re.test(e[0])) || allEx().find(e => re.test(e[0]));  // 같은 상황 예문 먼저, 없으면 앱 안 전체 문장에서
     pool.push({ w, ko, pos, ex });
   }
   return pool;
+}
+// 오늘의 단어 예문: 앱 안 문장에 없으면 오늘 단어부터 10개를 요청 한 번에 받아오고, 폰에 저장해서 다시 요청하지 않음
+const wexCache = JSON.parse(localStorage.getItem('wex') || '{}'), wexTried = new Set();
+let wexBusy = false;
+async function dayExamples(pool, from, kind) {
+  if (wexBusy || !apiKey) return;
+  const need = [];
+  for (let i = 0; i < pool.length && need.length < 10; i++) {
+    const it = pool[(from + i) % pool.length];
+    if (!it.ex && !wexCache[it.w] && !wexTried.has(it.w)) need.push(it);
+  }
+  if (!need.length) return;
+  wexBusy = true;
+  need.forEach(it => wexTried.add(it.w));  // 이번 접속에서는 같은 단어를 다시 요청하지 않음 (실패해도 반복 요청 방지)
+  try {
+    const text = await lite({ contents: [{ role: 'user', parts: [{ text:
+      `Situation: ${kind === '일상' ? 'everyday life' : kind}\nFor each word below, write one short, natural English sentence (under 12 words) using the word that a Korean learner could say in this situation, and its Korean translation.\nAnswer one line per word in exactly this format, no numbering, no markdown:\nword | sentence | Korean translation\nWords:\n${need.map(it => `${it.w} (${it.ko})`).join('\n')}` }] }],
+      generationConfig: { temperature: 0.4, maxOutputTokens: 1200 } });
+    lines(text).forEach(l => {
+      const [w, ex, exko] = l.split('|').map(s => (s || '').trim());
+      const it = need.find(n => n.w.toLowerCase() === (w || '').toLowerCase());
+      if (it && ex && exko) wexCache[it.w] = [ex, exko];
+    });
+    localStorage.setItem('wex', JSON.stringify(wexCache));
+  } catch (e) { /* 예문 없이도 카드는 그대로 보여줌 */ }
+  finally {
+    wexBusy = false;
+    if (xTab === 'word') paintExpr();  // 로딩 막대를 예문으로 교체 (못 받았으면 막대만 사라짐)
+  }
 }
 function paintExpr() {
   const { dn, kind } = todayKind();
@@ -2832,7 +2972,10 @@ function paintExpr() {
     box.append(el('p', 'x-en', en), el('p', 'x-ko', ko), act);
     return;
   }
-  const pool = wordPool(kind), it = pool[(dn + wShift) % pool.length];
+  const pool = wordPool(kind), it = { ...pool[(dn + wShift) % pool.length] };
+  if (!it.ex && wexCache[it.w]) it.ex = wexCache[it.w];
+  const loading = !it.ex && !!apiKey && (!wexTried.has(it.w) || wexBusy);  // 예문을 받아오는 중이면 자리를 잡아둠
+  if (!it.ex) dayExamples(pool, (dn + wShift) % pool.length, kind);
   const saved = !!findWord(it.w);
   const next = el('button', 'pill ghost', '다른 단어');
   next.onclick = () => { wShift++; paintExpr(); };
@@ -2845,10 +2988,9 @@ function paintExpr() {
     paintMenu();
   };
   act.append(spkBtn(it.ex ? it.ex[0] : it.w), next, save);
-  const word = el('div', 'xword');
-  word.append(el('b', '', it.w), el('span', 'xwpos', `${POSMARK[it.pos] || ''} ${it.ko}`.trim()));
-  box.append(word);
-  if (it.ex) box.append(el('p', 'xwex', it.ex[0]), el('p', 'x-ko', it.ex[1]));
+  box.append(el('p', 'x-en', it.w), el('p', 'x-ko' + (it.ex || loading ? ' tight' : ''), `${POSMARK[it.pos] || ''} ${it.ko}`.trim()));  // 표현 카드와 같은 자리, 같은 크기
+  if (it.ex) box.append(el('p', 'xwex', it.ex[0]), el('p', 'xwexko', it.ex[1]));
+  else if (loading) { const sk = el('div', 'xwskel'); sk.innerHTML = '<i></i><i></i>'; box.append(sk); }
   box.append(act);
 }
 function paintMenu() {
