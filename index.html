@@ -667,6 +667,8 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .wchip b { margin-right: 4px; }
   .pill.big { display: block; width: 100%; height: 50px; margin-top: 18px; border-radius: 25px; font-size: 16px; }
   .qlabel.c { text-align: center; margin: 6px 0 12px; }
+  .ugram { display: flex; align-items: center; gap: 8px; margin: -4px 0 16px; font-size: 14px; font-weight: 600; }  /* 유닛의 핵심 문법 패턴 */
+  .ugram span { flex: none; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-text); font-size: 12px; font-weight: 800; }
   @media (max-height: 600px) {  /* 크롬 주소창, 글자 확대 등으로 보이는 높이가 짧을 때 */
     #obbody h2 { font-size: 22px; }
     #obbody .sub { margin-bottom: 4px; }
@@ -1086,7 +1088,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v1.8</p>
+    <p id="ver">버전 v1.9</p>
     <p class="copyr">© 2026 Jin Howard. All rights reserved.<br>무단 복제 및 배포를 금지합니다.</p>
     <button type="button" id="devreset" class="pill wide ghost">처음부터 다시 하기 (개발자)</button>
   </div>
@@ -3867,8 +3869,49 @@ if (!(window.CSS && CSS.supports && CSS.supports('height', '100dvh'))) {
 const addDays = (k, n) => { const d = new Date(k + 'T00:00:00'); d.setDate(d.getDate() + n); return isoDate(d); };
 // ===== 학습 코스: 레벨마다 유닛(상황) 5개, 유닛 하나는 표현 6개 + 단어 8개 + 역할극 + 미니 퀴즈 =====
 // 표현의 세 번째 값은 학습자가 그 표현을 썼는지 알아보는 글자 패턴(정규식). 표현 그대로가 아니라 같은 쓰임이면 인정
-const COURSE = { 2: [
-  { id: 'intro', title: '자기소개', scene: '처음 만난 사람에게 나를 소개해요', goals: ['일상 대화', '학교', '직장', '교회'],
+const COURSE = { 1: [  // 레벨 1 (입문): 통문장 5개를 대화 순서대로, 막히면 따라 말할 문장을 줌
+  { id: 'intro1', title: '첫인사', scene: '처음 만난 사람과 인사하고 이름을 말해요', goals: ['일상 대화', '학교', '직장', '교회'], grammar: 'be동사 현재형 (I am ~)',
+    role: 'You are a friendly new classmate meeting a complete beginner. Ask only very easy questions, one at a time: their name, where they are from, and their job. If the learner seems stuck or answers in Korean, give one short model sentence they can repeat, like "I\'m Jin."',
+    ex: [["Hi, I'm Jin.", '안녕하세요, 저는 진이에요.', "(hi|hello|hey)\\b.*\\b(i'?m|i am|my name)|my name is|call me"],
+         ['Nice to meet you.', '만나서 반가워요.', 'nice (to )?meet|good to meet|glad to meet|nice meeting'],
+         ["I'm from Korea.", '저는 한국에서 왔어요.', "i'?m from|i am from|i come from|from korea"],
+         ["I'm a nurse.", '저는 간호사예요.', "(i'?m|i am) an? [a-z]+|i work (at|in|as)|my job is"],
+         ['See you later!', '나중에 또 봐요!', 'see you|bye|goodbye|take care|have a (good|nice)']],
+    words: [['name', '이름', 'n'], ['student', '학생', 'n'], ['country', '나라', 'n'], ['friend', '친구', 'n'], ['glad', '기쁜', 'a'], ['live', '살다', 'v']] },
+  { id: 'cafe1', title: '음료 주문', scene: '카페에서 음료 한 잔을 주문해요', goals: ['일상 대화', '여행'], grammar: '요청하기 (~, please)',
+    role: 'You are a friendly barista. The learner is a customer and a complete beginner. Ask very simple questions one at a time: what drink, hot or iced, for here or to go. Tell the price and say thank you. If the learner seems stuck or answers in Korean, give one short model sentence they can repeat, like "One latte, please."',
+    ex: [['One iced americano, please.', '아이스 아메리카노 한 잔 주세요.', "americano|latte|coffee|\\btea\\b|juice|mocha|cappuccino|espresso|can i (get|have)|i'?d like"],
+         ['Hot, please.', '따뜻한 걸로 주세요.', '\\b(hot|iced|ice|cold|warm)\\b'],
+         ['To go, please.', '포장해 주세요.', 'to go|take ?out|takeaway|for here|eat here|drink here'],
+         ['How much is it?', '얼마예요?', 'how much|what.{0,6}price'],
+         ['Thank you!', '감사합니다!', 'thank']],
+    words: [['coffee', '커피', 'n'], ['cup', '잔, 컵', 'n'], ['water', '물', 'n'], ['hot', '뜨거운', 'a'], ['cold', '차가운', 'a'], ['pay', '계산하다', 'v']] },
+  { id: 'route1', title: '길 묻기', scene: '길에서 역과 화장실이 어디 있는지 물어봐요', goals: ['여행', '일상 대화'], grammar: 'Where is ~? (위치 묻기)',
+    role: 'You are a kind local person on the street. The learner is a tourist and a complete beginner. Give very short directions with easy words: go straight, turn left, turn right, near, far. If the learner seems stuck or answers in Korean, give one short model sentence they can repeat, like "Where is the station?"',
+    ex: [['Excuse me.', '실례합니다.', 'excuse me|\\bsorry\\b|pardon'],
+         ['Where is the station?', '역이 어디예요?', "where is|where'?s|where are|how (can|do) i (get|go)|which way"],
+         ['Is it far?', '멀어요?', '\\bfar\\b|\\bnear\\b|is it close'],
+         ['Left or right?', '왼쪽이에요, 오른쪽이에요?', '\\b(left|right|straight)\\b'],
+         ['Thank you so much!', '정말 감사해요!', 'thank']],
+    words: [['station', '역', 'n'], ['bathroom', '화장실', 'n'], ['street', '거리', 'n'], ['near', '가까운', 'a'], ['far', '먼', 'a'], ['walk', '걷다', 'v']] },
+  { id: 'clinic1', title: '아픈 곳 말하기', scene: '병원에서 어디가 아픈지 간단히 말해요', goals: ['병원', '일상 대화'], grammar: 'I have ~ (증상 말하기)',
+    role: 'You are a kind doctor at a clinic. The learner is a patient and a complete beginner. Ask very simple questions one at a time: what is wrong, where it hurts, since when. Give short, easy advice. If the learner seems stuck or answers in Korean, give one short model sentence they can repeat, like "I have a headache."',
+    ex: [["I don't feel well.", '몸이 안 좋아요.', "(don'?t|do not|not) feel (well|good)|(i'?m|i am) (sick|not (well|ok|okay))|i feel sick"],
+         ['I have a headache.', '머리가 아파요.', 'i have an? |headache|stomach ?ache|fever|\\bcold\\b|cough|sore'],
+         ['It hurts here.', '여기가 아파요.', '\\bhurts?\\b|\\bpain|painful'],
+         ['Since yesterday.', '어제부터요.', '\\bsince\\b|yesterday|days? ago|this morning|last night'],
+         ['Thank you, doctor.', '감사합니다, 선생님.', 'thank']],
+    words: [['sick', '아픈', 'a'], ['headache', '두통', 'n'], ['fever', '열', 'n'], ['medicine', '약', 'n'], ['doctor', '의사', 'n'], ['hurt', '아프다', 'v']] },
+  { id: 'shop1', title: '가격 묻고 사기', scene: '가게에서 가격을 묻고 물건을 사요', goals: ['일상 대화', '여행'], grammar: "How much ~? / I'll ~ (가격 묻고 정하기)",
+    role: 'You are a friendly shop assistant. The learner is a customer and a complete beginner. Keep everything very simple: greet them, show items, say the price, and help them pay. If the learner seems stuck or answers in Korean, give one short model sentence they can repeat, like "How much is this?"',
+    ex: [["I'm just looking.", '그냥 둘러보는 중이에요.', 'just looking|looking around|just browsing'],
+         ['How much is this?', '이거 얼마예요?', 'how much|what.{0,6}price'],
+         ['Do you have a bigger one?', '더 큰 거 있어요?', 'do you have|bigger|smaller|(another|other) (size|colou?r)'],
+         ["I'll take it.", '이걸로 살게요.', "i'?ll (take|buy)|i will (take|buy)|i take (it|this)|i want (it|this)"],
+         ['Thank you!', '감사합니다!', 'thank']],
+    words: [['price', '가격', 'n'], ['cheap', '싼', 'a'], ['expensive', '비싼', 'a'], ['buy', '사다', 'v'], ['bag', '가방', 'n'], ['shirt', '셔츠', 'n']] }
+], 2: [
+  { id: 'intro', title: '자기소개', scene: '처음 만난 사람에게 나를 소개해요', goals: ['일상 대화', '학교', '직장', '교회'], grammar: '현재형으로 나 소개하기 (I work / I like)',
     role: 'You are a friendly person at a language meetup, meeting the learner for the first time. Chat about names, hometown, jobs and hobbies. Ask one simple question at a time.',
     ex: [['Nice to meet you.', '만나서 반갑습니다.', 'nice to meet you|pleased to meet you'],
          ['My name is Jin.', '제 이름은 진이에요.', "my name is|my name's|call me|i'?m called"],
@@ -3877,7 +3920,7 @@ const COURSE = { 2: [
          ['I like watching movies.', '저는 영화 보는 걸 좋아해요.', 'i like|i love|i enjoy|my hobby'],
          ['How about you?', '당신은요?', 'how about you|what about you|and you']],
     words: [['introduce', '소개하다', 'v'], ['meet', '만나다', 'v'], ['hometown', '고향', 'n'], ['job', '직업', 'n'], ['hobby', '취미', 'n'], ['weekend', '주말', 'n'], ['friendly', '친절한', 'a'], ['nervous', '긴장한', 'a']] },
-  { id: 'cafe', title: '카페 주문', scene: '카페에서 음료를 주문하고 계산해요', goals: ['일상 대화', '여행'],
+  { id: 'cafe', title: '카페 주문', scene: '카페에서 음료를 주문하고 계산해요', goals: ['일상 대화', '여행'], grammar: 'Can I ~? / ~, please (공손한 요청)',
     role: 'You are a friendly barista at a café. The learner is a customer. Take their order step by step: drink, size, hot or iced, for here or to go, then the price and payment. Ask one short question at a time.',
     ex: [["I'd like a large latte, please.", '라지 라테 한 잔 주세요.', "(i'?d|i would) like|can i (have|get)|could i (have|get)|i'?ll have"],
          ['What do you recommend?', '뭘 추천하세요?', "recommend|what'?s good|what is good|popular"],
@@ -3886,7 +3929,7 @@ const COURSE = { 2: [
          ['Can I pay by card?', '카드로 결제할 수 있나요?', 'pay (by|with)|by card|credit card|cash'],
          ['How much is it?', '얼마예요?', 'how much|total|price']],
     words: [['order', '주문하다', 'v'], ['menu', '메뉴', 'n'], ['sugar', '설탕', 'n'], ['straw', '빨대', 'n'], ['cash', '현금', 'n'], ['change', '거스름돈', 'n'], ['sweet', '달콤한', 'a'], ['bitter', '쓴', 'a']] },
-  { id: 'route', title: '길 묻기', scene: '낯선 곳에서 길을 물어봐요', goals: ['여행', '일상 대화'],
+  { id: 'route', title: '길 묻기', scene: '낯선 곳에서 길을 물어봐요', goals: ['여행', '일상 대화'], grammar: 'How do I get to ~? / 명령문 (길 안내)',
     role: 'You are a helpful local person on the street. The learner is a tourist asking for directions. Give short, simple directions (turn left, go straight, next to, five minutes) and check that they understood.',
     ex: [['Excuse me, where is the station?', '실례합니다, 역이 어디예요?', "excuse me|where is|where'?s"],
          ['How do I get to the airport?', '공항에 어떻게 가요?', 'how (do|can) i get|how to get|way to'],
@@ -3895,7 +3938,7 @@ const COURSE = { 2: [
          ['Turn left at the corner.', '모퉁이에서 왼쪽으로 도세요.', 'turn (left|right)|go straight|left|right|corner'],
          ['Thank you for your help.', '도와주셔서 감사합니다.', 'thank you|thanks|appreciate']],
     words: [['follow', '따라가다', 'v'], ['cross', '건너다', 'v'], ['direction', '방향', 'n'], ['corner', '모퉁이', 'n'], ['crosswalk', '횡단보도', 'n'], ['landmark', '랜드마크, 명소', 'n'], ['block', '블록, 구역', 'n'], ['nearby', '근처의', 'a']] },
-  { id: 'clinic', title: '병원 가기', scene: '병원에서 증상을 말하고 진료를 받아요', goals: ['병원', '일상 대화'],
+  { id: 'clinic', title: '병원 가기', scene: '병원에서 증상을 말하고 진료를 받아요', goals: ['병원', '일상 대화'], grammar: 'Do I need to ~? / should (조언 구하기)',
     role: 'You are a kind receptionist and doctor at a clinic. The learner is a patient. Ask about the symptoms, how long they have had them, and give simple advice such as rest, water and medicine. Ask one short question at a time.',
     ex: [["I'd like to make an appointment.", '진료 예약을 하고 싶어요.', 'appointment|make a|book|see (a|the) doctor'],
          ['I have a headache.', '머리가 아파요.', 'headache|stomach|cough|sore throat|hurts|pain|dizzy|sick|runny nose'],
@@ -3904,7 +3947,7 @@ const COURSE = { 2: [
          ['Is it serious?', '심각한가요?', 'serious|worried|worry|bad'],
          ['How often should I take this?', '이건 얼마나 자주 먹어야 하나요?', 'how often|how many times|times a day|twice|three times|per day']],
     words: [['rest', '쉬다', 'v'], ['symptom', '증상', 'n'], ['prescription', '처방전', 'n'], ['allergy', '알레르기', 'n'], ['pharmacy', '약국', 'n'], ['insurance', '보험', 'n'], ['swollen', '부은', 'a'], ['dizzy', '어지러운', 'a']] },
-  { id: 'shop', title: '쇼핑', scene: '옷 가게에서 사이즈를 묻고 사요', goals: ['일상 대화', '여행'],
+  { id: 'shop', title: '쇼핑', scene: '옷 가게에서 사이즈를 묻고 사요', goals: ['일상 대화', '여행'], grammar: 'Can I ~? / Do you have ~ in ...? (묻고 부탁하기)',
     role: 'You are a friendly shop assistant in a clothing store. The learner is a customer. Help them find a size, let them try it on, talk about the price and finish the payment. Ask one short question at a time.',
     ex: [['How much is this jacket?', '이 재킷은 얼마예요?', 'how much|price|cost'],
          ['Do you have this in a larger size?', '이거 더 큰 사이즈 있나요?', 'larger|smaller|bigger|size|other (color|colour|size)'],
@@ -3919,6 +3962,7 @@ const units = () => COURSE[courseLv()];
 let course = JSON.parse(localStorage.getItem('course') || '{}');  // 유닛별 진행 { used, turns, role, quiz, done }
 course.u = course.u || {};
 const saveCourse = () => localStorage.setItem('course', JSON.stringify(course));
+const needEx = u => Math.ceil(u.ex.length * 0.6);  // 역할극 완료에 필요한 표현 수 (6개 → 4개, 5개 → 3개)
 const cu = id => (course.u[id] = course.u[id] || { used: [], turns: 0, role: false, quiz: null, tries: 0, done: false });
 const norm = t => t.toLowerCase().replace(/[’‘]/g, "'").replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim();
 const exHit = (e, text) => new RegExp(e[2], 'i').test(norm(text));
@@ -3971,11 +4015,11 @@ function trackUnit(text) {  // 내가 한 말에서 목표 표현을 썼는지 �
   activeUnit.ex.forEach((e, i) => { if (!c.used.includes(i) && exHit(e, text)) c.used.push(i); });
   saveCourse();
   unitBar();
-  if (c.used.length >= 4 && !c.four) { c.four = true; saveCourse(); toast('표현 4개를 써 봤어요! 끝내기를 눌러 퀴즈로 넘어가 보세요', 3800); }
+  if (c.used.length >= needEx(activeUnit) && !c.four) { c.four = true; saveCourse(); toast(`표현 ${needEx(activeUnit)}개를 써 봤어요! 끝내기를 눌러 퀴즈로 넘어가 보세요`, 3800); }
 }
 function syncDone(u) {  // 역할극과 퀴즈를 모두 마치면 유닛 완료, 그때 유닛 단어를 단어장에 넣음
   const c = cu(u.id);
-  c.role = c.role || c.used.length >= 4 || c.turns >= 4;
+  c.role = c.role || c.used.length >= needEx(u) || c.turns >= 4;
   const was = c.done;
   c.done = c.role && c.quiz !== null;
   if (c.done && !was && !c.words) {
@@ -4028,8 +4072,8 @@ function paintUnit() {
   const c = cu(u.id), box = $('ubody');
   const step = (k, n, title, sub, ok) => `<button type="button" class="ustep" data-st="${k}"><span class="sn${ok ? ' ok' : ''}">${ok ? I_CHECK : n}</span><span class="mt"><b>${title}</b><small>${sub}</small></span><span class="go"></span></button>`;
   if (uv === 'home') {
-    box.innerHTML = `<h2 class="pg">${u.title}</h2><p class="sub">${u.scene}</p>
-      <div class="usteps">${step('ex', 1, '표현 익히기', '표현 6개 · 단어 8개', c.seen)}${step('role', 2, '역할극', `표현 ${c.used.length}/${u.ex.length} 사용`, c.role)}${step('quiz', 3, '미니 퀴즈', c.quiz !== null ? `최고 ${Math.round(c.quiz * 100)}%` : '5문제', c.quiz !== null)}</div>
+    box.innerHTML = `<h2 class="pg">${u.title}</h2><p class="sub">${u.scene}</p>${u.grammar ? `<p class="ugram"><span>핵심 패턴</span>${escH(u.grammar)}</p>` : ''}
+      <div class="usteps">${step('ex', 1, '표현 익히기', `표현 ${u.ex.length}개 · 단어 ${u.words.length}개`, c.seen)}${step('role', 2, '역할극', `표현 ${c.used.length}/${u.ex.length} 사용`, c.role)}${step('quiz', 3, '미니 퀴즈', c.quiz !== null ? `최고 ${Math.round(c.quiz * 100)}%` : '5문제', c.quiz !== null)}</div>
       ${c.done ? '<p class="hint">이 유닛을 마쳤어요. 언제든 다시 해도 좋아요.</p>' : '<p class="hint">순서대로 해도 되고, 원하는 것부터 해도 돼요. 역할극과 퀴즈를 모두 마치면 유닛이 완료돼요.</p>'}`;
     box.querySelectorAll('.ustep .go').forEach(g => g.innerHTML = sz(I_ARROW, 18));
   } else if (uv === 'ex') {
