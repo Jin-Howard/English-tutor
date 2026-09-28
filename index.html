@@ -408,7 +408,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .g-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 15px; font-weight: 600; }
   .ratev { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
   .raterow { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 12.5px; font-weight: 600; color: var(--sub); }
-  #setup .raterow input { flex: 1; min-width: 0; width: auto; height: 28px; margin: 0; padding: 0; border: 0; border-radius: 0; box-shadow: none;
+  #setup .raterow input, #perm .raterow input { flex: 1; min-width: 0; width: auto; height: 28px; margin: 0; padding: 0; border: 0; border-radius: 0; box-shadow: none;
                          background: transparent; -webkit-appearance: none; appearance: none; }  /* 설정 입력칸 공통 스타일(회색 바탕, 여백)을 걷어냄 */
   .raterow input::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--accent) var(--fill, 50%), var(--surface2) var(--fill, 50%)); }
   .raterow input::-moz-range-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--accent) var(--fill, 50%), var(--surface2) var(--fill, 50%)); }
@@ -536,6 +536,11 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .sndask { display: none; align-items: center; gap: 8px; padding: 0 16px 14px 70px; font-size: 13.5px; font-weight: 700; }
   .sndask.on { display: flex; }
   .sndbox { border-radius: 0 0 22px 22px; }
+  .prate { display: none; margin: 0 16px; padding: 14px 0 16px; border-top: 1px dashed var(--line); }  /* '들려요' 뒤에 나오는 속도 확인 */
+  .prate.on { display: block; animation: ctip .25s both; }
+  .prate .g-top { margin-bottom: 6px; font-size: 14.5px; }
+  .prate .raterow { margin-bottom: 8px; }
+  .prhint { margin: 0 0 12px; font-size: 12.5px; line-height: 1.5; color: var(--sub); word-break: keep-all; }
   .sndask span { flex: 1; min-width: 0; }
   .sndask .pill { flex: none; height: 34px; padding: 0 12px; font-size: 13px; }
   #p-go:disabled { opacity: .45; }
@@ -587,7 +592,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .opt.idk { border-style: dashed; background: transparent; box-shadow: none; color: var(--sub); }
   .opt.pick { border-color: var(--accent); background: var(--accent-soft); }
   .qcount { margin: 0; text-align: center; font-size: 13.5px; font-weight: 700; color: var(--sub); }
-  .qword { margin: 26px 0 4px; text-align: center; font-size: 42px; font-weight: 800; letter-spacing: -1px; }
+  .qword { margin: 26px 0 14px; text-align: center; font-size: 42px; font-weight: 800; letter-spacing: -1px; }
   .qhint { display: flex; justify-content: center; margin-bottom: 22px; }
   .qhint .vspk { display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; padding: 0; border-radius: 50%; background: var(--surface2); color: var(--sub); }
   .qhint .vspk.on { background: var(--accent-soft); color: var(--accent-text); }
@@ -1088,7 +1093,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v2.2</p>
+    <p id="ver">버전 v2.3</p>
     <p class="copyr">© 2026 Jin Howard. All rights reserved.<br>무단 복제 및 배포를 금지합니다.</p>
     <button type="button" id="devreset" class="pill wide ghost">처음부터 다시 하기 (개발자)</button>
   </div>
@@ -1175,7 +1180,13 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
         <span class="mt">소리<small id="p-snd-s">영어 발음을 들려줘요</small></span>
         <button type="button" id="p-snd-btn" class="pill ghost">소리 확인</button>
       </div>
-      <div class="sndask" id="p-snd-ask"><span>영어 인사가 들렸나요?</span><button type="button" id="p-snd-yes" class="pill">들려요</button><button type="button" id="p-snd-no" class="pill ghost">안 들려요</button></div></div>
+      <div class="sndask" id="p-snd-ask"><span>영어 인사가 들렸나요?</span><button type="button" id="p-snd-yes" class="pill">들려요</button><button type="button" id="p-snd-no" class="pill ghost">안 들려요</button></div>
+      <div class="prate" id="p-ratebox">
+        <div class="g-top"><span>튜터 목소리 속도</span><b id="p-ratev" class="ratev">1.0배</b></div>
+        <div class="raterow"><span>느리게</span><input type="range" id="p-rate" min="0.5" max="1.5" step="0.1" value="1" aria-label="튜터 목소리 속도"><span>빠르게</span></div>
+        <p class="prhint" id="p-ratehint">익숙해지면 설정 → 튜터 목소리에서 언제든 바꿀 수 있어요.</p>
+        <button type="button" id="p-ratetest" class="pill wide ghost">이 속도로 다시 듣기</button>
+      </div></div>
     </div>
     <p class="hint">허용 창이 뜨면 <b>허용</b> 또는 <b>사이트 방문 중 허용</b>을 눌러 주세요. '이번에만 허용'을 고르면 매번 물어봐요. 소리는 별도 허용이 없고, 폰 볼륨과 무음 모드만 확인하면 돼요.</p>
     <div class="savebar"><button id="p-go" type="button" disabled>위 두 가지를 확인해 주세요</button></div>
@@ -1457,18 +1468,38 @@ $('micseg').onclick = e => {
   paintMicSeg();
 };
 let ttsRate = Math.min(1.5, Math.max(0.5, parseFloat(localStorage.getItem('ttsrate')) || 1));  // 튜터 목소리 속도 (그리는 코드보다 먼저 선언)
-function paintRate() {
-  $('ttsrate').value = ttsRate;
-  $('ratev').textContent = ttsRate.toFixed(1) + '배';
-  $('ttsrate').style.setProperty('--fill', Math.round((ttsRate - 0.5) * 100) + '%');
+function paintRate() {  // 설정과 소리 확인 화면의 조절 바를 함께 맞춤
+  [['ttsrate', 'ratev'], ['p-rate', 'p-ratev']].forEach(([s, v]) => {
+    $(s).value = ttsRate;
+    $(v).textContent = ttsRate.toFixed(1) + '배';
+    $(s).style.setProperty('--fill', Math.round((ttsRate - 0.5) * 100) + '%');
+  });
 }
-$('ttsrate').oninput = () => {
-  ttsRate = Math.round(parseFloat($('ttsrate').value) * 10) / 10;
+function setRate(v, byUser) {
+  ttsRate = Math.min(1.5, Math.max(0.5, Math.round(v * 10) / 10));
   localStorage.setItem('ttsrate', ttsRate);
+  if (byUser) localStorage.setItem('ttsrate_user', '1');  // 직접 바꾼 속도는 자동 맞춤이 덮어쓰지 않음
   paintRate();
-};
-$('ttsrate').onchange = () => speak("Hello! Let's practice English together.");  // 손을 떼면 바뀐 속도로 한 번 들려줌
-$('ratetest').onclick = () => speak("Hello! Let's practice English together.");
+}
+const SAMPLE = "Hi! I'm your English tutor. Let's practice speaking together every day.";
+['ttsrate', 'p-rate'].forEach(id => {
+  $(id).oninput = () => setRate(parseFloat($(id).value), true);
+  $(id).onchange = () => speak(SAMPLE);  // 손을 떼면 바뀐 속도로 한 번 들려줌
+});
+$('ratetest').onclick = $('p-ratetest').onclick = () => speak(SAMPLE);
+// 레벨별 목표 속도 (분당 단어 수). 0번은 레벨을 모를 때.
+// 근거: 영어 학습자에게 권하는 또렷한 속도 약 140, 평균 원어민 약 150, 일반 대화 140~180, 대만 초급 영어 시험 듣기 116
+const RATE_WPM = [140, 110, 125, 140, 150, 160];
+function calibRate(tm, r) {  // 소리 확인 문장을 읽은 시간으로 이 폰 목소리의 실제 속도를 재서 레벨에 맞는 배속으로 맞춤
+  const lv = (ob && ob.lvl) || 0, sec = tm.t0 && tm.t1 ? (tm.t1 - tm.t0) / 1000 : 0;
+  if (localStorage.getItem('ttsrate_user') || sec < 1.2) {  // 직접 바꿨거나 제대로 못 쟀으면 그대로
+    $('p-ratehint').textContent = '익숙해지면 설정 → 튜터 목소리에서 언제든 바꿀 수 있어요.';
+    return;
+  }
+  const wpmAt1 = SAMPLE.split(/\s+/).length / sec * 60 / r;
+  setRate(RATE_WPM[lv] / wpmAt1);
+  $('p-ratehint').textContent = `${lv ? `레벨 ${lv}에 맞춰 ` : ''}분당 약 ${RATE_WPM[lv]}단어 속도로 맞췄어요. 익숙해지면 설정 → 튜터 목소리에서 언제든 바꿀 수 있어요.`;
+}
 paintRate();
 $('asrseg').onclick = e => {
   const b = e.target.closest('[data-k]');
@@ -1716,10 +1747,10 @@ function stopSpeak() {
 }
 
 // 답변 읽어주기 (영어만)
-function speak(text, onEnd) {  // 음성 엔진에서 어떤 오류가 나도 다른 기능(대답 표시 등)은 멈추지 않게
-  try { return speakNow(text, onEnd); } catch (e) { cur = null; curText = ''; refreshSpk(); return false; }
+function speak(text, onEnd, timing) {  // 음성 엔진에서 어떤 오류가 나도 다른 기능(대답 표시 등)은 멈추지 않게
+  try { return speakNow(text, onEnd, timing); } catch (e) { cur = null; curText = ''; refreshSpk(); return false; }
 }
-function speakNow(text, onEnd) {  // onEnd: 끝까지 읽었을 때만 호출 (다른 문장으로 바뀌거나 멈추면 호출 안 함)
+function speakNow(text, onEnd, timing) {  // onEnd: 끝까지 읽었을 때만 호출. timing: 읽기 시작과 끝 시각을 적어 줌 (속도 측정용)
   if (!text.trim() || !tts || !window.SpeechSynthesisUtterance) return false;
   tts.cancel();
   const u = new SpeechSynthesisUtterance(text);
@@ -1730,9 +1761,9 @@ function speakNow(text, onEnd) {  // onEnd: 끝까지 읽었을 때만 호출 (�
   const done = () => {
     if (ended) return;
     ended = true;
-    if (cur === u) { cur = null; curText = ''; refreshSpk(); if (onEnd) onEnd(); }
+    if (cur === u) { cur = null; curText = ''; refreshSpk(); if (timing) timing.t1 = performance.now(); if (onEnd) onEnd(); }
   };
-  u.onstart = () => { started = true; };
+  u.onstart = () => { started = true; if (timing) timing.t0 = performance.now(); };
   u.onend = done;
   u.onerror = e => {
     done();
@@ -3209,7 +3240,8 @@ $('p-snd-btn').onclick = () => {
   loadVoices();
   if (!enVoice && tts.getVoices().length) { t.textContent = '영어 음성이 없어요. 폰 설정에서 설치해 주세요'; t.className = 'bad'; toast(TTS_HELP, 7000); }
   else t.textContent = '들리나요? 안 들리면 볼륨과 무음 모드를 확인해 주세요';
-  speak('Hello! Nice to meet you.');
+  const tm = {}, r = ttsRate;
+  speak(SAMPLE, () => calibRate(tm, r), tm);  // 이 문장을 읽는 시간으로 폰의 실제 속도를 잼
   $('p-snd-ask').classList.add('on');
   coachPlace();
 };
@@ -3220,6 +3252,7 @@ $('p-snd-yes').onclick = () => {
   $('p-snd-s').className = 'ok';
   $('p-snd-btn').style.display = 'none';
   $('p-nosnd').style.display = 'none';
+  $('p-ratebox').classList.add('on');  // 이제 속도도 확인해 볼 수 있게
   paintPerm();
   if (coachOn()) closeCoach();
   $('p-go').classList.add('spotlight');  // 이제 시작하기
