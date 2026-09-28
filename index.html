@@ -849,6 +849,12 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .vex { color: var(--sub); font-size: 13px; margin-top: 2px; }
   .vsave, .vdel, .vmore { padding: 6px 12px; font-size: 14px; border: 1px solid var(--line2); border-radius: 10px; background: var(--surface2); }
   .vsave, .vmore { margin-top: 8px; }
+  /* 5W1H 의문사 설명 */
+  .whsec p { margin: 4px 0 0; font-size: 14px; line-height: 1.5; }
+  .whtag { display: inline-block; margin-bottom: 2px; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-text); font-size: 11.5px; font-weight: 800; }
+  .whpat { padding: 6px 10px; border-radius: 10px; background: var(--surface2); font-weight: 700; font-size: 13.5px !important; }
+  .whpair { color: var(--sub); font-size: 13px !important; }
+  .whall { padding-top: 6px; border-top: 1px dashed var(--dash); color: var(--sub); font-size: 12.5px !important; font-weight: 600; }
   .srow { display: flex; align-items: center; gap: 2px; }
   .srow > span { min-width: 0; overflow-wrap: anywhere; }
   .vex.srow { align-items: flex-start; justify-content: space-between; color: var(--text); }
@@ -1121,7 +1127,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v2.5</p>
+    <p id="ver">버전 v2.6</p>
     <p class="copyr">© 2026 Jin Howard. All rights reserved.<br>무단 복제 및 배포를 금지합니다.</p>
     <button type="button" id="devreset" class="pill wide ghost">처음부터 다시 하기 (개발자)</button>
   </div>
@@ -2014,6 +2020,24 @@ function speakRow(shown, spoken, cls) {
   return row;
 }
 
+// 5W1H 의문사: 단어 카드에 '무엇을 물을 때 쓰는지, 어순, 함께 쓰는 짝'을 덧붙임 (호출 없음)
+const WH = {
+  who:   ['누구', '사람을 물을 때', 'Who + 동사?  /  Who is ~?', ['Who is your teacher?', '선생님이 누구예요?'], 'Whose(누구의), Whom(누구를)'],
+  what:  ['무엇', '물건, 일, 정보를 물을 때', 'What + do/does + 주어 + 동사?', ['What do you do?', '무슨 일 하세요?'], 'What time(몇 시), What kind of(어떤 종류의)'],
+  when:  ['언제', '때, 시간을 물을 때', 'When + do/does/did + 주어 + 동사?', ['When do you start work?', '언제 일을 시작해요?'], '정확한 시각은 What time(몇 시)'],
+  where: ['어디', '장소, 위치를 물을 때', 'Where + is/are + 주어?  /  Where + do + 주어 + 동사?', ['Where do you live?', '어디 살아요?'], 'Where ~ from?(어디 출신이에요?)'],
+  why:   ['왜', '이유를 물을 때', 'Why + do/does/did + 주어 + 동사?', ['Why did you choose that job?', '왜 그 일을 고르셨어요?'], '대답은 Because ~ (왜냐하면)'],
+  how:   ['어떻게', '방법, 상태, 정도를 물을 때', 'How + do/does + 주어 + 동사?  /  How is ~?', ['How do you get to work?', '출근은 어떻게 해요?'], 'How much(얼마), How many(몇 개), How long(얼마나 오래), How often(얼마나 자주), How old(몇 살)']
+};
+function whSection(key) {  // 한국인이 가장 많이 틀리는 건 do를 빼먹는 어순이라 어순을 가운데에
+  const [ko, ask, pat, [ex, exko], pair] = WH[key];
+  const sec = el('div', 'vsec whsec');
+  sec.append(el('b', 'whtag', '5W1H · 의문사'), el('p', '', `${ko} — ${ask}`), el('p', 'whpat', pat),
+    speakRow(ex, ex, 'vex'), el('div', 'vex', exko), el('p', 'whpair', `함께 쓰는 짝: ${pair}`),
+    el('p', 'whall', Object.entries(WH).map(([k, v]) => `${k[0].toUpperCase() + k.slice(1)} ${v[0]}`).join(' · ')));
+  return sec;
+}
+
 // 단어를 눌렀을 때: 읽어주기 + 뜻 카드
 async function onWord(bubble, word, context) {
   const w = word.toLowerCase().replace('’', "'");
@@ -2047,6 +2071,8 @@ async function onWord(bubble, word, context) {
       sec.append(speakRow(d.ex, d.ex, 'vex'), el('div', 'vex', d.exko));
       card.append(sec);
     }
+    const wk = w.replace(/'(s|re|d|ll)$/, '');  // What's, How's 같은 줄임말도 같은 설명
+    if (WH[wk]) card.append(whSection(wk));
     card.append(btn);
     card.scrollIntoView({ block: 'nearest' });  // 카드가 화면 밖이면 보이게
   } catch (e) {
