@@ -397,6 +397,22 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .surebox p { margin: 8px 0 18px; font-size: 14px; line-height: 1.55; color: var(--sub); word-break: keep-all; }
   .sureact { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   #sureok.danger { background: var(--danger); color: #FFFFFF; }
+  /* 비밀번호 잠금 화면 */
+  .pwgate { position: fixed; inset: 0; z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center;
+            padding: 32px 24px calc(24px + env(safe-area-inset-bottom)); box-sizing: border-box; background: var(--bg); text-align: center; }
+  .pwgate.open { display: flex; }
+  .pwbox { width: 100%; max-width: 360px; }
+  .pwic { display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 22px; background: var(--accent); color: #111; }
+  .pwbox h2 { margin: 18px 0 6px; font-size: 22px; font-weight: 800; }
+  .pwsub { margin: 0 0 22px; font-size: 14.5px; line-height: 1.55; color: var(--sub); }
+  .pwfield { position: relative; }
+  #pwin { display: block; width: 100%; box-sizing: border-box; padding: 15px 50px 15px 16px; border: 1.5px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--text); font-size: 17px; }
+  #pwin:focus { outline: none; border-color: var(--accent); }
+  #pweye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); display: flex; padding: 8px; border: 0; background: none; color: var(--sub); }
+  .pwerr { min-height: 20px; margin: 10px 0 6px; font-size: 13.5px; font-weight: 600; color: var(--danger); }
+  .pwgate .copyr { position: absolute; left: 0; right: 0; bottom: calc(16px + env(safe-area-inset-bottom)); margin: 0; }
+  .pwshake { animation: pwshake .35s; }
+  @keyframes pwshake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
   #qrimg { margin-bottom: 14px; padding: 12px; border-radius: 16px; background: #fff; }  /* 다크 모드에서도 QR은 흰 바탕 (카메라 인식용) */
   #qrimg svg { display: block; width: 100%; height: auto; }
   .banner.howto { border-style: solid; }
@@ -1127,7 +1143,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v2.6</p>
+    <p id="ver">버전 v2.7</p>
     <p class="copyr">© 2026 Jin Howard. All rights reserved.<br>무단 복제 및 배포를 금지합니다.</p>
     <button type="button" id="devreset" class="pill wide ghost">처음부터 다시 하기 (개발자)</button>
   </div>
@@ -1242,6 +1258,17 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   <div class="ia"><button type="button" id="inapp-go" class="pill" style="display:none">다시 열기</button><button type="button" id="inapp-copy" class="pill">링크 복사</button><button type="button" id="inapp-x" class="pill ghost">닫기</button></div>
 </div>
 <div id="toast" role="status"></div>
+<div id="pwgate" class="pwgate" role="dialog" aria-label="비밀번호">
+  <div class="pwbox">
+    <span class="pwic" id="pwic"></span>
+    <h2>비밀번호를 입력해 주세요</h2>
+    <p class="pwsub">초대받은 사람만 쓸 수 있는 앱이에요.</p>
+    <div class="pwfield"><input id="pwin" type="password" autocomplete="current-password" placeholder="비밀번호" enterkeyhint="go"><button type="button" id="pweye" aria-label="비밀번호 보기"></button></div>
+    <p id="pwerr" class="pwerr"></p>
+    <button type="button" id="pwok" class="pill wide">시작하기</button>
+  </div>
+  <p class="copyr">© 2026 Jin Howard. All rights reserved.</p>
+</div>
 <div id="sure" class="surewrap" role="alertdialog" aria-modal="true" aria-labelledby="sure-t">
   <div class="surebox"><b id="sure-t"></b><p id="sure-p"></p><div class="sureact"><button type="button" id="surex" class="pill ghost">취소</button><button type="button" id="sureok" class="pill">확인</button></div></div>
 </div>
@@ -3174,6 +3201,88 @@ $('rc-x').onclick = closeRecap;
 $('recap').onclick = e => { if (e.target === $('recap')) closeRecap(); };
 $('rc-go').onclick = () => { closeRecap(); startReview(); };
 
+function sha256(ascii) {  // 초대 코드 확인용 SHA-256 (어떤 브라우저든 똑같이 동작하도록 직접 계산, 영문/숫자 전용)
+  const rr = (v, n) => (v >>> n) | (v << (32 - n)), P = 2 ** 32, words = [], bits = ascii.length * 8;
+  let hash = [], k = [], i, j, out = '';
+  for (let c = 2, found = 0; found < 64; c++) {  // 처음 64개 소수로 상수 만들기
+    let prime = true;
+    for (let d = 2; d * d <= c; d++) if (c % d === 0) { prime = false; break; }
+    if (!prime) continue;
+    if (found < 8) hash[found] = (Math.pow(c, 1 / 2) * P) | 0;
+    k[found++] = (Math.pow(c, 1 / 3) * P) | 0;
+  }
+  ascii += '\x80';
+  while (ascii.length % 64 - 56) ascii += '\x00';
+  for (i = 0; i < ascii.length; i++) words[i >> 2] |= ascii.charCodeAt(i) << ((3 - i) % 4) * 8;
+  words[words.length] = (bits / P) | 0;
+  words[words.length] = bits;
+  for (j = 0; j < words.length;) {
+    const w = words.slice(j, j += 16), old = hash;
+    hash = hash.slice(0, 8);
+    for (i = 0; i < 64; i++) {
+      const w15 = w[i - 15], w2 = w[i - 2], a = hash[0], e = hash[4];
+      const t1 = hash[7] + (rr(e, 6) ^ rr(e, 11) ^ rr(e, 25)) + ((e & hash[5]) ^ (~e & hash[6])) + k[i]
+        + (w[i] = i < 16 ? w[i] : (w[i - 16] + (rr(w15, 7) ^ rr(w15, 18) ^ (w15 >>> 3)) + w[i - 7] + (rr(w2, 17) ^ rr(w2, 19) ^ (w2 >>> 10))) | 0);
+      const t2 = (rr(a, 2) ^ rr(a, 13) ^ rr(a, 22)) + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+      hash = [(t1 + t2) | 0].concat(hash);
+      hash[4] = (hash[4] + t1) | 0;
+    }
+    for (i = 0; i < 8; i++) hash[i] = (hash[i] + old[i]) | 0;
+  }
+  for (i = 0; i < 8; i++) for (j = 3; j + 1; j--) { const b = (hash[i] >> (j * 8)) & 255; out += (b < 16 ? '0' : '') + b.toString(16); }
+  return out;
+}
+// ===== 비밀번호 잠금 =====
+// 비밀번호는 이 파일 어디에도 적히지 않고, 되돌릴 수 없는 암호문(해시)만 저장해요.
+// 암호문은 'hash-maker.html'로 만들어서 아래 따옴표 안에 붙여넣으면 돼요. 비워 두면 잠금이 꺼져요.
+// 비밀번호를 바꾸면(암호문을 바꾸면) 이미 쓰던 사람도 모두 새 비밀번호를 다시 입력해야 해요.
+const PASS_HASH = 'eea500bf28723b511f448cd7c76aac90a1b01268f452cfec2e01017de4a26537';  // ← 여기에 암호문을 붙여넣으세요
+function passHash(pw) {  // 비밀번호 → 암호문 (2만 번 반복해서 섞음: 하나하나 대입해 맞춰보기 어렵게)
+  let x = sha256(unescape(encodeURIComponent('etutor-pass:' + String(pw).normalize('NFC'))));  // 한글 비밀번호도 되게
+  for (let i = 1; i < 20000; i++) x = sha256(x);
+  return x;
+}
+const pwOn = () => $('pwgate').classList.contains('open');
+const I_LOCK = icon('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>', 30);
+$('pwic').innerHTML = I_LOCK;
+$('pweye').innerHTML = sz(I_EYE, 20);
+$('pweye').onclick = () => {
+  const show = $('pwin').type === 'password';
+  $('pwin').type = show ? 'text' : 'password';
+  $('pweye').innerHTML = sz(show ? I_EYE_OFF : I_EYE, 20);
+};
+function checkPass() {  // 저장된 확인 기록이 지금 암호문과 같으면 통과
+  if (!PASS_HASH || localStorage.getItem('pass') === PASS_HASH) return true;
+  $('pwgate').classList.add('open');
+  return false;
+}
+$('pwok').onclick = () => {
+  const v = $('pwin').value;
+  if (!v) { $('pwerr').textContent = '비밀번호를 입력해 주세요.'; return; }
+  $('pwok').disabled = true;
+  $('pwok').textContent = '확인 중...';
+  setTimeout(() => {  // 계산 전에 '확인 중...'이 먼저 보이게
+    const ok = passHash(v) === PASS_HASH;
+    $('pwok').disabled = false;
+    $('pwok').textContent = '시작하기';
+    if (!ok) {
+      $('pwerr').textContent = '비밀번호가 맞지 않아요.';
+      $('pwin').classList.remove('pwshake');
+      void $('pwin').offsetWidth;
+      $('pwin').classList.add('pwshake');
+      return;
+    }
+    localStorage.setItem('pass', PASS_HASH);
+    $('pwin').value = '';
+    $('pwgate').classList.remove('open');
+    autoCoach();  // 처음이면 이어서 설정 안내
+    permCoach();
+  }, 30);
+};
+$('pwin').onkeydown = e => { if (e.key === 'Enter') $('pwok').click(); };
+$('pwin').oninput = () => { $('pwerr').textContent = ''; };
+checkPass();
+
 // 친구에게 소개: 폰의 공유 창(카카오톡 등)으로 링크 보내기, QR 보여주기
 const APP_URL = location.origin + location.pathname;  // 주소 뒤 ?, # 은 뺀 앱 주소
 const I_SHARE = icon('<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/>');
@@ -3283,7 +3392,7 @@ function paintPerm() {
 }
 let sndOk = false, sndNo = 0;
 function permCoach() {  // 처음이면 마이크 → 소리 순서로 비춤
-  if (localStorage.getItem('permsdone') || $('perm').style.display !== 'flex') return;
+  if (localStorage.getItem('permsdone') || $('perm').style.display !== 'flex' || pwOn()) return;
   if (!paintPerm()) openCoach('mic');
   else if (!sndOk) openCoach('snd');
 }
@@ -3873,7 +3982,7 @@ function closeCoach() {
   coachStep = '';
 }
 function autoCoach() {  // 키가 없고 설정 화면이면 처음 한 번 (앱 안 브라우저면 크롬으로 가라는 안내가 먼저)
-  if (!apiKey && !inApp && !coachOn() && $('setup').style.display === 'flex' && !localStorage.getItem('coachseen')) openCoach('tour');
+  if (!apiKey && !inApp && !pwOn() && !coachOn() && $('setup').style.display === 'flex' && !localStorage.getItem('coachseen')) openCoach('tour');
 }
 function pasteDone() {  // 키가 들어오면 설정 안내 끝
   if (coachStep !== 'paste') return;
