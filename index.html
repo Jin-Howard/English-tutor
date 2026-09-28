@@ -26,6 +26,15 @@ function openOut() {  // 넘길 방법이 있으면 이동하고 true
   return true;
 }
 try { if (!sessionStorage.getItem('escaped') && openOut()) sessionStorage.setItem('escaped', '1'); } catch (e) {}  // 같은 창에서는 한 번만 시도 (무한 반복 방지)
+// 앱 높이 = 지금 실제로 보이는 화면 높이. 주소창이 나타나거나 키보드가 올라오면 다시 잼
+// (100vh, 100dvh를 브라우저마다 다르게 해석해서 아래 버튼이 화면 밖으로 밀리는 문제를 막음)
+(function () {
+  var setH = function () { document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px'); };
+  document.documentElement.classList.add('vh');
+  setH();
+  window.addEventListener('resize', setH);
+  window.addEventListener('orientationchange', function () { setTimeout(setH, 300); });
+})();
 // 시작 안전장치: (1) 저장소가 막힌 브라우저에서는 메모리로 동작 (2) 시작 중 오류가 나면 멈춘 화면 대신 안내를 보여줌
 (function () {
   try { localStorage.getItem('t'); } catch (e) {
@@ -87,7 +96,8 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   html, body { overscroll-behavior-y: contain; }  /* 아래로 당겨 새로고침되는 것 방지 */
   body { margin: 0 auto; max-width: 520px; box-sizing: border-box; height: 100vh; height: 100dvh; display: flex; flex-direction: column; font-family: var(--font);
          background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; word-break: keep-all; overflow-wrap: anywhere; }
-  html.vh body { height: var(--app-h); }  /* dvh를 모르는 구형 브라우저용 */
+  html.vh body { height: var(--app-h); }  /* 실제로 보이는 높이 (첫 스크립트가 잼) */
+  html, body { overscroll-behavior: none; }  /* 페이지 전체가 튕기며 밀리지 않게, 스크롤은 각 화면 안에서만 */
   @media (min-width: 560px) { body { border-left: 1px solid var(--line); border-right: 1px solid var(--line); } }
   button { font: inherit; color: inherit; cursor: pointer; transition: transform .12s ease, background .2s ease; }
   button:active:not(:disabled) { transform: scale(.97); }
@@ -134,7 +144,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   #splash .a1 i { background: conic-gradient(from 0deg, transparent 0 78deg, rgba(255, 212, 59, .14) 105deg, rgba(255, 212, 59, 1) 168deg, rgba(255, 212, 59, .3) 186deg, transparent 205deg 360deg); }
   #splash .a2 { right: -78vw; bottom: -78vw; }
   #splash .a2 i { background: conic-gradient(from 0deg, transparent 0 262deg, rgba(255, 212, 59, .3) 300deg, rgba(255, 212, 59, 1) 352deg, rgba(255, 212, 59, .18) 372deg, transparent 380deg 360deg); }
-  #splash .lock { position: relative; display: flex; flex-direction: column; align-items: center; margin-top: -6vh; }
+  #splash .lock { position: absolute; left: 0; right: 0; top: 50%; margin-top: -151px; display: flex; flex-direction: column; align-items: center; }  /* 로고 위끝에서 앱 이름 중심까지 151px → 이름이 화면 한가운데 */
   #splash .mk { display: block; opacity: 0; transform: scale(.82) translateY(8px); animation: pop .7s .1s cubic-bezier(.2, .9, .3, 1.25) forwards; }
   #splash .mk .st { transform-origin: 73px 27.5px; animation: twinkle 1.6s .55s ease-in-out infinite; }
   #splash .wm { margin-top: 20px; font-size: 38px; font-weight: 800; letter-spacing: -1.2px; opacity: 0; transform: translateY(10px);
@@ -632,6 +642,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
            background: var(--accent); color: var(--on-accent); }
   .lvbig small { font-size: 14px; font-weight: 800; }
   .lvbig b { font-size: 50px; line-height: 1; font-weight: 800; }
+  #ubody .lvbig small, #ubody .lvbig b, #wbody .lvbig small, #wbody .lvbig b { position: relative; top: -2.5px; }  /* 분수 점수(5/5)는 원 중심보다 2.5px 아래로 보여서 보정 (레벨 결과 원은 이미 중앙) */
   .sigs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 4px 0 16px; }
   .sigs span { padding: 5px 12px; border-radius: 14px; background: var(--surface2); font-size: 13px; font-weight: 700; color: var(--sub); }
   .note { margin: 0 0 16px; text-align: center; font-size: 13.5px; line-height: 1.55; color: var(--sub); word-break: keep-all; }
@@ -681,7 +692,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     #obbody .seg.full button { padding: 10px 0; }
   }
   #ubody .c, #wbody .c { text-align: center; }
-  #ubody .qword, #wbody .qword { margin: 22px 0 8px; }
+  #ubody .qword, #wbody .qword { margin: 22px 0 16px; }
   #ubody .qsent { margin: 14px 0 22px; }
   #ubody #uopts, #wbody #wopts { display: flex; flex-direction: column; gap: 10px; }
   #ubody #uopts .opt, #wbody #wopts .opt { margin: 0; }
@@ -767,6 +778,23 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .modebar { display: none; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--card-line);
              background: var(--card); font-size: 13px; color: var(--sub); }
   .modebar b { color: var(--accent-text); }
+  #mbtxt.tap { display: flex; align-items: center; gap: 2px; cursor: pointer; }
+  .mbchev { display: flex; transform: rotate(90deg); color: var(--sub); }
+  #revexit.quizready { border-color: transparent; background: var(--accent); color: #111; }  /* .go는 화살표 아이콘 상자 이름이라 쓰지 않음 */
+  /* 역할극 표현 목록: 쓴 표현은 체크, 남은 표현은 눌러서 들어보기 */
+  .ugoal { display: none; max-height: 42vh; overflow-y: auto; padding: 4px 14px 10px; border-bottom: 1px solid var(--card-line); background: var(--surface); }
+  .ugoal.open { display: block; animation: ctip .18s both; }
+  .ugrow { display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 8px 0; border: 0; background: none; color: var(--text); font: inherit; text-align: left; }
+  .ugrow i { flex: none; width: 18px; height: 18px; margin-top: 2px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--line2); }
+  .ugrow.done i { background: var(--accent); box-shadow: none; }
+  .ugrow.done b { color: var(--sub); text-decoration: line-through; text-decoration-color: var(--line2); }
+  .ugrow span { display: flex; flex-direction: column; min-width: 0; }
+  .ugrow b { font-size: 14.5px; font-weight: 700; }
+  .ugrow small { font-size: 12.5px; color: var(--sub); }
+  .ughint { margin: 4px 0 2px; font-size: 12.5px; color: var(--accent-text); font-weight: 700; }
+  /* 유닛 화면의 주요 버튼: 내용이 길어도 화면 아래에 붙어 있음 */
+  .ucta { position: sticky; bottom: -28px; z-index: 2; margin: 14px -18px -28px; padding: 12px 18px calc(16px + env(safe-area-inset-bottom)); background: linear-gradient(to bottom, transparent, var(--bg) 30%); }
+  .ucta .pill { width: 100%; margin: 0; }
   .modebar button { padding: 6px 12px; border: 1px solid var(--line2); border-radius: 14px; background: var(--surface2); font-size: 13px; font-weight: 700; }
   #chat { flex: 1; overflow-y: auto; padding: 12px 14px; }
   .msg { box-sizing: border-box; max-width: 82%; margin: 8px 0; padding: 10px 14px; border-radius: 18px; white-space: pre-wrap;
@@ -1093,7 +1121,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v2.3</p>
+    <p id="ver">버전 v2.5</p>
     <p class="copyr">© 2026 Jin Howard. All rights reserved.<br>무단 복제 및 배포를 금지합니다.</p>
     <button type="button" id="devreset" class="pill wide ghost">처음부터 다시 하기 (개발자)</button>
   </div>
@@ -1106,6 +1134,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     <span class="sp"></span>
   </div>
   <div id="modebar" class="modebar"><span id="mbtxt"><b>복습 모드</b> · 지난 대화에서 골랐어요</span><button type="button" id="revexit">끝내기</button></div>
+  <div id="ugoal" class="ugoal"></div>
   <div id="chat"></div>
   <div id="micalts"></div>
   <form id="bar">
@@ -2379,6 +2408,7 @@ function exitReview() {  // 복습이나 역할극을 마치고 나가면 원래
   revHist = [];
   revMat = null;
   $('modebar').style.display = 'none';
+  $('ugoal').classList.remove('open');
   $('chat').textContent = '';
   history.forEach(m => drawMsg(m, $('chat'), true));
 }
@@ -2390,6 +2420,10 @@ async function startReview() {
   revHist = [];
   $('chat').textContent = '';
   $('mbtxt').innerHTML = '<b>복습 모드</b> · 지난 대화에서 골랐어요';
+  $('mbtxt').classList.remove('tap');
+  $('ugoal').classList.remove('open');
+  $('revexit').textContent = '끝내기';
+  $('revexit').classList.remove('quizready');
   $('modebar').style.display = 'flex';
   navTo('main', { review: true });
   const arr = revHist;
@@ -3071,7 +3105,13 @@ $('m-course').onclick = () => navTo('learn');
 $('lvbanner-go').onclick = () => navTo('onb');
 $('lvbanner-x').onclick = () => { ob.snoozeUntil = addDays(dayKey, 7); localStorage.setItem('ob', JSON.stringify(ob)); $('lvbanner').style.display = 'none'; };
 $('chatback').onclick = goBack;
-$('revexit').onclick = goBack;
+$('revexit').onclick = () => {
+  const toQuiz = mode === 'unit' && $('revexit').classList.contains('quizready');  // 목표를 채웠으면 바로 퀴즈로
+  goBack();
+  if (toQuiz) setTimeout(() => { const u = units().find(x => x.id === curUnitId); if (u) { uq = { q: unitQuiz(u), i: 0, ok: 0, picked: undefined }; uv = 'quiz'; paintUnit(); } }, 320);
+};
+$('mbtxt').onclick = () => { if (mode === 'unit') $('ugoal').classList.toggle('open'); };  // 표현 목록 펼치기
+$('ugoal').onclick = e => { const r = e.target.closest('.ugrow'); if (r && activeUnit) speak(activeUnit.ex[+r.dataset.i][0]); };
 document.querySelectorAll('#tabs .tab[data-s]').forEach(t => t.onclick = () => tabTo(t.dataset.s));
 
 // 대화 마무리 요약: 이번에 말한 문장, 교정받은 표현(복습에 자동으로 담김), 저장한 단어
@@ -3891,13 +3931,6 @@ $('keypaste').onclick = async () => {
 $('vsearch').oninput = renderVocab;
 $('vsearch').parentNode.querySelector('.si').innerHTML = I_SEARCH;
 
-// dvh를 모르는 구형 브라우저: 화면 높이를 직접 재서 사용
-if (!(window.CSS && CSS.supports && CSS.supports('height', '100dvh'))) {
-  const setH = () => document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px');
-  document.documentElement.classList.add('vh');
-  setH();
-  window.addEventListener('resize', setH);
-}
 
 const addDays = (k, n) => { const d = new Date(k + 'T00:00:00'); d.setDate(d.getDate() + n); return isoDate(d); };
 // ===== 학습 코스: 레벨마다 유닛(상황) 5개, 유닛 하나는 표현 6개 + 단어 8개 + 역할극 + 미니 퀴즈 =====
@@ -4161,8 +4194,28 @@ function courseStats() {
 
 // ---- 역할극: 채팅 화면을 유닛 상황으로 (기록에는 저장하지 않음) ----
 let activeUnit = null, unitHist = [];
-const unitSystem = u => `${buildSystem()}\nRole-play: ${u.role} Reply in 1 or 2 short sentences and end with a question the learner can answer. Do not list or teach the target expressions; let the situation invite them. Target expressions the learner is practicing: ${u.ex.map(e => e[0]).join(' | ')}.`;
-function unitBar() { $('mbtxt').innerHTML = `<b>${activeUnit.title}</b> · 표현 ${cu(activeUnit.id).used.length}/${activeUnit.ex.length}`; }
+const unitSystem = u => {  // 역할극 지시: 매 턴 쓴 표현과 남은 표현을 알려줘서, 같은 질문으로 되돌아가지 않게
+  const c = cu(u.id), used = u.ex.filter((e, i) => c.used.includes(i)).map(e => e[0]), left = u.ex.filter((e, i) => !c.used.includes(i)).map(e => e[0]);
+  const done = c.used.length >= needEx(u);
+  return `${buildSystem()}
+Role-play: ${u.role}
+How to run it: keep the conversation moving forward like a real one. Accept the learner's real answers (their real name, job, city, and so on) even when they differ from the example phrases, build on what they said, and never ask again about something they already answered. Do not steer back to earlier topics.
+The phrases below are only examples of useful expressions; the learner may use their own words. Do not list or teach them.
+Already practiced: ${used.join(' | ') || 'none yet'}
+Not practiced yet: ${left.join(' | ') || 'none'}
+${done ? 'The learner has reached the goal of this role-play. Wrap up the scene warmly in one or two sentences, and do not ask a new question unless the learner keeps talking.'
+       : 'When it fits naturally, create a moment where ONE of the not-yet-practiced expressions would be useful. Reply in 1 or 2 short sentences and end with a question the learner can answer.'}`;
+};
+function unitBar() {  // 역할극 상단: 진행 숫자(누르면 표현 목록), 목표를 채우면 '퀴즈 풀기'
+  const u = activeUnit, c = cu(u.id), ready = c.used.length >= needEx(u);
+  $('mbtxt').innerHTML = `<b>${u.title}</b> · 표현 ${c.used.length}/${u.ex.length}<span class="mbchev"></span>`;
+  $('mbtxt').querySelector('.mbchev').innerHTML = sz(I_CHEV, 16);
+  $('mbtxt').classList.add('tap');
+  $('ugoal').innerHTML = u.ex.map((e, i) => `<button type="button" class="ugrow${c.used.includes(i) ? ' done' : ''}" data-i="${i}"><i></i><span><b>${escH(e[0])}</b><small>${e[1]}</small></span></button>`).join('')
+    + `<p class="ughint">${ready ? '목표 달성! 더 대화해도 되고, 위의 퀴즈 풀기로 넘어가도 돼요.' : `표현 ${needEx(u)}개를 쓰면 완료돼요. 눌러서 들어 보세요.`}</p>`;
+  $('revexit').textContent = ready ? '퀴즈 풀기' : '끝내기';
+  $('revexit').classList.toggle('quizready', ready);
+}
 async function startRole(u) {
   mode = 'unit';
   activeUnit = u;
@@ -4189,7 +4242,7 @@ function trackUnit(text) {  // 내가 한 말에서 목표 표현을 썼는지 �
   activeUnit.ex.forEach((e, i) => { if (!c.used.includes(i) && exHit(e, text)) c.used.push(i); });
   saveCourse();
   unitBar();
-  if (c.used.length >= needEx(activeUnit) && !c.four) { c.four = true; saveCourse(); toast(`표현 ${needEx(activeUnit)}개를 써 봤어요! 끝내기를 눌러 퀴즈로 넘어가 보세요`, 3800); }
+  if (c.used.length >= needEx(activeUnit) && !c.four) { c.four = true; saveCourse(); toast(`역할극 완료! 위의 '퀴즈 풀기'로 넘어가거나 더 대화해도 돼요`, 3800); }
 }
 function syncDone(u) {  // 역할극과 퀴즈를 모두 마치면 유닛 완료, 그때 유닛 단어를 단어장에 넣음
   const c = cu(u.id);
@@ -4253,14 +4306,14 @@ function paintUnit() {
   } else if (uv === 'ex') {
     box.innerHTML = `<h2 class="pg">${u.title}</h2><p class="qlabel">핵심 표현 · 눌러서 들어 보세요</p><div class="group exlist">${u.ex.map((e, i) => `<div class="exrow" data-i="${i}"><span class="spk"></span><span class="mt"><b>${escH(e[0])}</b><small>${e[1]}</small></span></div>`).join('')}</div>
       <p class="qlabel">핵심 단어</p><div class="chips">${u.words.map(w => `<span class="wchip"><b>${w[0]}</b> ${w[1]}</span>`).join('')}</div>
-      <button type="button" class="pill big" id="uexdone">확인했어요</button>`;
+      <div class="ucta"><button type="button" class="pill big" id="uexdone">확인했어요</button></div>`;
     box.querySelectorAll('.exrow .spk').forEach(s => s.innerHTML = sz(I_SPK, 18));
   } else if (uv === 'quiz') {
     const q = uq.q[uq.i];
     box.innerHTML = `<p class="qcount">문제 ${uq.i + 1} / ${uq.q.length}</p>
       ${q.k === 'ex' ? `<p class="qlabel c">이 뜻에 맞는 영어 표현은?</p><div class="qsent">${q.prompt}</div>` : `<p class="qlabel c">이 단어의 뜻은?</p><div class="qword">${q.prompt}</div><div class="qhint" id="uspk"></div>`}
       <div id="uopts">${optHtml(q, uq.picked)}</div>
-      ${uq.picked !== undefined ? `<button type="button" class="pill big" id="uqnext">${uq.i + 1 < uq.q.length ? '다음' : '결과 보기'}</button>` : ''}`;
+      ${uq.picked !== undefined ? `<div class="ucta"><button type="button" class="pill big" id="uqnext">${uq.i + 1 < uq.q.length ? '다음' : '결과 보기'}</button></div>` : ''}`;
     if (q.k === 'w') $('uspk').append(spkBtn(q.prompt));
   } else {
     const pct = Math.round(uq.ok / uq.q.length * 100);
