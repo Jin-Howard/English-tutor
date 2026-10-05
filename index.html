@@ -369,6 +369,8 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .rcitem s { display: block; font-size: 13.5px; color: var(--sub); text-decoration-color: var(--danger); }
   .rcitem b { display: block; margin-top: 4px; font-size: 15px; font-weight: 700; }
   .rcitem b::before { content: '→ '; color: var(--accent-text); }
+  .rclearn span { display: block; font-size: 13.5px; color: var(--sub); }  /* 물어봐서 배운 표현 (틀린 게 아니라 줄 긋지 않음) */
+  .rclearn::before { content: '배운 표현'; display: inline-block; margin-bottom: 4px; padding: 1px 7px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-text); font-size: 11px; font-weight: 800; }
   .rcnote { margin: 6px 0 14px; font-size: 13px; line-height: 1.5; color: var(--sub); }
   #rc-x { margin-top: 8px; }
   /* 고급 설정 (접힘) */
@@ -1189,7 +1191,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v2.9</p>
+    <p id="ver">버전 v3.0</p>
     <p class="copyr">© 2026 Jin Howard. All rights reserved.<br>무단 복제 및 배포를 금지합니다.</p>
     <button type="button" id="devreset" class="pill wide ghost">처음부터 다시 하기 (개발자)</button>
   </div>
@@ -1326,7 +1328,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     <div class="rcstats"><div><b id="rc-said">0</b><span>말한 문장</span></div><div><b id="rc-fix">0</b><span>교정</span></div><div><b id="rc-words">0</b><span>저장한 단어</span></div></div>
     <div id="rc-list"></div>
     <p class="rcnote" id="rc-note"></p>
-    <button type="button" id="rc-go" class="pill wide">틀린 표현 복습하기</button>
+    <button type="button" id="rc-go" class="pill wide">오늘 표현 복습하기</button>
     <button type="button" id="rc-x" class="pill wide ghost">닫기</button>
   </div>
 </div>
@@ -1396,12 +1398,16 @@ const MODELS = { lite: 'gemini-3.5-flash-lite', pro: 'gemini-3.5-flash', max: 'g
 const MODEL_NAME = { lite: 'Flash-Lite', pro: 'Flash', max: 'Pro' };
 const FALLBACK = { max: 'pro', pro: 'lite', lite: 'pro' };  // 선택한 모델이 막히면 이어서 시도할 모델
 let aiMode = ['pro', 'max'].includes(localStorage.getItem('aimode')) ? localStorage.getItem('aimode') : 'lite';  // 기본은 Flash-Lite
-const BASE_SYSTEM = `You are a friendly English tutor for a Korean learner. Reply in 1-2 short English sentences and end with a simple question.
+const BASE_SYSTEM = `You are a friendly English tutor for a Korean learner. Reply in 1-2 short English sentences and end with ONE open question.
+Questions: ask what, how, why or "tell me about" questions that make the learner explain in a longer answer. Avoid yes/no questions. Pick one specific thing the learner just said and go one step deeper (for example, if they mention a test, a tool or a place, ask what it is for or how it works), instead of switching to a general topic. Do not keep repeating the same theme or praise.
+Reuse: when the learner has just learned an expression from you (they asked how to say something), within the next 2 or 3 turns naturally create a moment where they can use it again in their own sentence. Do not say that it is a test.
 Format: always write your whole English reply first, including your question. If you add a "KO:" line, it must be the very last part of your message. Never write any English after the KO: line. Be perceptive: use the conversation so far and the learner's field of interest to guess what they most likely meant, and answer that.
 The user's text may come from speech recognition: never comment on repeated words, fillers, capitalization, punctuation or apostrophes.
 If the user asks in Korean how to say something in English: reply with only the natural English sentence (no extra question), then a new line "KO:" followed by "이렇게 말하면 돼요." and, if useful, one short note on a key word.
 If the user asks a question about English (a word's meaning, usage, why something is wrong), in any language: answer briefly in Korean after "KO:" with no English part.
-Only if the user made a real grammar or word-choice mistake, or the meaning is unclear or unfinished, add a new line starting with "KO:". In Korean, guess their intent and ask, in the form "혹시 ~라고 말하고 싶으셨어요? → natural English sentence" (if they seem to be asking something: "혹시 ~가 궁금하셨어요? → natural English question"). Then at most one short sentence on when the right word is used. No grammar lectures.
+Only if the user made a real grammar or word-choice mistake, or the meaning is unclear or unfinished, add a new line starting with "KO:". In Korean, guess their intent and ask, like "혹시 '혈액 검사실에서 일해요'라고 말하고 싶으셨어요? → I work in the hematology department." (if they seem to be asking something: "혹시 '...'가 궁금하셨어요? → natural English question"). Always write their actual meaning in the quotes; never write "~". Then at most one short sentence on when the right word is used. No grammar lectures.
+Never correct: a sentence that is already correct and natural (for example when they repeat the sentence you suggested; just praise briefly), a correction you already gave, a filler like "음" or "um", a single word answer, or a message in Korean.
+When you correct something, your English reply must respond to what they meant (the corrected sentence), not to the mistaken words.
 Otherwise do not write KO:.`;
 
 const $ = id => document.getElementById(id);
@@ -1421,7 +1427,7 @@ vocab.forEach(v => { if (!v.due) { v.box = v.box || 1; v.due = dayKey; } });  //
 let ob = JSON.parse(localStorage.getItem('ob') || 'null');  // 온보딩 결과 { lvl, goals, mins, days, ... } 또는 { skipped: true }
 const LV_NAME = ['', '입문', '초급', '중급', '중상급', '상급'];
 const LV_RULE = ['',
-  'Level 1 (beginner): use only very short sentences (max 6 words) and basic words, speak slowly, and add a short Korean help line after "KO:" in almost every reply (this overrides the rule about not writing KO: otherwise).',
+  'Level 1 (beginner): use only very short sentences (max 6 words) and basic words, speak slowly, and add a short Korean help line after "KO:" in almost every reply (this overrides the rule about not writing KO: otherwise). Simple yes/no or either/or questions are fine at this level.',
   'Level 2: sentences up to 10 words with everyday vocabulary; add a short Korean note after "KO:" for key words when useful.',
   'Level 3: natural everyday sentences; use "KO:" only for corrections or hard words.',
   'Level 4: natural speed and common idioms are fine; keep "KO:" minimal, only for corrections.',
@@ -2222,6 +2228,14 @@ async function toggleTranslate(bubble, text) {
 }
 
 // 저장된 대화 한 줄 그리기 (tap이 true면 단어를 누를 수 있음)
+function cleanReply(reply, said) {  // 교정 카드 한 번 더 거르기 (지시문을 가끔 안 지켜도 화면에는 안 나오게)
+  const [en, ko] = splitKo(reply), k = ko.indexOf('→');
+  if (k < 0) return reply;  // 교정이 아닌 도움말, 영어 표현 안내는 그대로
+  const n = s => String(s).toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+  const fixed = ko.slice(k + 1).split('\n')[0];
+  if (n(fixed) === n(said) || !/[a-z]{2,}/i.test(said)) return en;  // 이미 맞게 말했거나 영어가 아닌 말(한국어, '음')이면 교정 카드 없이
+  return `${en}\nKO: ${ko.replace(/혹시\s*~\s*(라고|하고|가|을|를)?\s*/g, '혹시 이렇게 ')}`;  // '~'를 그대로 베낀 틀 문구 정리
+}
 function splitKo(t) {  // "영어 KO: 한국어" 나누기. KO 뒤에 영어 질문이 붙어 오면 그 줄은 영어 말풍선으로 되돌림
   const i = t.indexOf('KO:');
   if (i < 0) return [t.trim(), ''];
@@ -2464,27 +2478,35 @@ let revHist = [];   // 복습 대화
 let revMat = null;  // 복습 재료
 const H = () => (mode === 'review' ? revHist : mode === 'unit' ? unitHist : history);  // 지금 화면의 대화 기록
 
+function learnedOf(list, i) {  // "영어로 뭐라고 해?"에 튜터가 알려준 표현이면 { ko: 물어본 말, en: 알려준 문장 }
+  if (list[i].role !== 'model' || !list[i - 1] || list[i - 1].role !== 'user') return null;
+  const q = list[i - 1].parts[0].text.trim(), [en, ko] = splitKo(list[i].parts[0].text);
+  if (!/[가-힣]/.test(q) || !/영어로|뭐라고|어떻게 말/.test(q) || !/이렇게 말하면/.test(ko) || !en) return null;
+  return { ko: q.replace(/[을를]?\s*(영어로|뭐라고|어떻게)[\s\S]*$/, '').replace(/[\s,]+$/, '') || q, en: en.replace(/^.*?"(.+)".*$/, '$1').trim() };
+}
 function reviewMaterial() {
   const days = Object.keys(chats).filter(d => chats[d].length).sort().reverse();
-  const mistakes = [];
+  const mistakes = [], learned = [];
   for (const d of days) {
     const list = chats[d];
-    for (let i = list.length - 1; i > 0 && mistakes.length < 3; i--) {  // 최근 것부터
+    for (let i = list.length - 1; i > 0 && (mistakes.length < 3 || learned.length < 2); i--) {  // 최근 것부터
       if (list[i].role !== 'model' || list[i - 1].role !== 'user') continue;
-      const ko = splitKo(list[i].parts[0].text)[1];
-      if (ko && ko.includes('→')) mistakes.push({ said: list[i - 1].parts[0].text.trim(), note: ko.trim() });
+      const ko = splitKo(list[i].parts[0].text)[1], l = learnedOf(list, i);
+      if (l && learned.length < 2) learned.push(l);
+      else if (ko && ko.includes('→') && mistakes.length < 3) mistakes.push({ said: list[i - 1].parts[0].text.trim(), note: ko.trim() });
     }
-    if (mistakes.length >= 3) break;
+    if (mistakes.length >= 3 && learned.length >= 2) break;
   }
   const words = [...vocab].reverse().filter(v => !BASIC[v.w]).slice(0, 3).map(v => ({ w: v.w, meaning: v.meaning }));
-  return { mistakes, words, n: mistakes.length + words.length };
+  return { mistakes, learned, words, n: mistakes.length + learned.length + words.length };
 }
 
 const reviewSystem = mat => `You run a short review session for a Korean learner of English, using only the material below from their past practice.
 ${mat.mistakes.length ? 'Sentences the learner got wrong (what they said -> Korean note with the corrected sentence after an arrow):\n' + mat.mistakes.map(m => `- "${m.said}" -> ${m.note}`).join('\n') : ''}
+${mat.learned && mat.learned.length ? 'Expressions the learner asked how to say in English (Korean -> English they learned):\n' + mat.learned.map(l => `- "${l.ko}" -> "${l.en}"`).join('\n') : ''}
 ${mat.words.length ? 'Saved words:\n' + mat.words.map(w => `- ${w.w}: ${w.meaning}`).join('\n') : ''}
 Rules:
-- Review at most 3 items in total, one at a time, mixing sentences and words.
+- Review at most 3 items in total, one at a time, mixing sentences, learned expressions and words.
 - To ask an item: English part is one short line like "Let's try this one." Then a new line "KO:" followed by the Korean sentence the learner must say in English (for a word: a short Korean situation where they must use that word).
 - Wait for the learner's answer. Then reply: the natural correct English sentence as the English part; after "KO:" write short Korean feedback (max 2 sentences), a blank line, then the next item's Korean sentence.
 - After the last item, after "KO:" give a short encouraging summary in Korean, and end the English part with "Review complete."
@@ -2558,7 +2580,7 @@ async function startReview() {
 }
 
 // 제미나이에게 보내고 답 받기 (복습 모드에서는 기록에 저장하지 않음)
-const MIX_RULE = `Transcription rules: write the words the learner actually said, in order. Pronunciation: the learner has a Korean accent, so be generous with sounds. If a word is mispronounced (for example r/l, p/f, b/v, th, or unclear vowels), write the English word they were clearly trying to say. Grammar and word choice: never fix them. Keep wrong tenses, missing words and wrong word order exactly as said, because the tutor will correct them. Never add words that were not spoken, never translate, answer, explain or summarize, even if the learner is asking a question. Keep each word in the language it was spoken: Korean speech stays in Hangul, English speech stays in English letters. Example 1, accent. Heard like "I rike to eat pija". Right: "I like to eat pizza". Example 2, grammar mistake. Right: "Yesterday I go to school" (keep "go"). Example 3, English with an accent. Right: "What's up, my name is 민수". Wrong: "와썹 마이 네임 이즈 민수". Example 4, a question spoken in Korean. Right: "겨울왕국을 영어로 뭐라고 해?". Wrong: "How do you say Frozen in English?".`;  // 발음은 너그럽게(말하려던 단어로), 문법은 그대로, 번역/대답/지어내기 금지
+const MIX_RULE = `Transcription rules: write the words the learner actually said, in order. Pronunciation: the learner has a Korean accent, so be generous with sounds. If a word is mispronounced (for example r/l, p/f, b/v, th, or unclear vowels), write the English word they were clearly trying to say. Grammar and word choice: never fix them. Keep wrong tenses, missing words and wrong word order exactly as said, because the tutor will correct them. Never add words that were not spoken, never translate, answer, explain or summarize, even if the learner is asking a question. Keep each word in the language it was spoken: Korean speech stays in Hangul, English speech stays in English letters. Write acronyms spelled letter by letter as capital letters with no spaces or dashes (\"C B C\" or \"C-B-C\" becomes \"CBC\", \"P T\" becomes \"PT\"), and keep model numbers as said (\"AU 400\"). Example 1, accent. Heard like "I rike to eat pija". Right: "I like to eat pizza". Example 2, grammar mistake. Right: "Yesterday I go to school" (keep "go"). Example 3, English with an accent. Right: "What's up, my name is 민수". Wrong: "와썹 마이 네임 이즈 민수". Example 4, a question spoken in Korean. Right: "겨울왕국을 영어로 뭐라고 해?". Wrong: "How do you say Frozen in English?".`;  // 발음은 너그럽게(말하려던 단어로), 문법은 그대로, 번역/대답/지어내기 금지
 // 받아쓰기 전용 요청: 대답할 일이 없어서 들은 그대로만 적음 (가장 가벼운 모델)
 function tutorLast() {  // 튜터가 방금 한 영어 말 (받아쓰기 참고용)
   const m = [...H()].reverse().find(x => x.role === 'model');
@@ -2626,11 +2648,12 @@ async function send(text, audio, vb) {
   ty.start();
   try {
     const meta = { onText: t => ty.set(splitKo(t)[0]) };  // 영어 부분만 써 내려가고, 끝나면 showReply가 완성본으로 교체
-    const reply = await askAI({
+    let reply = await askAI({
       system_instruction: { parts: [{ text: m0 === 'review' ? reviewSystem(revMat) : m0 === 'unit' ? unitSystem(activeUnit) : buildSystem() }] },
       contents: arr.slice(-(MAX_TURNS * 2 - 1)),
       generationConfig: { temperature: 0.7, maxOutputTokens: 1500 }
     }, meta);
+    if (m0 !== 'review') reply = cleanReply(reply, text);  // 복습은 KO 줄이 문제라서 거르지 않음
     arr.push({ role: 'model', parts: [{ text: reply }] });
     if (m0 === 'chat') { chats[dayKey] = history; saveChats(); }
     ty.set(splitKo(reply)[0]);
@@ -3240,11 +3263,13 @@ function showRecap() {
   const s = sessInfo;
   sessInfo = null;
   if (!s) return;
-  const list = (chats[dayKey] || []).slice(s.start), fixes = [];
+  const list = (chats[dayKey] || []).slice(s.start), fixes = [], learned = [];
   const said = list.filter(x => x.role === 'user').length;
   if (said < 2) return;  // 한두 마디면 요약할 게 없음
   for (let i = 1; i < list.length; i++) {
     if (list[i].role !== 'model' || list[i - 1].role !== 'user') continue;
+    const l = learnedOf(list, i);
+    if (l) { learned.push(l); continue; }
     const ko = splitKo(list[i].parts[0].text)[1], k = ko.indexOf('→');
     if (k >= 0) fixes.push({ said: list[i - 1].parts[0].text.trim(), better: ko.slice(k + 1).trim().replace(/^["'“]|["'”]$/g, '') });
   }
@@ -3254,13 +3279,18 @@ function showRecap() {
   $('rc-fix').textContent = fixes.length;
   $('rc-words').textContent = words;
   $('rc-list').textContent = '';
+  learned.slice(-2).forEach(l => {  // 물어봐서 배운 표현
+    const it = el('div', 'rcitem rclearn');
+    it.append(el('span', '', l.ko), el('b', '', l.en));
+    $('rc-list').append(it);
+  });
   fixes.slice(-3).forEach(f => {
     const it = el('div', 'rcitem');
     it.append(el('s', '', f.said), el('b', '', f.better));
     $('rc-list').append(it);
   });
-  $('rc-note').textContent = fixes.length ? '교정받은 표현은 복습하기에 자동으로 담겼어요.' : '교정받은 표현이 없어요. 오늘의 단어로 표현을 늘려 보세요.';
-  $('rc-go').style.display = fixes.length ? '' : 'none';
+  $('rc-note').textContent = fixes.length || learned.length ? '배운 표현과 교정받은 표현은 복습하기에 자동으로 담겼어요.' : '교정받은 표현이 없어요. 오늘의 단어로 표현을 늘려 보세요.';
+  $('rc-go').style.display = fixes.length || learned.length ? '' : 'none';
   $('recap').classList.add('open');
 }
 const closeRecap = () => $('recap').classList.remove('open');
