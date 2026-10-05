@@ -246,6 +246,14 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .xtabs button { height: 30px; padding: 0 12px; border: 0; border-radius: 999px; background: none; color: var(--sub); font: inherit; font-size: 13.5px; font-weight: 700; }
   .xtabs button.on { background: var(--home-card); color: var(--text); box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
   #expr .x-ko.tight { margin-bottom: 10px; }
+  .xspk { display: flex; align-items: center; gap: 6px; }  /* 단어, 예문 옆 스피커 */
+  .xspk .vspk { flex: none; }
+  .xrows { margin: 12px 0 14px; }  /* 오늘의 표현 3개 */
+  .xrow { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
+  .xrow + .xrow { border-top: 1px solid var(--home-line); }
+  .xrt { flex: 1; min-width: 0; }
+  #menu #expr .xrow .x-en { margin: 0; font-size: 16.5px; }
+  #expr .xrow .x-ko { margin: 2px 0 0; }
   .xwex, .xwexko { margin: 0; padding-left: 12px; border-left: 3px solid var(--tile-ic); }  /* 예문은 인용처럼 작게 */
   .xwex { font-size: 14px; line-height: 1.45; font-weight: 600; }
   .xwskel { height: 41px; margin: 0 0 16px; padding-left: 12px; border-left: 3px solid var(--tile-ic); box-sizing: border-box; }  /* 예문과 같은 높이의 로딩 막대 */
@@ -488,6 +496,9 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .hint { margin: 10px 2px 0; font-size: 12.5px; line-height: 1.55; color: var(--sub); }
   .guide .g-row .chev svg { display: block; transition: transform .2s; }
   .guide.open .g-row .chev svg { transform: rotate(90deg); }
+  #setup #keyacc:not(.open) .keybody { display: none; }  /* API 키: 저장돼 있으면 접어서 요약만 (#setup label 규칙보다 강하게) */
+  #keyacc #keyhead { width: calc(100% + 32px); margin: 0 -16px; }  /* 입력 그룹 여백(16px)과 겹치지 않게 다른 칸과 같은 줄로 */
+  #keysum { display: block; margin-top: 2px; font-size: 13px; font-weight: 500; color: var(--sub); }
   #aiseg [data-m="max"] { position: relative; overflow: visible; }
   #aiseg .crown { position: absolute; top: -4px; left: 50%; transform: translateX(-50%); color: #E8960B; }
   #aiseg .crown svg { display: block; }
@@ -826,6 +837,20 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .ugrow small { font-size: 12.5px; color: var(--sub); }
   .ughint { margin: 4px 0 2px; font-size: 12.5px; color: var(--accent-text); font-weight: 700; }
   /* 유닛 화면의 주요 버튼: 내용이 길어도 화면 아래에 붙어 있음 */
+  /* 퀴즈 해설 */
+  .wothers { display: block; margin-top: 6px; font-style: normal; font-size: 12.5px; color: var(--sub); line-height: 1.6; }
+  .ucat { flex: none; display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; margin-right: 12px; border-radius: 13px; background: var(--accent-soft); color: var(--accent-text); }  /* 코스 분야 아이콘 */
+  .qexp { margin: 14px 0 0; padding: 14px 16px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--surface); }
+  .qexp.good { border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+  .qexp.bad { border-color: color-mix(in srgb, var(--danger) 35%, transparent); }
+  .qeh { margin: 0 0 6px; font-size: 13px; font-weight: 800; }
+  .qexp.good .qeh { color: var(--ok); }
+  .qexp.bad .qeh { color: var(--danger); }
+  .qeok, .qeex { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 16px; line-height: 1.4; }
+  .qeex { margin-top: 8px; font-size: 14.5px; font-weight: 600; }
+  .qeko { margin: 2px 0 0; font-size: 13.5px; color: var(--sub); }
+  .qesub { margin: 12px 0 4px; padding-top: 10px; border-top: 1px dashed var(--dash); font-size: 12.5px; font-weight: 700; color: var(--sub); }
+  .qexp ul { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.7; }
   .ucta { position: sticky; bottom: -28px; z-index: 2; margin: 14px -18px -28px; padding: 12px 18px calc(16px + env(safe-area-inset-bottom)); background: linear-gradient(to bottom, transparent, var(--bg) 30%); }
   .ucta .pill { width: 100%; margin: 0; }
   .modebar button { padding: 6px 12px; border: 1px solid var(--line2); border-radius: 14px; background: var(--surface2); font-size: 13px; font-weight: 700; }
@@ -881,6 +906,10 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .vex { color: var(--sub); font-size: 13px; margin-top: 2px; }
   .vsave, .vdel, .vmore { padding: 6px 12px; font-size: 14px; border: 1px solid var(--line2); border-radius: 10px; background: var(--surface2); }
   .vsave, .vmore { margin-top: 8px; }
+  .phsec { margin-top: 8px; }  /* 구동사 설명 */
+  .phtag { display: inline-block; margin-bottom: 4px; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-text); font-size: 11.5px; font-weight: 800; }
+  .phen { font-weight: 800; font-size: 16px; }
+  .phko { font-size: 14px; }
   /* 5W1H 의문사 설명 */
   .whsec p { margin: 4px 0 0; font-size: 14px; line-height: 1.5; }
   .whtag { display: inline-block; margin-bottom: 2px; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-text); font-size: 11.5px; font-weight: 800; }
@@ -1055,8 +1084,9 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     </div>
 
     <p class="sec">API 키</p>
-    <div class="group fields">
-      <label><span class="lb">API 키<button type="button" id="keypaste" class="mini">붙여넣기</button></span>
+    <div class="group fields guide keyacc" id="keyacc">
+      <button type="button" id="keyhead" class="g-row"><span class="gtitle"><span class="mt">API 키<small id="keysum"></small></span></span><span class="chev"></span></button>
+      <label class="keybody"><span class="lb">API 키<button type="button" id="keypaste" class="mini">붙여넣기</button></span>
         <span class="keyrow"><input id="f-key" class="mask" type="text" placeholder="API 키 붙여넣기" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"><button type="button" id="keyeye" class="eye" aria-label="키 보기"></button></span>
         <span class="kstat" id="keystat"></span>
       </label>
@@ -1159,7 +1189,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v2.8</p>
+    <p id="ver">버전 v2.9</p>
     <p class="copyr">© 2026 Jin Howard. All rights reserved.<br>무단 복제 및 배포를 금지합니다.</p>
     <button type="button" id="devreset" class="pill wide ghost">처음부터 다시 하기 (개발자)</button>
   </div>
@@ -1767,6 +1797,7 @@ $('save').onclick = async () => {
   }
   const first = !profile;
   apiKey = key;
+  paintKeySum();  // 저장하면 키 칸은 접고 요약만
   profile = p;
   localStorage.setItem('gkey', key);
   localStorage.setItem('profile', JSON.stringify(p));
@@ -1997,12 +2028,13 @@ const lines = t => t.split('\n').map(l => l.replace(/^\s*[1-4][.)]\s*/, '').trim
 async function lookup(word, context) {
   const text = await lite({
     contents: [{ role: 'user', parts: [{ text:
-      `Word: "${word}"\nSentence: "${context}"\nAnswer in exactly 4 lines, no labels, no numbering, no markdown:\nline 1: base form of the word (the word itself if already base)\nline 2: Korean meaning as "ⓝ 뜻" (noun), "ⓥ 뜻" (verb), "ⓐ 뜻" (adjective), "ⓓ 뜻" (adverb) or "ⓞ 뜻" (other). Put the sense used in the sentence first, at most 2 parts of speech joined by " · ", verbs in dictionary form like "ⓥ 달리다"\nline 3: one short English example sentence using the word\nline 4: Korean translation of line 3` }] }],
+      `Word: "${word}"\nSentence: "${context}"\nAnswer in exactly 5 lines, no labels, no numbering, no markdown:\nline 1: base form of the word (the word itself if already base)\nline 2: Korean meaning of the word itself as "ⓝ 뜻" (noun), "ⓥ 뜻" (verb), "ⓐ 뜻" (adjective), "ⓓ 뜻" (adverb) or "ⓞ 뜻" (other). Put the sense used in the sentence first, at most 2 parts of speech joined by " · ", verbs in dictionary form like "ⓥ 달리다"\nline 3: if the word is part of a phrasal verb or a fixed expression in this sentence (like "catch up", "take off", "look forward to"), write it in base form, then " | ", then its Korean meaning as used here. Otherwise write "-"\nline 4: one short English example sentence using the phrase from line 3 if there is one, otherwise the word\nline 5: Korean translation of line 4` }] }],
     generationConfig: { temperature: 0.1, maxOutputTokens: 1000 }
   });
-  const [base, meaning, ex, exko] = lines(text);
+  const [base, meaning, phr, ex, exko] = lines(text);
   if (!exko) throw new Error('응답 형식 오류');
-  return { base: base.toLowerCase(), meaning, ex, exko };
+  const [pe, pk] = (phr || '').split('|').map(s => s.trim());
+  return { base: base.toLowerCase(), meaning, ex, exko, ph: pe && pe !== '-' && pk ? [pe.toLowerCase(), pk] : null };  // ph: 이 문장에서 쓰인 구동사 [영어, 뜻]
 }
 
 // 저장한 단어의 예문 목록 (옛 저장 형식도 읽기)
@@ -2081,6 +2113,12 @@ function whSection(key) {  // 한국인이 가장 많이 틀리는 건 do를 빼
   return sec;
 }
 
+// 구동사일 수 있는지: 바로 옆에 up, off 같은 말이 붙어 있으면 (catch up, take off, look forward to...)
+const PARTICLE = new Set(['up', 'down', 'out', 'off', 'on', 'in', 'over', 'away', 'back', 'around', 'through', 'into', 'after', 'along', 'forward']);
+function phrasalNear(w, context) {
+  const t = String(context).toLowerCase().replace(/[’]/g, "'").match(/[a-z']+/g) || [], i = t.indexOf(w);
+  return i >= 0 && (PARTICLE.has(t[i + 1]) || (PARTICLE.has(w) && i > 0));
+}
 // 단어를 눌렀을 때: 읽어주기 + 뜻 카드
 async function onWord(bubble, word, context) {
   const w = word.toLowerCase().replace('’', "'");
@@ -2092,10 +2130,10 @@ async function onWord(bubble, word, context) {
   after.after(card);  // 설명이나 번역 말풍선이 있으면 그 아래에
   bubble.card = card;
   try {
-    const sv = findWord(w);
-    // 기본 단어표 > 저장된 단어(뜻만) > 이번 접속 조회분 순, 모두 호출 없음
-    let d = BASIC[w] ? { base: '', ...BASIC[w] } : sv ? { base: sv.base, meaning: sv.meaning } : cache.get(w);
-    if (!d) { d = await lookup(w, context); cache.set(w, d); }
+    const sv = findWord(w), near = phrasalNear(w, context), ck = near ? w + '\u0001' + context : w;  // 구동사일 수 있으면 문장마다 따로 조회
+    // 기본 단어표 > 저장된 단어(뜻만) > 이번 접속 조회분 순, 모두 호출 없음 (단, 옆에 up, off 같은 말이 붙어 있으면 구동사를 확인하려고 조회)
+    let d = near ? cache.get(ck) : BASIC[w] ? { base: '', ...BASIC[w] } : sv ? { base: sv.base, meaning: sv.meaning } : cache.get(ck);
+    if (!d) { d = await lookup(w, context); cache.set(ck, d); }
     const btn = el('button', 'vsave', sv ? '저장됨' : '저장');
     btn.disabled = !!sv;
     btn.onclick = () => {
@@ -2108,6 +2146,11 @@ async function onWord(bubble, word, context) {
     };
     card.textContent = '';
     card.append(speakRow(d.base && d.base !== w ? `${w} (${d.base})` : w, w, 'vtitle'), el('div', '', d.meaning));
+    if (d.ph) {  // 이 문장에서는 구동사로 쓰였어요
+      const ps = el('div', 'vsec phsec');
+      ps.append(el('b', 'phtag', '이 문장에서는 구동사'), speakRow(d.ph[0], d.ph[0], 'phen'), el('div', 'phko', d.ph[1]));
+      card.append(ps);
+    }
     if (d.note) card.append(el('div', 'vnote vsec', d.note));
     else if (d.ex) {
       const sec = el('div', 'vsec');
@@ -3098,14 +3141,21 @@ function paintExpr() {
   box.textContent = '';
   box.append(head);
   const act = el('div', 'x-act');
-  if (xTab === 'expr') {
-    const list = EXPR[kind], [en, ko] = list[(dn + xShift) % list.length];
+  if (xTab === 'expr') {  // 하루 3개 세트: 공부하는 사람은 하나만 보고 끝내지 않으니까
+    const list = EXPR[kind], set = [0, 1, 2].map(k => list[((dn + xShift) * 3 + k) % list.length]);
+    const rows = el('div', 'xrows');
+    set.forEach(([en, ko]) => {
+      const r = el('div', 'xrow'), t = el('div', 'xrt');
+      t.append(el('p', 'x-en', en), el('p', 'x-ko', ko));
+      r.append(t, spkBtn(en));
+      rows.append(r);
+    });
     const next = el('button', 'pill ghost', '다른 표현');
     next.onclick = () => { xShift++; paintExpr(); };
     const use = el('button', 'pill', '대화에서 써보기');
-    use.onclick = () => { navTo('main'); $('inp').value = `Let's practice: "${en}"`; paint(); };
-    act.append(spkBtn(en), next, use);
-    box.append(el('p', 'x-en', en), el('p', 'x-ko', ko), act);
+    use.onclick = () => { navTo('main'); $('inp').value = `Let's practice these: ${set.map(([en]) => `"${en}"`).join(', ')}`; paint(); };
+    act.append(next, use);
+    box.append(rows, act);
     return;
   }
   const pool = wordPool(kind), it = { ...pool[(dn + wShift) % pool.length] };
@@ -3123,9 +3173,10 @@ function paintExpr() {
     toast('단어장에 저장했어요. 복습하기에서 바로 연습할 수 있어요', 3000);
     paintMenu();
   };
-  act.append(spkBtn(it.ex ? it.ex[0] : it.w), next, save);
-  box.append(el('p', 'x-en', it.w), el('p', 'x-ko' + (it.ex || loading ? ' tight' : ''), `${POSMARK[it.pos] || ''} ${it.ko}`.trim()));  // 표현 카드와 같은 자리, 같은 크기
-  if (it.ex) box.append(el('p', 'xwex', it.ex[0]), el('p', 'xwexko', it.ex[1]));
+  act.append(next, save);
+  const wl = el('p', 'x-en xspk'); wl.append(it.w, spkBtn(it.w));  // 단어 옆 스피커: 단어만 읽음
+  box.append(wl, el('p', 'x-ko' + (it.ex || loading ? ' tight' : ''), `${POSMARK[it.pos] || ''} ${it.ko}`.trim()));  // 표현 카드와 같은 자리, 같은 크기
+  if (it.ex) { const el2 = el('p', 'xwex xspk'); el2.append(it.ex[0], spkBtn(it.ex[0])); box.append(el2, el('p', 'xwexko', it.ex[1])); }  // 예문 옆 스피커: 문장을 읽음
   else if (loading) { const sk = el('div', 'xwskel'); sk.innerHTML = '<i></i><i></i>'; box.append(sk); }
   box.append(act);
 }
@@ -3987,6 +4038,14 @@ $('adv').querySelector('.chev').innerHTML = I_CHEV;
 $('infohead').querySelector('.chev').innerHTML = I_CHEV;
 $('guidehead').onclick = () => $('guide').classList.toggle('open');
 $('infohead').onclick = () => $('info').classList.toggle('open');
+$('keyhead').querySelector('.chev').innerHTML = I_CHEV;
+$('keyhead').onclick = () => $('keyacc').classList.toggle('open');
+function paintKeySum() {  // 접혀 있을 때 보이는 요약: 저장된 키는 앞뒤 4글자만
+  const k = apiKey || '';
+  $('keysum').textContent = k ? `저장됨 · ${k.slice(0, 4)}••••${k.slice(-4)}` : '아직 없어요 · 눌러서 붙여넣기';
+  $('keyacc').classList.toggle('open', !k);  // 키가 없으면 펼쳐 둠
+}
+paintKeySum();
 $('keyopen').onclick = () => {
   if (coachStep === 'studio') { closeCoach(); pasteNext = true; }  // 돌아오면 붙여넣기를 비춤
   window.open('https://aistudio.google.com/apikey', '_blank', 'noopener');
@@ -4071,6 +4130,7 @@ function openCoach(step) {
   $('coachtip').querySelector('b').textContent = c.t;
   $('coachtip').querySelector('p').innerHTML = c.p;
   if (step === 'tour' || step === 'studio') $('guide').classList.add('open');
+  if (step === 'paste') $('keyacc').classList.add('open');  // 붙여넣기 안내 때는 키 칸을 펼침
   $(scr).classList.add('coaching');
   $(scr).dataset.coach = step;
   c.el().classList.add('coachpulse');
@@ -4507,6 +4567,23 @@ function endRole() {
 
 // ---- 유닛 미니 퀴즈: 표현 3문제(한국어 뜻 -> 영어 표현) + 단어 2문제 ----
 const allUnitWords = () => Object.values(COURSE).flat().flatMap(u => u.words);
+function quizExp(u, q, picked) {  // 퀴즈 해설: 정답과 그 뜻, 예문, 다른 보기는 무슨 뜻이었는지
+  const right = picked >= 0 && q.opts[picked] === q.ok, words = allUnitWords();
+  let main, others;
+  if (q.k === 'ex') {  // 보기가 영어 표현: 각 표현의 한국어 뜻
+    const ko = en => (u.ex.find(e => e[0] === en) || [])[1] || '';
+    main = `<p class="qeok" data-sp="${escH(q.ok)}"><b>${escH(q.ok)}</b></p><p class="qeko">${escH(q.prompt)}</p>`;
+    others = q.opts.filter(o => o !== q.ok).map(o => `<li><b>${escH(o)}</b> ${escH(ko(o))}</li>`).join('');
+  } else {  // 보기가 한국어 뜻: 그 뜻을 가진 영어 단어, 그리고 예문
+    const en = ko => (words.find(w => w[1] === ko) || [])[0] || '';
+    const re = new RegExp('\\b' + q.prompt.replace(/e$/, '') + '(e|es|s|ed|d|ing)?\\b', 'i');
+    const ex = (u.ex.find(e => re.test(e[0])) || allEx().find(e => re.test(e[0])) || wexCache[q.prompt]);
+    main = `<p class="qeok" data-sp="${escH(q.prompt)}"><b>${escH(q.prompt)}</b> = ${escH(q.ok)}</p>`
+      + (ex ? `<p class="qeex" data-sp="${escH(ex[0])}">${escH(ex[0])}</p><p class="qeko">${escH(ex[1])}</p>` : '');
+    others = q.opts.filter(o => o !== q.ok).map(o => `<li>${escH(o)} <b>${escH(en(o))}</b></li>`).join('');
+  }
+  return `<div class="qexp ${right ? 'good' : 'bad'}"><p class="qeh">${right ? '정답이에요!' : '아쉬워요. 정답은'}</p>${main}${others ? `<p class="qesub">다른 보기는</p><ul>${others}</ul>` : ''}</div>`;
+}
 function unitQuiz(u) {
   const qs = shuffle(u.ex).slice(0, 3).map(e => ({ k: 'ex', prompt: e[1], ok: e[0], opts: shuffle([e[0], ...shuffle(u.ex.filter(x => x !== e)).slice(0, 3).map(x => x[0])]) }));
   shuffle(u.words).slice(0, 2).forEach(w => {
@@ -4518,13 +4595,22 @@ function unitQuiz(u) {
 let curUnitId = null, uv = 'home', uq = null;  // 보고 있는 유닛, 화면 상태(home | ex | quiz | qres), 퀴즈 진행
 const LET = ['A', 'B', 'C', 'D'];
 const optHtml = (q, picked) => q.opts.map((o, i) => `<button type="button" class="opt q lz${picked === undefined ? '' : (o === q.ok ? ' right' : i === picked ? ' wrong' : '')}" data-i="${i}"${picked === undefined ? '' : ' disabled'}><span class="lt">${LET[i]}</span><span>${escH(o)}</span></button>`).join('');
+const CAT = {  // 유닛 아이디 앞부분으로 분야를 나눔 (레벨이 달라도 같은 분야)
+  intro: ['만남', '<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M16 4.5a3.2 3.2 0 0 1 0 6.3M17.5 13.5a5.5 5.5 0 0 1 3 5.5"/>'],
+  cafe: ['카페', '<path d="M4 9h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3.5c0 1.5 1.5 1.5 1.5 3M11.5 3.5c0 1.5 1.5 1.5 1.5 3"/>'],
+  route: ['교통', '<path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/>'],
+  clinic: ['병원', '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/>'],
+  shop: ['쇼핑', '<path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>']
+};
+const catOf = u => CAT[u.id.replace(/\d+$/, '')] || [u.title, ''];
 function paintLearn() {
   const st = courseStats(), rec = recUnit(), us = units();
   const cards = us.map(u => {
     const c = cu(u.id), s = unitStatus(u);
-    const meta = s === 'done' ? `완료 · 퀴즈 ${Math.round((c.quiz || 0) * 100)}%` : s === 'progress' ? `표현 ${c.used.length}/${u.ex.length}${c.quiz !== null ? ` · 퀴즈 ${Math.round(c.quiz * 100)}%` : ''}` : u.scene;
+    const meta = s === 'done' ? `${u.title} · 완료` : s === 'progress' ? `${u.title} · 표현 ${c.used.length}/${u.ex.length}` : u.title;  // 긴 장면 설명 대신 짧은 유닛 이름
+    const [cat, ic] = catOf(u);
     const badge = s === 'done' ? `<i class="ubadge ok">${I_CHECK}</i>` : rec && rec.id === u.id ? '<i class="ubadge rec">추천</i>' : '';
-    return `<button type="button" class="ucard" data-id="${u.id}"><span class="mt"><b>${u.title}</b><small>${meta}</small></span>${badge}<span class="go"></span></button>`;
+    return `<button type="button" class="ucard" data-id="${u.id}"><span class="ucat">${icon(ic, 22)}</span><span class="mt"><b>${cat}</b><small>${meta}</small></span>${badge}<span class="go"></span></button>`;
   }).join('');
   const all = st.done === st.total;
   const fin = all ? `<div class="pcard fin"><b>레벨 ${st.lv} 코스를 마쳤어요!</b><p>${st.avg >= 0.7 ? '퀴즈 평균이 좋아요. 레벨을 다시 확인해 볼까요?' : '퀴즈를 다시 풀어 점수를 올리거나, 레벨을 다시 확인해 보세요.'}</p><button type="button" class="pill" id="lretest">레벨 다시 확인하기</button></div>` : '';
@@ -4556,8 +4642,10 @@ function paintUnit() {
     box.innerHTML = `<p class="qcount">문제 ${uq.i + 1} / ${uq.q.length}</p>
       ${q.k === 'ex' ? `<p class="qlabel c">이 뜻에 맞는 영어 표현은?</p><div class="qsent">${q.prompt}</div>` : `<p class="qlabel c">이 단어의 뜻은?</p><div class="qword">${q.prompt}</div><div class="qhint" id="uspk"></div>`}
       <div id="uopts">${optHtml(q, uq.picked)}</div>
+      ${uq.picked !== undefined ? quizExp(u, q, uq.picked) : ''}
       ${uq.picked !== undefined ? `<div class="ucta"><button type="button" class="pill big" id="uqnext">${uq.i + 1 < uq.q.length ? '다음' : '결과 보기'}</button></div>` : ''}`;
     if (q.k === 'w') $('uspk').append(spkBtn(q.prompt));
+    box.querySelectorAll('.qexp [data-sp]').forEach(b => b.append(spkBtn(b.dataset.sp)));  // data-say는 스피커 버튼이 쓰는 이름표라 겹치지 않게
   } else {
     const pct = Math.round(uq.ok / uq.q.length * 100);
     box.innerHTML = `<div class="lvbig"><small>점수</small><b>${uq.ok}/${uq.q.length}</b></div><h2 class="pg c">${pct >= 80 ? '잘했어요!' : pct >= 60 ? '좋아요!' : '조금만 더 해 봐요'}</h2>
@@ -4661,7 +4749,9 @@ function paintWrev() {
   const ex = exsOf(v)[0];
   box.innerHTML = `<p class="qcount">단어 ${wr.i + 1} / ${wr.list.length}</p><div class="qword">${escH(v.w)}</div><div class="qhint" id="wspk"></div>
     <div id="wopts">${optHtml({ opts: q.opts, ok: q.ok }, wr.picked)}${wr.picked === undefined ? '<button type="button" class="opt q idk" data-i="-1"><span>모르겠어요</span></button>' : ''}</div>
-    ${wr.picked !== undefined ? `<div class="wfb ${wr.picked >= 0 && q.opts[wr.picked] === q.ok ? 'good' : 'bad'}"><b>${wr.picked >= 0 && q.opts[wr.picked] === q.ok ? '정답이에요!' : `정답: ${escH(q.ok)}`}</b>${ex ? `<span>${escH(ex.ex)}<br>${escH(ex.exko)}</span>` : ''}<small>${(v.box || 1) >= 5 ? '아는 단어가 됐어요' : `다음 복습: ${dueText(v).replace(' 복습', '')}`}</small></div><button type="button" class="pill big" id="wnextq">다음</button>` : ''}`;
+    ${wr.picked !== undefined ? `<div class="wfb ${wr.picked >= 0 && q.opts[wr.picked] === q.ok ? 'good' : 'bad'}"><b>${wr.picked >= 0 && q.opts[wr.picked] === q.ok ? '정답이에요!' : `정답: ${escH(q.ok)}`}</b>${ex ? `<span>${escH(ex.ex)}<br>${escH(ex.exko)}</span>` : ''}${(() => {  // 다른 보기는 어떤 단어의 뜻이었는지
+      const o = q.opts.filter(x => x !== q.ok).map(x => { const f = vocab.find(z => z.meaning === x) || allUnitWords().find(z => z[1] === x); return f ? `${escH(x)} = ${escH(f.w || f[0])}` : ''; }).filter(Boolean);
+      return o.length ? `<em class="wothers">다른 보기: ${o.join(' · ')}</em>` : ''; })()}<small>${(v.box || 1) >= 5 ? '아는 단어가 됐어요' : `다음 복습: ${dueText(v).replace(' 복습', '')}`}</small></div><button type="button" class="pill big" id="wnextq">다음</button>` : ''}`;
   $('wspk').append(spkBtn(v.w));
 }
 $('wbody').onclick = e => {
