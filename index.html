@@ -699,6 +699,23 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .wchip b { margin-right: 4px; }
   .pill.big { display: block; width: 100%; height: 50px; margin-top: 18px; border-radius: 25px; font-size: 16px; }
   .qlabel.c { text-align: center; margin: 6px 0 12px; }
+  /* 말하기 확인 */
+  .qsay { margin: 4px 0 18px; padding: 18px 16px; border-radius: 18px; background: var(--surface2); text-align: center; font-size: 19px; line-height: 1.45; font-weight: 800; word-break: keep-all; }
+  .sayrow { display: flex; gap: 8px; margin-bottom: 12px; }
+  #obsay { flex: 1; min-width: 0; padding: 14px 16px; border: 1.5px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--text); font-size: 16px; }
+  #obsay:focus { outline: none; border-color: var(--accent); }
+  .saymic { flex: none; display: flex; align-items: center; justify-content: center; width: 52px; border: 0; border-radius: 16px; background: var(--accent); color: #111; }
+  .saymic.on { animation: cpulse 1.2s ease-out infinite; }
+  #obbody .opt.idk { margin-top: 10px; }
+  .sayfb { margin-bottom: 14px; padding: 16px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--surface); }
+  .sayfb > b { display: block; margin-bottom: 6px; font-size: 16px; font-weight: 800; }
+  .sayfb.s4 > b, .sayfb.s3 > b { color: var(--ok); }
+  .sayfb.s2 > b { color: var(--accent-text); }
+  .sayfb.s1 > b, .sayfb.s0 > b, .sayfb.sx > b { color: var(--sub); }
+  .saymine { margin: 0 0 10px; font-size: 13.5px; color: var(--sub); }
+  .saylead { margin: 0 0 2px; font-size: 12.5px; font-weight: 700; color: var(--sub); }
+  .sayen { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 17px; font-weight: 700; line-height: 1.4; }
+  .sayfb small { display: block; margin-top: 8px; font-size: 13px; color: var(--sub); line-height: 1.5; }
   .ugram { display: flex; align-items: center; gap: 8px; margin: -4px 0 16px; font-size: 14px; font-weight: 600; }  /* 유닛의 핵심 문법 패턴 */
   .ugram span { flex: none; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-text); font-size: 12px; font-weight: 800; }
   @media (max-height: 600px) {  /* 크롬 주소창, 글자 확대 등으로 보이는 높이가 짧을 때 */
@@ -822,7 +839,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .msg.ko { background: var(--card); color: var(--text); border: 1px solid var(--card-line); border-radius: 14px; font-size: 14px; margin: -2px 0 10px; }
   .msg.ko[data-k]::before { content: attr(data-k); }
   .msg.ko::before { content: '교정'; display: block; margin-bottom: 4px; font-size: 11px; font-weight: 800; letter-spacing: .02em; color: var(--sub); }
-  .msg.ai:not(.noTr) { cursor: pointer; }
+  .msg.ai { cursor: pointer; }
   .msg.ai { padding-right: 38px; }  /* 커진 스피커와 글자가 겹치지 않게 */
   .msg.ai .vspk { position: absolute; top: 12.5px; right: 5px; color: var(--icon); }  /* 첫 줄 글자와 세로 중심을 맞춤 */
   .msg.ai .vspk svg { width: 18px; height: 18px; }
@@ -830,7 +847,6 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .msg.ai .trhint { position: absolute; right: 13px; bottom: 11px; width: 14px; height: 14px; color: var(--sub); opacity: .4;
                     transform: rotate(90deg); transition: transform .25s, opacity .25s; pointer-events: none; }
   .msg.ai.tropen .trhint { transform: rotate(270deg); opacity: .75; }
-  .msg.ai.noTr .trhint { display: none; }
   .tr { max-width: 82%; margin: -2px 0 10px; padding: 10px 14px; border-radius: 14px;
         background: var(--card); border: 1px dashed var(--card-line); font-size: 14px; animation: rise .18s ease both; }
   .tr b { display: block; margin-bottom: 4px; font-size: 11px; font-weight: 800; letter-spacing: .02em; color: var(--sub); }
@@ -1143,7 +1159,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v2.7</p>
+    <p id="ver">버전 v2.8</p>
     <p class="copyr">© 2026 Jin Howard. All rights reserved.<br>무단 복제 및 배포를 금지합니다.</p>
     <button type="button" id="devreset" class="pill wide ghost">처음부터 다시 하기 (개발자)</button>
   </div>
@@ -2130,7 +2146,7 @@ function addAiMsg(text, box = $('chat')) {
   return d;
 }
 
-// 말풍선을 누르면 한국어 번역을 펼침/접음 (교정 설명이 이미 있으면 생략)
+// 말풍선을 누르면 한국어 번역을 펼침/접음 (교정 카드는 내 문장 설명이라, 튜터 말 번역은 항상 볼 수 있게)
 const trCache = new Map();
 async function translateLine(text) {
   const out = await lite({
@@ -2141,7 +2157,7 @@ async function translateLine(text) {
   return out.trim().replace(/^["'“]|["'”]$/g, '');
 }
 async function toggleTranslate(bubble, text) {
-  if (bubble.classList.contains('noTr') || bubble.trBusy) return;
+  if (bubble.trBusy) return;
   if (bubble.tr) { bubble.tr.remove(); bubble.tr = null; bubble.classList.remove('tropen'); return; }
   const box = el('div', 'tr');
   box.innerHTML = '<b>번역</b><span class="wait"><i></i><i></i><i></i></span>';
@@ -2178,7 +2194,6 @@ function drawMsg(m, box, tap) {
   const bubble = en ? (tap ? addAiMsg(en, box) : addMsg(en, 'ai', box)) : null;
   if (ko) {
     addMsg(ko, 'ko', box).dataset.k = /혹시|→/.test(ko) ? '교정' : '도움말';  // 실제 교정인지, 번역/설명인지
-    if (bubble) bubble.classList.add('noTr');  // 교정 설명이 이미 있으면 번역 보기를 따로 안 보여줌
   }
 }
 
@@ -2851,6 +2866,7 @@ function loopNext() {
 }
 async function handleVoice(buf, bufs, rate) {
   const audio = { inline_data: { mime_type: 'audio/wav', data: await toB64(buf) } };
+  if (voiceTo) { const f = voiceTo; voiceTo = null; return f(audio); }  // 레벨 테스트 말하기 문제로
   if (micAuto) { setLoop(true); return send('', audio, voiceBubble(buf, bufs, rate)); }  // 바로 보내기: 받아쓰기와 대답을 요청 한 번에
   asrBusy = true;  // 확인 후 보내기: 받아쓴 글을 입력칸에 먼저 보여줌 (가벼운 모델로 받아쓰기만)
   inp.placeholder = '받아쓰는 중...';
@@ -3236,7 +3252,7 @@ function sha256(ascii) {  // 초대 코드 확인용 SHA-256 (어떤 브라우�
 // 비밀번호는 이 파일 어디에도 적히지 않고, 되돌릴 수 없는 암호문(해시)만 저장해요.
 // 암호문은 'hash-maker.html'로 만들어서 아래 따옴표 안에 붙여넣으면 돼요. 비워 두면 잠금이 꺼져요.
 // 비밀번호를 바꾸면(암호문을 바꾸면) 이미 쓰던 사람도 모두 새 비밀번호를 다시 입력해야 해요.
-const PASS_HASH = 'eea500bf28723b511f448cd7c76aac90a1b01268f452cfec2e01017de4a26537';  // ← 여기에 암호문을 붙여넣으세요
+const PASS_HASH = '';  // ← 여기에 암호문을 붙여넣으세요
 function passHash(pw) {  // 비밀번호 → 암호문 (2만 번 반복해서 섞음: 하나하나 대입해 맞춰보기 어렵게)
   let x = sha256(unescape(encodeURIComponent('etutor-pass:' + String(pw).normalize('NFC'))));  // 한글 비밀번호도 되게
   for (let i = 1; i < 20000; i++) x = sha256(x);
@@ -3535,6 +3551,15 @@ const SENTB = SENT.map((s, i) => ({ id: 's' + i, b: s[0] - 0.4 + 0.2 * (i % 5), 
 const G = 0.25, SLOPE = 1.4;          // 4지선다에서 찍어 맞힐 확률, 문제가 실력을 가르는 정도
 const VMIN = 8, VMAX = 18, SE_STOP = 0.45;  // 단어 문제는 최소 8개, 최대 18개, 충분히 확신되고 점수가 안정되면 끝
 const NREAD = 5;                      // 문장 문제 수
+const NSAY = 3;                       // 말하기 문제 수 (읽기만으로는 말하기 실력을 알 수 없어서)
+const SPEAKQ = [null,
+  [['저는 커피를 좋아해요.', 'I like coffee.'], ['이거 얼마예요?', 'How much is this?'], ['화장실이 어디예요?', 'Where is the bathroom?']],
+  [['어제 친구를 만났어요.', 'I met a friend yesterday.'], ['주말에 뭐 할 거예요?', 'What are you going to do this weekend?'], ['저는 버스를 타고 출근해요.', 'I go to work by bus.']],
+  [['여기서 일한 지 3년 됐어요.', "I've worked here for three years."], ['늦어서 죄송해요. 차가 너무 막혔어요.', "Sorry I'm late. The traffic was terrible."], ['혹시 창가 자리로 바꿀 수 있을까요?', 'Could I change to a window seat?']],
+  [['제 생각엔 그 방법이 더 효율적일 것 같아요.', 'I think that method would be more efficient.'], ['미리 알려주셨으면 좋았을 텐데요.', 'It would have been nice if you had told me in advance.'], ['상황에 따라 다르지만 보통은 괜찮아요.', "It depends on the situation, but it's usually fine."]],
+  [['그 문제를 해결하려면 근본적인 원인부터 찾아야 해요.', 'To solve that problem, we need to find the root cause first.'], ['솔직히 그 제안은 좀 무리인 것 같아요.', 'To be honest, I think that proposal is a bit unrealistic.'], ['결정하기 전에 생각할 시간을 조금 더 주시겠어요?', 'Could you give me a little more time to think before I decide?']]
+];
+const SAY_LABEL = ['괜찮아요, 연습하면 돼요', '조금 어려웠어요', '뜻은 통해요', '잘 통해요', '완벽해요'];
 const clampLv = n => Math.min(5, Math.max(1, n));
 // 유닛 퀴즈나 단어 복습을 마칠 때마다 정답률로 레벨 점수를 아주 조금씩 조정 (화면에 알리지 않음)
 // 방향이 3번 연속 같을 때만 실제 레벨 숫자를 옮겨서, 한두 번의 우연으로 레벨이 출렁이지 않게 함
@@ -3575,6 +3600,24 @@ function grade(sk, b, ok, idk, ms) {
   sk.n++;
   sk.h.push(sk.th);
 }
+async function gradeSay(ko, en, said) {  // 말하기 채점: 0~4점, 자연스러운 표현, 짧은 팁
+  const text = await lite({ contents: [{ role: 'user', parts: [{ text:
+    `Grade a Korean learner's English for a speaking placement test.\nKorean meaning: "${ko}"\nOne natural English answer: "${en}"\nThe learner said: "${said}"\n`
+    + 'Score 0-4. 4 = natural and correct. 3 = clearly understandable with small mistakes. 2 = the main meaning gets through but with many mistakes or missing parts. 1 = mostly unclear, or only a few words. 0 = no real attempt, or answered in Korean.\n'
+    + 'Answer in exactly 3 lines, no labels, no markdown:\nline 1: the score digit\nline 2: one natural English way to say it, staying close to the learner\'s words when possible\nline 3: one short tip in Korean (under 40 characters)' }] }],
+    generationConfig: { temperature: 0.2, maxOutputTokens: 200 } });
+  const [s, fix, tip] = lines(text);
+  const score = parseInt(s, 10);
+  if (!(score >= 0 && score <= 4)) throw new Error('채점 결과를 읽지 못했어요');
+  return { score, fix: fix || en, tip: tip || '' };
+}
+const spTh = () => {  // 말하기 실력: 문제마다 '난이도 + (점수-2) x 0.75', 뒤 문제일수록 제 수준에 가까워서 더 무겁게
+  const r = (obs.sp && obs.sp.res || []).filter(x => x.score !== null);
+  if (!r.length) return null;
+  let s = 0, w = 0;
+  r.forEach((x, i) => { const wi = 1 + i * 0.5; s += wi * (x.d + (x.score - 2) * 0.75); w += wi; });
+  return Math.min(5.5, Math.max(0.5, s / w));
+};
 function estimate() {  // 자가진단(약한 근거)과 단어, 문장 결과를 확신도만큼 섞음
   const parts = [[obs.start, 0.4], [obs.v.th, obs.v.info], [obs.r.th, obs.r.info]];
   const I = parts.reduce((a, p) => a + p[1], 0);
@@ -3597,8 +3640,14 @@ function askSent() {
   obs.t0 = Date.now();
   return { id: s.id, en: s.en, ok: s.ok, b: s.b, opts: shuffle([s.ok, ...s.wrong]) };
 }
+function askSay() {  // 지금 난이도에서 아직 안 낸 말하기 문제
+  const d = obs.sp.d, pool = SPEAKQ[d].filter(q => !obs.sp.res.some(x => x.ko === q[0]));
+  const [ko, en] = pool[Math.floor(Math.random() * pool.length)] || SPEAKQ[d][0];
+  return { ko, en, d };
+}
 function obGo(step) {
   obs.step = step;
+  if (step === 'speak') { obs.sp = { d: clampLv(Math.round(estimate().th)), res: [], fb: null }; obs.q = askSay(); }  // 읽기 결과와 같은 단계에서 시작
   if (step === 'vocab') { obs.v = newSkill(obs.start); obs.used = new Set(); obs.log = []; obs.q = askWord(); }
   if (step === 'read') { obs.r = newSkill(obs.v.th); obs.usedS = new Set(); obs.q = askSent(); }
   renderOb();
@@ -3611,7 +3660,7 @@ function obStart() {
 function obFraction() {
   const st = obs.step;
   return st === 'goal' ? 0.06 : st === 'start' ? 0.16 : st === 'vocab' ? 0.12 + 0.5 * Math.min(1, obs.v.n / 12)
-    : st === 'read' ? 0.62 + 0.24 * obs.r.n / NREAD : st === 'plan' ? 0.92 : 1;
+    : st === 'read' ? 0.62 + 0.14 * obs.r.n / NREAD : st === 'speak' ? 0.76 + 0.14 * obs.sp.res.length / NSAY : st === 'plan' ? 0.93 : 1;
 }
 const lvPct = v => Math.round((Math.min(5, Math.max(1, v)) - 1) / 4 * 100);
 function renderOb(anim = true) {
@@ -3636,6 +3685,18 @@ function renderOb(anim = true) {
     } else {
       h = `<div class="qsent">${obs.q.en}</div>${opts('s', obs.q, '잘 모르겠어요')}`;
     }
+  } else if (st === 'speak') {
+    showNext = false;
+    const q = obs.q, fb = obs.sp.fb, n = obs.sp.res.length + (fb ? 0 : 1);
+    h = `<p class="qtip">말하기 확인 ${Math.min(n, NSAY)}/${NSAY} · 튜터가 말할 수준을 정해요</p>
+      <p class="qlabel c">이 말을 영어로 해 보세요</p><div class="qsay">${escH(q.ko)}</div>`
+      + (fb ? `<div class="sayfb s${fb.score ?? 'x'}"><b>${fb.score === null ? '채점하지 못했어요' : SAY_LABEL[fb.score]}</b>${fb.said ? `<p class="saymine">내 답: ${escH(fb.said)}</p>` : ''}
+          <p class="saylead">이렇게 말하면 자연스러워요</p><p class="sayen" id="sayen">${escH(fb.fix)}</p>${fb.tip ? `<small>${escH(fb.tip)}</small>` : ''}</div>
+          <button type="button" class="pill wide" data-a="saynext">${obs.sp.res.length < NSAY ? '다음 문제' : '다음'}</button>`
+        : `<div class="sayrow"><input id="obsay" placeholder="영어로 입력하거나 마이크로 말해요" autocomplete="off" autocapitalize="off" enterkeyhint="done">
+          <button type="button" id="obmic" class="saymic" aria-label="말로 답하기"></button></div>
+          <button type="button" class="pill wide" data-a="say" id="obsayok">확인</button>
+          <button type="button" class="opt q idk" data-a="sayskip"><span class="ot">잘 모르겠어요</span></button>`);
   } else if (st === 'plan') {
     h = `<h2>학습 계획을 정해요</h2><p class="sub">부담 없는 목표로 시작하세요.</p>
       <p class="qlabel">일주일에</p>${seg('days', [3, 5, 7], obs.days, '일')}
@@ -3647,13 +3708,17 @@ function renderOb(anim = true) {
     const bar = (label, v) => `<div class="sk"><span>${label}</span><div class="sb"><i style="width:${lvPct(v)}%"></i></div><b>${Math.min(5, Math.max(1, v)).toFixed(1)}</b></div>`;
     h = `<div class="lvbig"><small>레벨</small><b>${obs.lvl}</b></div><h2 class="c">${LV_NAME[obs.lvl]}</h2>
       <p class="sub c">${LV_DESC[obs.lvl]}</p>
-      <div class="skills">${bar('어휘', sg.vocab)}${bar('문장 이해', sg.read)}<div class="sk off"><span>표현</span><div class="sb"></div><small>대화하며 알아가요</small></div></div>
+      <div class="skills">${bar('어휘', sg.vocab)}${bar('문장 이해', sg.read)}${sg.speak != null ? bar('말하기', sg.speak) : '<div class="sk off"><span>말하기</span><div class="sb"></div><small>대화하며 알아가요</small></div>'}</div>
       <p class="note">이 정도 범위예요: 레벨 ${lo === hi ? lo : lo + '~' + hi}${low ? ' (결과가 조금 달라요)' : ''}<br>처음 정한 레벨이라 정확하지 않을 수 있어요. 대화하면서 계속 맞춰 갈게요.</p>
       <p class="note">안 맞는다면 설정 → 나의 레벨에서 다시 할 수 있어요.</p>`;
     next = inSettings ? '저장하기' : '이 레벨로 시작하기';
   }
   box.innerHTML = h;
   if (st === 'vocab') $('qspk').append(spkBtn(obs.q.en));
+  if (st === 'speak') {
+    if ($('sayen')) $('sayen').append(spkBtn(obs.sp.fb.fix));
+    if ($('obmic')) $('obmic').innerHTML = sz(I_MIC, 22);
+  }
   box.classList.remove('obin');
   if (anim) { void box.offsetWidth; box.classList.add('obin'); }
   $('obbar').style.width = Math.round(obFraction() * 100) + '%';
@@ -3668,13 +3733,49 @@ function obDone() {  // 온보딩을 마치고 나가기
   obs = null;
   if ((window.history.state?.d || 0) > 0) goBack(); else setRoot(permsDone() ? 'menu' : 'perm');
 }
+async function sayAnswer(skip) {  // 말하기 답 채점 → 다음 난이도 정하기 (잘하면 한 단계 위, 어려워하면 아래)
+  if (obs.busy) return;
+  const q = obs.q, said = skip ? '' : ($('obsay') ? $('obsay').value.trim() : '');
+  if (!skip && !said) { toast('영어로 입력하거나 마이크를 눌러 말해 주세요', 2400); return; }
+  if (recCtx) stopRecord(false);
+  let r;
+  if (skip) r = { score: 0, fix: q.en, tip: '천천히 따라 말해 보세요' };
+  else {
+    obs.busy = true;
+    $('obsayok').textContent = '확인 중...';
+    $('obsayok').disabled = true;
+    try { r = await gradeSay(q.ko, q.en, said); }
+    catch (e) { r = { score: null, fix: q.en, tip: '채점을 못 해서 이 문제는 레벨에 넣지 않았어요' }; }  // 채점이 안 되면 레벨 계산에서 뺌
+    obs.busy = false;
+    if (!obs || obs.step !== 'speak') return;
+  }
+  obs.sp.res.push({ ko: q.ko, d: q.d, score: r.score });
+  obs.sp.fb = { ...r, said };
+  if (r.score !== null) obs.sp.d = clampLv(q.d + [-2, -1, 0, 1, 2][r.score]);  // 완벽하면 두 단계 위, 전혀 못 하면 두 단계 아래
+  renderOb();
+}
+let voiceTo = null;  // 녹음이 끝나면 대화 대신 여기로 (레벨 테스트 말하기 문제)
+$('obbody').addEventListener('keydown', e => { if (e.target.id === 'obsay' && e.key === 'Enter') { e.preventDefault(); sayAnswer(false); } });
+$('obbody').addEventListener('click', async e => {
+  if (!e.target.closest('#obmic')) return;
+  if (recCtx) { stopRecord(true); return; }  // 말하는 중에 다시 누르면 끝내기
+  voiceTo = async audio => {
+    $('obmic') && $('obmic').classList.remove('on');
+    if ($('obsay')) $('obsay').placeholder = '받아쓰는 중...';
+    try { const t = await transcribe(audio); if ($('obsay')) { $('obsay').value = t; $('obsay').placeholder = '영어로 입력하거나 마이크로 말해요'; } }
+    catch (x) { toast('받아쓰지 못했어요. 입력으로 답해 주세요', 2600); }
+  };
+  try { $('obmic').classList.add('on'); await startRecord(); }
+  catch (x) { voiceTo = null; $('obmic') && $('obmic').classList.remove('on'); if (recCtx) stopRecord(false); toast('마이크를 쓸 수 없어서 입력으로 답해 주세요', 2800); }
+});
 function obResult() {
-  const e = estimate();
-  obs.th = e.th;
+  const e = estimate(), sp = spTh();
+  const th = sp === null ? e.th : 0.65 * sp + 0.35 * e.th;  // 회화 앱이라 말하기에 무게 (말하기 채점이 안 됐으면 읽기만)
+  obs.th = th;
   obs.se = e.se;
-  obs.lvl = clampLv(Math.round(e.th));
-  obs.range = [clampLv(Math.round(e.th - 1.28 * e.se)), clampLv(Math.round(e.th + 1.28 * e.se))];  // 약 80% 범위
-  obs.sig = { self: obs.start, vocab: obs.v.th, read: obs.r.th };
+  obs.lvl = clampLv(Math.round(th));
+  obs.range = [clampLv(Math.round(th - 1.28 * e.se)), clampLv(Math.round(th + 1.28 * e.se))];  // 약 80% 범위
+  obs.sig = { self: obs.start, vocab: obs.v.th, read: obs.r.th, speak: sp };
   obs.conf = e.se <= 0.45 && Math.abs(obs.v.th - obs.r.th) <= 1.2 ? 'mid' : 'low';
 }
 $('obbody').onclick = e => {
@@ -3694,6 +3795,13 @@ $('obbody').onclick = e => {
   }
   if (a === 'days') { obs.days = +b.dataset.v; return renderOb(false); }
   if (a === 'mins') { obs.mins = +b.dataset.v; return renderOb(false); }
+  if (a === 'say' || a === 'sayskip') return sayAnswer(a === 'sayskip');
+  if (a === 'saynext') {
+    obs.sp.fb = null;
+    if (obs.sp.res.length >= NSAY) return obGo('plan');
+    obs.q = askSay();
+    return renderOb();
+  }
   if (a === 'w' || a === 's') {
     if (obs.busy) return;
     obs.busy = true;
@@ -3710,7 +3818,7 @@ $('obbody').onclick = e => {
         const ok = idx >= 0 && q.opts[idx] === q.ok;
         grade(obs.r, q.b, ok, idx < 0, ms);
         obs.log.push(['s', q.id, +q.b.toFixed(1), ok ? 1 : 0, Math.round(ms / 100) / 10]);
-        if (obs.r.n >= NREAD) obGo('plan'); else { obs.q = askSent(); renderOb(); }
+        if (obs.r.n >= NREAD) obGo('speak'); else { obs.q = askSent(); renderOb(); }
       }
     }, 170);
   }
@@ -4338,7 +4446,7 @@ How to run it: keep the conversation moving forward like a real one. Accept the 
 The phrases below are only examples of useful expressions; the learner may use their own words. Do not list or teach them.
 Already practiced: ${used.join(' | ') || 'none yet'}
 Not practiced yet: ${left.join(' | ') || 'none'}
-${done ? 'The learner has reached the goal of this role-play. Wrap up the scene warmly in one or two sentences, and do not ask a new question unless the learner keeps talking.'
+${done ? 'The learner has reached the goal of this role-play, and the app already shows them a button to finish. Never end or wrap up the conversation yourself: always answer what they just said first (especially their questions), then keep the scene going naturally in 1 or 2 short sentences.'
        : 'When it fits naturally, create a moment where ONE of the not-yet-practiced expressions would be useful. Reply in 1 or 2 short sentences and end with a question the learner can answer.'}`;
 };
 function unitBar() {  // 역할극 상단: 진행 숫자(누르면 표현 목록), 목표를 채우면 '퀴즈 풀기'
