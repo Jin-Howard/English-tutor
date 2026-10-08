@@ -396,10 +396,14 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .popmenu button:disabled { opacity: .4; }
   .popmenu .ic { display: flex; }
   /* 단어장 검색: 목록보다 가벼운 채워진 검색창, 스크롤해도 위에 붙음 */
-  /* 오늘의 추천 단어 */
-  .vrec { margin-top: 12px; }
+  /* 오늘의 추천 단어: 단어장 위 카드 → 아래에서 올라오는 창 */
+  .recbtn { display: flex; align-items: center; gap: 0; width: 100%; margin-top: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); color: var(--text); font: inherit; text-align: left; }
+  .recbtn .mt { flex: 1; min-width: 0; }
+  .recbtn b { display: block; font-size: 16px; font-weight: 800; }
   #vrecsum { display: block; margin-top: 2px; font-size: 13px; font-weight: 500; color: var(--sub); }
-  .vrec .g-blk { padding-top: 0; }
+  .rssheet { max-height: 86%; display: flex; flex-direction: column; }
+  .rssheet h3 { margin: 0 0 8px; font-size: 21px; font-weight: 800; }
+  .rslist { flex: 1; min-height: 0; overflow-y: auto; margin: 0 -4px; padding: 0 4px; }
   .rwrow { display: flex; align-items: center; gap: 8px; padding: 9px 0; }
   .rwrow + .rwrow { border-top: 1px solid var(--line); }
   .rwrow .rwt { flex: 1; min-width: 0; }
@@ -407,7 +411,9 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .rwrow .rwt span { display: block; font-size: 13px; color: var(--sub); }
   .rwadd { flex: none; height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--accent); color: #111; font: inherit; font-size: 13px; font-weight: 800; }
   .rwadd:disabled { background: var(--surface2); color: var(--sub); }
-  #vrecall { width: 100%; margin-top: 10px; }
+  .rsfoot { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; margin-top: 12px; }
+  .rsfoot .pill { height: 54px; border-radius: 27px; font-size: 16px; }
+  #rs-all:disabled { background: var(--surface2); color: var(--sub); }
   /* 필터와 별표 */
   .vfilt { display: flex; gap: 6px; margin-top: 8px; }
   .vfilt button { height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--surface2); color: var(--sub); font: inherit; font-size: 13px; font-weight: 700; }
@@ -497,7 +503,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .eye svg { display: block; }
   .savebar { position: sticky; bottom: 0; margin: 12px -18px 0; padding: 14px 18px 30px;
              background: linear-gradient(to top, var(--bg) 72%, transparent); }
-  #save, #p-go { width: 100%; height: 52px; border: 0; border-radius: 26px; background: var(--accent); color: var(--on-accent);
+  #save, #p-go { width: 100%; height: 54px; border: 0; border-radius: 27px; background: var(--accent); color: var(--on-accent);
           font-size: 16px; font-weight: 800; }
   #err { margin: 8px 4px 0; color: var(--danger); min-height: 1.2em; font-size: 14px; }
   #ver { margin: 2px 0 4px; text-align: center; font-size: 12px; color: var(--sub); user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -643,6 +649,11 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   #obbody .sub { margin: 0 0 22px; font-size: 15px; line-height: 1.55; color: var(--sub); word-break: keep-all; }
   #obbody .c { text-align: center; }
   .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .fstep { display: inline-block; margin: 0 0 10px; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-text); font-size: 12.5px; font-weight: 800; }  /* 처음 설정 단계 표시 */
+  .fstep.c { display: table; margin: 0 auto 8px; }
+  .goalgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }  /* 목표 고르기: 줄과 칸이 맞는 큰 타일 */
+  .goalgrid .chipb { justify-content: center; width: 100%; min-height: 64px; box-sizing: border-box; padding: 0 12px; border-radius: 20px; font-size: 17px; }
+  .goalgrid .chipb:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .chipb { padding: 13px 18px; border: 1.5px solid var(--line2); border-radius: 24px; background: var(--surface); font-size: 15.5px; font-weight: 700; box-shadow: var(--shadow); }
   .chipb.on { border-color: transparent; background: var(--accent); color: var(--on-accent); }
   .qlabel { margin: 22px 0 10px; font-size: 14px; font-weight: 700; color: var(--sub); }
@@ -737,14 +748,14 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .exrow small { display: block; margin-top: 2px; font-size: 13.5px; color: var(--sub); }
   .wchip { padding: 8px 12px; border-radius: 16px; background: var(--surface2); font-size: 13.5px; }
   .wchip b { margin-right: 4px; }
-  .pill.big { display: block; width: 100%; height: 50px; margin-top: 18px; border-radius: 25px; font-size: 16px; }
+  .pill.big { display: block; width: 100%; height: 54px; margin-top: 18px; border-radius: 27px; font-size: 16.5px; }  /* 주요 버튼은 앱 전체 54px로 통일 */
   .qlabel.c { text-align: center; margin: 6px 0 12px; }
   /* 말하기 확인: 위 문제 카드, 가운데 상태, 아래 큰 마이크 */
   .saywrap { display: flex; flex-direction: column; min-height: 100%; }
   .saytop { display: flex; align-items: center; justify-content: space-between; margin: 2px 0 14px; font-size: 13px; font-weight: 700; color: var(--sub); }
-  .saycard { padding: 20px 18px; border-radius: 22px; background: var(--surface2); text-align: center; }
-  .saycard small { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: var(--sub); }
-  .saycard p { margin: 0; font-size: 22px; line-height: 1.45; font-weight: 800; word-break: keep-all; }
+  .saycard { padding: 28px 20px 30px; border-radius: 24px; background: var(--surface2); text-align: center; }
+  .saycard small { display: block; margin-bottom: 10px; font-size: 14px; font-weight: 700; color: var(--sub); }
+  .saycard p { margin: 0; font-size: 26px; line-height: 1.4; font-weight: 800; letter-spacing: -.4px; word-break: keep-all; }
   .saymid { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 150px; padding: 16px 0; text-align: center; }
   .sayhelp { margin: 0; font-size: 15px; font-weight: 700; line-height: 1.5; }
   .sayhelp small { display: block; margin-top: 4px; font-size: 13px; font-weight: 500; color: var(--sub); }
@@ -761,24 +772,31 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .bigmic.on { background: var(--danger); color: #fff; animation: cpulse 1.2s ease-out infinite; }
   .bigmic:disabled { opacity: .5; }
   .miclab { margin: 10px 0 0; font-size: 13.5px; font-weight: 700; color: var(--sub); }
-  .saylinks { display: flex; align-items: center; gap: 8px; margin-top: 16px; font-size: 13.5px; color: var(--sub); }
-  .saylinks button { padding: 6px 4px; border: 0; background: none; color: var(--sub); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
   #obsay { width: 100%; box-sizing: border-box; padding: 16px; border: 1.5px solid var(--line); border-radius: 18px; background: var(--surface); color: var(--text); font-size: 17px; }
   #obsay:focus { outline: none; border-color: var(--accent); }
-  .saybot > .pill.wide { width: 100%; }
-  .saybtns { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; width: 100%; }
-  .saymine { width: 100%; padding: 16px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--surface); text-align: left; }
-  .saymine small { font-size: 12.5px; font-weight: 700; color: var(--sub); }
-  .saymine p { margin: 4px 0 0; font-size: 18px; font-weight: 700; line-height: 1.45; }
+  .saybtns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }  /* 두 버튼 크기 같게 */
+  .saybtns .pill { height: 56px; border-radius: 28px; font-size: 16.5px; }
+  .saylink { margin-top: 12px; padding: 6px; border: 0; background: none; color: var(--sub); font: inherit; font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+  .mictools { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; justify-items: center; row-gap: 10px; width: 100%; }  /* 1줄: 키보드 · 마이크 · 모르겠어요 (가운데 정렬), 2줄: 글자 */
+  .sayside { display: flex; padding: 4px; border: 0; background: none; color: var(--sub); font: inherit; }
+  .sayside .sayicon { width: 52px; height: 52px; background: var(--surface2); color: var(--text); }
+  .sidelab { font-size: 12.5px; font-weight: 700; color: var(--sub); white-space: nowrap; }
+  .sidelab.main { font-size: 13.5px; }
+  .sayicon { display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+  .miclab { min-height: 20px; }
+  .saybub { width: 100%; box-sizing: border-box; padding: 18px 20px; border-radius: 22px 22px 6px 22px; background: var(--accent); color: #111; text-align: left; }  /* 대화 화면의 내 말풍선과 같은 모양 */
+  .saybub small { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; opacity: .7; }
+  .saybub p { margin: 6px 0 0; font-size: 22px; font-weight: 800; line-height: 1.4; word-break: break-word; }
   .sayres { width: 100%; text-align: left; }
-  .saymeter { display: flex; gap: 5px; margin-bottom: 10px; }
-  .saymeter i { flex: 1; height: 8px; border-radius: 4px; background: var(--surface2); }
-  .sayres.s4 .saymeter i.on, .sayres.s3 .saymeter i.on { background: var(--ok); }
-  .sayres.s2 .saymeter i.on { background: var(--accent); }
-  .sayres.s1 .saymeter i.on { background: var(--danger); }
-  .sayres > b { display: block; font-size: 18px; font-weight: 800; }
-  .sayres.s4 > b, .sayres.s3 > b { color: var(--ok); }
-  .saymine2 { margin: 6px 0 0; font-size: 13.5px; color: var(--sub); }
+  .sayhead { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .sayicon.big { flex: none; width: 48px; height: 48px; background: var(--surface2); color: var(--sub); }
+  .sayres.s4 .sayicon.big, .sayres.s3 .sayicon.big { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
+  .sayres.s2 .sayicon.big { background: var(--accent-soft); color: var(--accent-text); }
+  .sayhead b { display: block; font-size: 20px; font-weight: 800; }
+  .sayres.s4 .sayhead b, .sayres.s3 .sayhead b { color: var(--ok); }
+  .sayhead small { font-size: 13px; color: var(--sub); }
+  .saymine2 { margin: 12px 0 0; font-size: 14px; line-height: 1.5; color: var(--sub); }
+  .saymine2 span { margin-right: 6px; padding: 1px 7px; border-radius: 999px; background: var(--surface2); font-size: 12px; font-weight: 700; }
   .saybetter { margin-top: 12px; padding: 14px 16px; border-radius: 18px; background: var(--surface2); }
   .saybetter small { font-size: 12.5px; font-weight: 700; color: var(--sub); }
   .saybetter p { display: flex; align-items: center; gap: 8px; margin: 4px 0 0; font-size: 18px; font-weight: 800; line-height: 1.4; }
@@ -1114,7 +1132,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 <div id="setup" class="screen">
   <div class="hd"><span class="sp"></span><div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div><span class="sp"></span></div>
   <div class="pad">
-    <h2 class="pg" id="setuptitle">설정</h2>
+    <p class="fstep" id="fstep-s">2/4단계 · AI 연결</p><h2 class="pg" id="setuptitle">설정</h2>
 
     <p class="sec only-set">화면</p>
     <div class="group only-set">
@@ -1245,7 +1263,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v3.1</p>
+    <p id="ver">버전 v3.2</p>
     <p class="copyr">© 2026 Jin Howard. All rights reserved.<br>무단 복제 및 배포를 금지합니다.</p>
     <button type="button" id="devreset" class="pill wide ghost">처음부터 다시 하기 (개발자)</button>
   </div>
@@ -1285,10 +1303,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     </div>
     <button type="button" id="wbanner" class="rowcard" style="display:none"><span class="chip"><span class="ic"></span></span><span class="mt"><b id="wbn"></b><small>눌러서 오늘 복습을 시작해요</small></span><span class="go"></span></button>
     <p id="wnext" class="hint" style="display:none"></p>
-    <div class="group guide vrec" id="vrec">
-      <button type="button" id="vrechead" class="g-row"><span class="gtitle"><span class="mt">오늘의 추천 단어<small id="vrecsum"></small></span></span><span class="chev"></span></button>
-      <div class="g-blk" id="vrecbody"></div>
-    </div>
+    <button type="button" id="recopen" class="recbtn"><span class="ucat" id="recic"></span><span class="mt"><b>오늘의 추천 단어</b><small id="vrecsum"></small></span><span class="go" id="recgo"></span></button>
     <div class="vsearchbar"><label class="search"><span class="si"></span><input id="vsearch" placeholder="단어나 뜻 검색 · 영어 단어는 사전에서도 찾아요" autocomplete="off" enterkeyhint="search"></label>
       <div class="vfilt" id="vfilt"><button type="button" data-f="all" class="on">전체</button><button type="button" data-f="star">별표</button><button type="button" data-f="miss">자주 틀린</button></div></div>
     <div id="vdict"></div>
@@ -1326,7 +1341,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 <div id="perm" class="screen">
   <div class="hd"><button id="pback" class="back" aria-label="뒤로" style="visibility:hidden"></button><div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div><span class="sp"></span></div>
   <div class="pad">
-    <h2 class="pg">마이크와 소리 확인</h2>
+    <p class="fstep" id="fstep-p">3/4단계 · 마이크와 소리</p><h2 class="pg">마이크와 소리 확인</h2>
     <p class="lead" style="display:block">AI 튜터와 말로 대화하려면 아래 두 가지를 꼭 확인해야 해요.</p>
     <div class="group">
       <div class="prow">
@@ -1366,6 +1381,15 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   <div class="ia"><button type="button" id="inapp-go" class="pill" style="display:none">다시 열기</button><button type="button" id="inapp-copy" class="pill">링크 복사</button><button type="button" id="inapp-x" class="pill ghost">닫기</button></div>
 </div>
 <div id="toast" role="status"></div>
+<div id="recsheet" class="rcwrap" role="dialog" aria-label="오늘의 추천 단어">
+  <div class="rcsheet rssheet">
+    <span class="rchandle"></span>
+    <p class="rceye">오늘의 추천 단어</p>
+    <h3 id="rs-title"></h3>
+    <div id="vrecbody" class="rslist"></div>
+    <div class="rsfoot"><button type="button" id="rs-x" class="pill ghost">닫기</button><button type="button" id="rs-all" class="pill">모두 저장</button></div>
+  </div>
+</div>
 <div id="pwgate" class="pwgate" role="dialog" aria-label="비밀번호">
   <div class="pwbox">
     <span class="pwic" id="pwic"></span>
@@ -1611,6 +1635,7 @@ window.addEventListener('popstate', e => {  // 시스템 뒤로가기
   if (coachOn()) { try { window.history.pushState({ s: st.s, d: (st.d || 0) + 1, coach: true }, ''); } catch (x) {} return; }  // 안내 중에는 뒤로가기로 빠져나가지 못함
   if (qrOn()) { $('qrwrap').classList.remove('open'); if (st.s === 'setup') return; }
   if (recapOn()) closeRecap();  // 뒤로가기로도 닫힘
+  if (recOn()) { $('recsheet').classList.remove('open'); if (st.s === 'vocab') { renderVocab(); return; } }  // 창만 닫고 단어장에 그대로
   if (st.s === 'vocab') renderVocab();
   if (st.s === 'setup') fillForm();
   if (st.s === 'hist') (st.day && chats[st.day] ? openDay(st.day) : renderHistList());
@@ -1820,6 +1845,7 @@ function fillForm() {
   toggleScore();
   paintAlarm();
   $('setuptitle').textContent = profile ? '설정' : '처음 설정';
+  $('fstep-s').style.display = apiKey ? 'none' : '';  // 처음 설정 중일 때만
   document.querySelectorAll('.only-set').forEach(e => e.style.display = profile ? '' : 'none');  // 처음에는 키와 정보만
   $('setuplead').style.display = profile ? 'none' : 'block';
   $('guide').classList.toggle('open', !apiKey);  // 키가 없으면 발급 안내를 펼침
@@ -2402,8 +2428,9 @@ function addRecWord(x) {  // 추천 단어 저장: 예문은 같은 상황의 �
 }
 function paintRec() {
   const list = recWords(), left = list.filter(x => !findWord(x.w));
+  $('rs-title').textContent = !list.length ? '추천할 단어가 없어요' : left.length ? `레벨 ${courseLv()} 단어 ${list.length}개` : '오늘 단어를 모두 저장했어요';
   $('vrecsum').textContent = !list.length ? '이 레벨 추천 단어를 모두 저장했어요'
-    : left.length ? `레벨 ${courseLv()} 단어 ${list.length}개 중 ${left.length}개 남음 · 눌러서 보기` : `오늘 ${list.length}개 모두 저장했어요 · 내일 새 단어가 나와요`;
+    : left.length ? `${left.length}개 남음 · 레벨 ${courseLv()} 단어` : '오늘 단어를 모두 저장했어요 · 내일 또 나와요';
   const body = $('vrecbody');
   body.textContent = '';
   list.forEach(x => {
@@ -2415,15 +2442,21 @@ function paintRec() {
     r.append(spkBtn(x.w), t, add);
     body.append(r);
   });
-  if (left.length) {
-    const all = el('button', 'pill', left.length === list.length ? '모두 저장' : `남은 ${left.length}개 모두 저장`);
-    all.id = 'vrecall';
-    all.onclick = () => { left.forEach(addRecWord); saveVocab(); toast(`추천 단어 ${left.length}개를 저장했어요. 내일부터 복습에 나와요`, 2800); renderVocab(); };
-    body.append(all);
-  }
+  $('rs-all').textContent = !left.length ? '모두 저장했어요' : left.length === list.length ? `${left.length}개 모두 저장` : `남은 ${left.length}개 저장`;  // 목록 밖 아래에 두어서 스크롤 없이 보이게
+  $('rs-all').disabled = !left.length;
+  $('rs-all').onclick = () => { left.forEach(addRecWord); saveVocab(); toast(`추천 단어 ${left.length}개를 저장했어요. 내일부터 복습에 나와요`, 2800); renderVocab(); };
 }
-$('vrechead').querySelector('.chev').innerHTML = I_CHEV;
-$('vrechead').onclick = () => $('vrec').classList.toggle('open');
+const recOn = () => $('recsheet').classList.contains('open');
+$('recic').innerHTML = icon('<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M9 8h7M9 12h5"/>', 22);
+$('recgo').innerHTML = I_ARROW || '';
+$('recopen').onclick = () => {
+  paintRec();
+  $('recsheet').classList.add('open');
+  try { window.history.pushState({ s: 'vocab', d: (window.history.state?.d || 0) + 1, rec: true }, ''); } catch (e) {}  // 뒤로가기로 창만 닫히게 (QR 창과 같은 방식)
+};
+const closeRec = () => { if (!recOn()) return; if (window.history.state?.rec) window.history.back(); else $('recsheet').classList.remove('open'); };  // 직접 닫을 때도 남겨둔 한 칸을 정리
+$('rs-x').onclick = closeRec;
+$('recsheet').onclick = e => { if (e.target === $('recsheet')) closeRec(); };
 $('vfilt').onclick = e => {
   const b = e.target.closest('[data-f]');
   if (!b) return;
@@ -3629,7 +3662,7 @@ setTimeout(() => {
 
 // 말하기 준비: 마이크 허용과 소리 확인 (처음 한 번 보여주고, 설정에서 다시 열 수 있음. 거절해도 글로 쓸 수 있음)
 const permsDone = () => !!localStorage.getItem('permsdone');
-const nextAfterSetup = () => (!ob ? 'onb' : permsDone() ? 'menu' : 'perm');
+const nextAfterSetup = () => (!permsDone() ? 'perm' : !ob ? 'onb' : 'menu');  // 키 다음은 마이크 체크, 그다음 (아직이면) 레벨 테스트
 const I_SPK2 = icon('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>');
 $('p-mic-ic').innerHTML = sz(I_MIC, 22);
 $('p-snd-ic').innerHTML = sz(I_SPK2, 22);
@@ -3647,7 +3680,8 @@ function paintPerm() {
   const micDone = micState === 'granted' || micState === 'denied' || noApi || inApp;  // 막혔거나 못 쓰는 기기면 글로만 쓰면 되니 통과
   const ready = micDone && sndOk;
   $('p-go').disabled = !ready;
-  $('p-go').textContent = ready ? '시작하기' : '위 두 가지를 확인해 주세요';
+  $('p-go').textContent = ready ? (!ob && !permFromSet ? '레벨 테스트 시작하기' : '시작하기') : '위 두 가지를 확인해 주세요';  // 처음이면 다음은 레벨 테스트
+  $('fstep-p').style.display = !ob && !permFromSet ? '' : 'none';
   return micDone;
 }
 let sndOk = false, sndNo = 0;
@@ -3714,7 +3748,7 @@ let permFromSet = false;  // 설정 메뉴에서 들어왔으면 끝나고 뒤�
 function finishPerm() {
   if ($('p-go').disabled) return;
   localStorage.setItem('permsdone', '1');
-  if (permFromSet) { permFromSet = false; goBack(); } else setRoot('menu');
+  if (permFromSet) { permFromSet = false; goBack(); } else setRoot(!ob ? 'onb' : 'menu');  // 처음이면 이어서 레벨 테스트
 }
 $('p-go').onclick = finishPerm;
 $('pback').onclick = goBack;
@@ -3804,6 +3838,9 @@ const SPEAKQ = [null,
   [['그 문제를 해결하려면 근본적인 원인부터 찾아야 해요.', 'To solve that problem, we need to find the root cause first.'], ['솔직히 그 제안은 좀 무리인 것 같아요.', 'To be honest, I think that proposal is a bit unrealistic.'], ['결정하기 전에 생각할 시간을 조금 더 주시겠어요?', 'Could you give me a little more time to think before I decide?']]
 ];
 const TOEIC = ['', '약 250점 이하', '약 250~450점', '약 450~650점', '약 650~850점', '약 850점 이상'];  // 레벨별 토익 어림값 (공식 환산 아님, 토익은 듣기와 읽기 시험이라 알아보는 능력 기준)
+const I_KBD = icon('<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>', 22);
+const I_QMARK = icon('<circle cx="12" cy="12" r="9.5"/><path d="M9.3 9.3a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.4-2.7 4"/><path d="M12 17.3h.01"/>', 24);
+const I_HALF = icon('<circle cx="12" cy="12" r="9.5"/><path d="M8 12h8"/>', 24);
 const SAY_LABEL = ['괜찮아요, 연습하면 돼요', '조금 어려웠어요', '뜻은 통해요', '잘 통해요', '완벽해요'];
 const clampLv = n => Math.min(5, Math.max(1, n));
 // 유닛 퀴즈나 단어 복습을 마칠 때마다 정답률로 레벨 점수를 아주 조금씩 조정 (화면에 알리지 않음)
@@ -3900,7 +3937,10 @@ function obGo(step) {
 }
 function obStart() {
   const p = ob && ob.lvl ? ob : {};
+  let pre = null;
+  try { pre = !ob && JSON.parse(localStorage.getItem('obpre')); } catch (e) {}
   obs = { step: 'goal', goals: [...(p.goals || [])], start: 0, days: p.days || 5, mins: p.mins || 20, v: newSkill(3), r: newSkill(3) };
+  if (pre && pre.goals) { obs.goals = pre.goals; obs.start = pre.start; return obGo('vocab'); }  // API 키, 마이크 체크를 마치고 돌아오면 테스트부터
   renderOb();
 }
 function obFraction() {
@@ -3916,8 +3956,8 @@ function renderOb(anim = true) {
   const seg = (a, list, cur, unit) => `<div class="seg full">${list.map(n => `<button type="button" class="${cur === n ? 'on' : ''}" data-a="${a}" data-v="${n}">${n}${unit}</button>`).join('')}</div>`;
   let h = '', next = '다음', can = true, showNext = true;
   if (st === 'goal') {
-    h = `<h2>어떤 영어가 필요하세요?</h2><p class="sub">가장 필요한 것을 최대 2개 골라 주세요.<br>연습 상황과 예문이 여기에 맞춰져요.</p>
-      <div class="chips">${GOALS.map(g => chip('goal', g, g, obs.goals.includes(g))).join('')}</div><p class="tip">${obs.goals.length}/2개 선택</p>`;
+    h = `${!ob ? '<p class="fstep">1/4단계 · 목표</p>' : ''}<h2>어떤 영어가 필요하세요?</h2><p class="sub">가장 필요한 것을 최대 2개 골라 주세요.<br>연습 상황과 예문이 여기에 맞춰져요.</p>
+      <div class="goalgrid">${GOALS.map(g => chip('goal', g, g, obs.goals.includes(g))).join('')}</div><p class="tip">${obs.goals.length}/2개 선택</p>`;
     can = obs.goals.length > 0;
   } else if (st === 'start') {
     showNext = false;
@@ -3926,7 +3966,7 @@ function renderOb(anim = true) {
   } else if (st === 'vocab' || st === 'read') {
     showNext = false;  // 진행은 맨 위 바 하나로만 보여줌 (테스트 중 점수는 숨겨서 긴장을 줄이고, 결과 화면에서 공개)
     if (st === 'vocab') {
-      h = `${obs.v.n === 0 ? '<p class="qtip">정답이면 어려운 문제가, 모르면 쉬운 문제가 나와요</p>' : ''}
+      h = `${obs.v.n === 0 ? `${!ob ? '<p class="fstep c">4/4단계 · 레벨 테스트</p>' : ''}<p class="qtip">정답이면 어려운 문제가, 모르면 쉬운 문제가 나와요</p>` : ''}
         <div class="qword">${obs.q.en}</div><div class="qhint" id="qspk"></div>${opts('w', obs.q, '모르겠어요')}`;
     } else {
       h = `<div class="qsent">${obs.q.en}</div>${opts('s', obs.q, '잘 모르겠어요')}`;
@@ -3936,24 +3976,31 @@ function renderOb(anim = true) {
     const q = obs.q, sp = obs.sp, fb = sp.fb, ui = sp.ui || 'idle', n = sp.res.length + (fb ? 0 : 1);
     const links = `<div class="saylinks">${ui === 'type' ? '<button type="button" data-a="sayvoice">말로 할게요</button>' : '<button type="button" data-a="saytype">키보드로 입력</button>'}<span>·</span><button type="button" data-a="sayskip">잘 모르겠어요</button></div>`;
     let mid, bot;
+    const side = (act, ic, t, hide) => `<button type="button" class="sayside" data-a="${act}" aria-label="${t}"${hide ? ' style="visibility:hidden" tabindex="-1"' : ''}><span class="sayicon">${ic}</span></button>`;
+    const sideLab = (t, hide) => `<small class="sidelab"${hide ? ' style="visibility:hidden"' : ''}>${t}</small>`;
     if (fb) {
-      const s = fb.score;
-      mid = `<div class="sayres s${s ?? 'x'}"><div class="saymeter">${[1, 2, 3, 4].map(k => `<i class="${s !== null && k <= s ? 'on' : ''}"></i>`).join('')}</div>
-        <b>${s === null ? '채점하지 못했어요' : SAY_LABEL[s]}</b>${fb.said ? `<p class="saymine2">내 답 · ${escH(fb.said)}</p>` : ''}
-        <div class="saybetter"><small>${s === 4 ? '이렇게도 말해요' : '더 자연스럽게'}</small><p id="sayen">${escH(fb.fix)}</p></div>${fb.tip ? `<p class="saytip">${escH(fb.tip)}</p>` : ''}</div>`;
-      bot = `<button type="button" class="pill wide" data-a="saynext">${sp.res.length < NSAY ? '다음 문제' : '다음'}</button>`;
+      const s = fb.score, good = s !== null && s >= 3, mid2 = s === 2;
+      mid = `<div class="sayres s${s ?? 'x'}"><div class="sayhead"><span class="sayicon big">${good ? sz(I_CHECK, 26) : mid2 ? I_HALF : I_QMARK}</span>
+          <div><b>${s === null ? '채점하지 못했어요' : SAY_LABEL[s]}</b><small>${s === null ? '이 문제는 레벨에 넣지 않았어요' : `4점 만점에 ${s}점`}</small></div></div>
+        <div class="saybetter"><small>${s === 4 ? '이렇게도 말해요' : '더 자연스럽게'}</small><p id="sayen">${escH(fb.fix)}</p></div>
+        ${fb.said ? `<p class="saymine2"><span>내 답</span>${escH(fb.said)}</p>` : ''}${fb.tip && s !== null ? `<p class="saytip">${escH(fb.tip)}</p>` : ''}</div>`;
+      bot = `<button type="button" class="pill big" data-a="saynext">${sp.res.length < NSAY ? '다음 문제' : '다음'}</button>`;
     } else if (ui === 'check') {
-      mid = `<div class="saymine"><small>내가 말한 문장</small><p>${escH(sp.said)}</p></div>`;
+      mid = `<div class="saybub"><small>${sz(I_MIC, 14)} 내가 말한 문장</small><p>${escH(sp.said)}</p></div>`;
       bot = `<div class="saybtns"><button type="button" class="pill ghost" data-a="sayagain">다시 말하기</button><button type="button" class="pill" data-a="say" id="obsayok">제출하기</button></div>`;
     } else if (ui === 'type') {
       mid = `<input id="obsay" placeholder="영어로 입력해 보세요" autocomplete="off" autocapitalize="off" enterkeyhint="done">`;
-      bot = `<button type="button" class="pill wide" data-a="say" id="obsayok">제출하기</button>${links}`;
+      bot = `<div class="saybtns"><button type="button" class="pill ghost" data-a="sayvoice">말로 하기</button><button type="button" class="pill" data-a="say" id="obsayok">제출하기</button></div>
+        <button type="button" class="saylink" data-a="sayskip">잘 모르겠어요</button>`;
     } else {
       mid = ui === 'rec' ? '<div class="saywave"><i></i><i></i><i></i><i></i><i></i></div><p class="sayhelp live">듣는 중 <b id="saytime">0:00</b></p>'
         : ui === 'stt' ? '<p class="sayhelp">받아쓰는 중<span class="sdots"><i></i><i></i><i></i></span></p>'
         : '<p class="sayhelp">마이크를 누르고 영어로 말해 보세요<small>다 말하면 다시 누르거나, 잠깐 조용하면 자동으로 끝나요</small></p>';
-      bot = `<button type="button" id="obmic" class="bigmic${ui === 'rec' ? ' on' : ''}"${ui === 'stt' ? ' disabled' : ''} aria-label="${ui === 'rec' ? '말하기 끝내기' : '말하기 시작'}"></button>
-        <p class="miclab">${ui === 'rec' ? '다 말했으면 누르기' : ui === 'stt' ? '잠시만요' : '눌러서 말하기'}</p>${ui === 'idle' ? links : ''}`;
+      const busy = ui !== 'idle';  // 듣는 중에는 양옆 버튼을 숨기되 자리는 그대로 (마이크가 움직이지 않게)
+      bot = `<div class="mictools">${side('saytype', I_KBD, '키보드로 입력', busy)}
+          <button type="button" id="obmic" class="bigmic${ui === 'rec' ? ' on' : ''}"${ui === 'stt' ? ' disabled' : ''} aria-label="${ui === 'rec' ? '말하기 끝내기' : '말하기 시작'}"></button>
+          ${side('sayskip', I_QMARK, '잘 모르겠어요', busy)}
+          ${sideLab('키보드', busy)}<small class="sidelab main">${ui === 'rec' ? '다 말했으면 누르기' : ui === 'stt' ? '잠시만요' : '눌러서 말하기'}</small>${sideLab('모르겠어요', busy)}</div>`;  // 아이콘끼리 한 줄, 글자끼리 한 줄
     }
     h = `<div class="saywrap"><div class="saytop"><span>말하기 확인</span><span>${Math.min(n, NSAY)} / ${NSAY}</span></div>
       <div class="saycard"><small>이 말을 영어로 해 보세요</small><p>${escH(q.ko)}</p></div>
@@ -3979,7 +4026,7 @@ function renderOb(anim = true) {
   if (st === 'vocab') $('qspk').append(spkBtn(obs.q.en));
   if (st === 'speak') {
     if ($('sayen')) $('sayen').append(spkBtn(obs.sp.fb.fix));
-    if ($('obmic')) $('obmic').innerHTML = sz(I_MIC, 34);
+    if ($('obmic')) $('obmic').innerHTML = sz(I_MIC, 36);
     if ($('obsay')) $('obsay').focus();
   }
   box.classList.remove('obin');
@@ -3994,7 +4041,8 @@ function renderOb(anim = true) {
 }
 function obDone() {  // 온보딩을 마치고 나가기
   obs = null;
-  if ((window.history.state?.d || 0) > 0) goBack(); else setRoot(permsDone() ? 'menu' : 'perm');
+  localStorage.removeItem('obpre');
+  if ((window.history.state?.d || 0) > 0) goBack(); else { setRoot(!apiKey ? 'setup' : permsDone() ? 'menu' : 'perm'); if (!apiKey) setTimeout(autoCoach, 350); }  // 건너뛰어도 키 없이 홈으로 가지 않게
 }
 async function sayAnswer(skip, text) {  // 말하기 답 채점 → 다음 난이도 정하기 (잘하면 두 단계 위, 어려워하면 아래)
   if (obs.busy) return;
@@ -4078,7 +4126,16 @@ $('obbody').onclick = e => {
     obs.busy = true;
     obs.start = START[+b.dataset.v][2];
     renderOb(false);
-    return setTimeout(() => { obs.busy = false; if (obs && obs.step === 'start') obGo('vocab'); }, 240);  // 한 번 누르면 바로 다음으로
+    return setTimeout(() => {  // 한 번 누르면 바로 다음으로
+      obs.busy = false;
+      if (!obs || obs.step !== 'start') return;
+      const gate = !apiKey ? 'setup' : !permsDone() ? 'perm' : null;  // 테스트 전에 API 키와 마이크부터 (말하기 문제에 둘 다 필요)
+      if (!gate) return obGo('vocab');
+      localStorage.setItem('obpre', JSON.stringify({ goals: obs.goals, start: obs.start }));  // 다녀와서 이어가려고 잠깐 저장
+      obs = null;
+      setRoot(gate);
+      if (gate === 'setup') setTimeout(autoCoach, 350);
+    }, 240);
   }
   if (a === 'days') { obs.days = +b.dataset.v; return renderOb(false); }
   if (a === 'mins') { obs.mins = +b.dataset.v; return renderOb(false); }
@@ -5026,7 +5083,7 @@ applyTheme();
 history.forEach(m => drawMsg(m, $('chat'), true));
 paint();
 fillForm();
-setRoot(profile && apiKey ? nextAfterSetup() : 'setup');
+setRoot(profile && apiKey ? nextAfterSetup() : localStorage.getItem('obpre') ? 'setup' : 'onb');  // 처음이면 목표 고르기부터
 const skip = /nosplash/.test(location.search);
 const calm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 setTimeout(() => {
