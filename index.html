@@ -396,6 +396,33 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .popmenu button:disabled { opacity: .4; }
   .popmenu .ic { display: flex; }
   /* 단어장 검색: 목록보다 가벼운 채워진 검색창, 스크롤해도 위에 붙음 */
+  /* 오늘의 추천 단어 */
+  .vrec { margin-top: 12px; }
+  #vrecsum { display: block; margin-top: 2px; font-size: 13px; font-weight: 500; color: var(--sub); }
+  .vrec .g-blk { padding-top: 0; }
+  .rwrow { display: flex; align-items: center; gap: 8px; padding: 9px 0; }
+  .rwrow + .rwrow { border-top: 1px solid var(--line); }
+  .rwrow .rwt { flex: 1; min-width: 0; }
+  .rwrow .rwt b { font-size: 15.5px; }
+  .rwrow .rwt span { display: block; font-size: 13px; color: var(--sub); }
+  .rwadd { flex: none; height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--accent); color: #111; font: inherit; font-size: 13px; font-weight: 800; }
+  .rwadd:disabled { background: var(--surface2); color: var(--sub); }
+  #vrecall { width: 100%; margin-top: 10px; }
+  /* 필터와 별표 */
+  .vfilt { display: flex; gap: 6px; margin-top: 8px; }
+  .vfilt button { height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--surface2); color: var(--sub); font: inherit; font-size: 13px; font-weight: 700; }
+  .vfilt button.on { background: var(--text); color: var(--bg); }
+  .vstar { flex: none; display: flex; padding: 6px; border: 0; background: none; color: var(--line2); }
+  .vstar.on { color: var(--accent); }
+  .vstar.on svg { fill: currentColor; }
+  .vmiss { margin-left: 6px; padding: 1px 6px; border-radius: 999px; background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); font-size: 11px; font-weight: 800; }
+  /* 사전 찾기 */
+  #vdict:empty { display: none; }
+  #vdict { margin-bottom: 10px; }
+  .dictbtn { width: 100%; padding: 14px 16px; border: 1.5px dashed var(--line2); border-radius: 18px; background: none; color: var(--text); font: inherit; font-size: 14.5px; font-weight: 700; text-align: left; }
+  .dictcard { padding: 14px 16px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); }
+  .dictcard .dtag { display: inline-block; margin-bottom: 6px; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-text); font-size: 11.5px; font-weight: 800; }
+  .dictcard .pill { margin-top: 10px; }
   .vsearchbar { position: sticky; top: -18px; z-index: 5; margin: 14px -18px 10px; padding: 8px 18px; background: var(--bg); }
   #vocab .search input { height: 44px; border: 0; border-radius: 14px; background: var(--surface2); }
   #vocab .search input:focus { outline: 2px solid var(--accent); outline-offset: 0; }
@@ -712,23 +739,50 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .wchip b { margin-right: 4px; }
   .pill.big { display: block; width: 100%; height: 50px; margin-top: 18px; border-radius: 25px; font-size: 16px; }
   .qlabel.c { text-align: center; margin: 6px 0 12px; }
-  /* 말하기 확인 */
-  .qsay { margin: 4px 0 18px; padding: 18px 16px; border-radius: 18px; background: var(--surface2); text-align: center; font-size: 19px; line-height: 1.45; font-weight: 800; word-break: keep-all; }
-  .sayrow { display: flex; gap: 8px; margin-bottom: 12px; }
-  #obsay { flex: 1; min-width: 0; padding: 14px 16px; border: 1.5px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--text); font-size: 16px; }
+  /* 말하기 확인: 위 문제 카드, 가운데 상태, 아래 큰 마이크 */
+  .saywrap { display: flex; flex-direction: column; min-height: 100%; }
+  .saytop { display: flex; align-items: center; justify-content: space-between; margin: 2px 0 14px; font-size: 13px; font-weight: 700; color: var(--sub); }
+  .saycard { padding: 20px 18px; border-radius: 22px; background: var(--surface2); text-align: center; }
+  .saycard small { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: var(--sub); }
+  .saycard p { margin: 0; font-size: 22px; line-height: 1.45; font-weight: 800; word-break: keep-all; }
+  .saymid { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 150px; padding: 16px 0; text-align: center; }
+  .sayhelp { margin: 0; font-size: 15px; font-weight: 700; line-height: 1.5; }
+  .sayhelp small { display: block; margin-top: 4px; font-size: 13px; font-weight: 500; color: var(--sub); }
+  .sayhelp.live { color: var(--danger); }
+  .sayhelp b { font-variant-numeric: tabular-nums; }
+  .sdots i { display: inline-block; width: 5px; height: 5px; margin-left: 4px; border-radius: 50%; background: currentColor; animation: blink 1.2s infinite; }  /* 대화 입력 중 점과 같은 움직임 */
+  .sdots i:nth-child(2) { animation-delay: .15s; } .sdots i:nth-child(3) { animation-delay: .3s; }
+  .saywave { display: flex; align-items: center; gap: 5px; height: 40px; margin-bottom: 10px; }
+  .saywave i { width: 6px; height: 12px; border-radius: 3px; background: var(--danger); animation: swave .9s ease-in-out infinite; }
+  .saywave i:nth-child(2) { animation-delay: .12s; } .saywave i:nth-child(3) { animation-delay: .24s; } .saywave i:nth-child(4) { animation-delay: .36s; } .saywave i:nth-child(5) { animation-delay: .48s; }
+  @keyframes swave { 50% { height: 36px; } }
+  .saybot { display: flex; flex-direction: column; align-items: center; padding-bottom: 6px; }
+  .bigmic { display: flex; align-items: center; justify-content: center; width: 84px; height: 84px; border: 0; border-radius: 50%; background: var(--accent); color: #111; box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 45%, transparent); }
+  .bigmic.on { background: var(--danger); color: #fff; animation: cpulse 1.2s ease-out infinite; }
+  .bigmic:disabled { opacity: .5; }
+  .miclab { margin: 10px 0 0; font-size: 13.5px; font-weight: 700; color: var(--sub); }
+  .saylinks { display: flex; align-items: center; gap: 8px; margin-top: 16px; font-size: 13.5px; color: var(--sub); }
+  .saylinks button { padding: 6px 4px; border: 0; background: none; color: var(--sub); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+  #obsay { width: 100%; box-sizing: border-box; padding: 16px; border: 1.5px solid var(--line); border-radius: 18px; background: var(--surface); color: var(--text); font-size: 17px; }
   #obsay:focus { outline: none; border-color: var(--accent); }
-  .saymic { flex: none; display: flex; align-items: center; justify-content: center; width: 52px; border: 0; border-radius: 16px; background: var(--accent); color: #111; }
-  .saymic.on { animation: cpulse 1.2s ease-out infinite; }
-  #obbody .opt.idk { margin-top: 10px; }
-  .sayfb { margin-bottom: 14px; padding: 16px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--surface); }
-  .sayfb > b { display: block; margin-bottom: 6px; font-size: 16px; font-weight: 800; }
-  .sayfb.s4 > b, .sayfb.s3 > b { color: var(--ok); }
-  .sayfb.s2 > b { color: var(--accent-text); }
-  .sayfb.s1 > b, .sayfb.s0 > b, .sayfb.sx > b { color: var(--sub); }
-  .saymine { margin: 0 0 10px; font-size: 13.5px; color: var(--sub); }
-  .saylead { margin: 0 0 2px; font-size: 12.5px; font-weight: 700; color: var(--sub); }
-  .sayen { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 17px; font-weight: 700; line-height: 1.4; }
-  .sayfb small { display: block; margin-top: 8px; font-size: 13px; color: var(--sub); line-height: 1.5; }
+  .saybot > .pill.wide { width: 100%; }
+  .saybtns { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; width: 100%; }
+  .saymine { width: 100%; padding: 16px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--surface); text-align: left; }
+  .saymine small { font-size: 12.5px; font-weight: 700; color: var(--sub); }
+  .saymine p { margin: 4px 0 0; font-size: 18px; font-weight: 700; line-height: 1.45; }
+  .sayres { width: 100%; text-align: left; }
+  .saymeter { display: flex; gap: 5px; margin-bottom: 10px; }
+  .saymeter i { flex: 1; height: 8px; border-radius: 4px; background: var(--surface2); }
+  .sayres.s4 .saymeter i.on, .sayres.s3 .saymeter i.on { background: var(--ok); }
+  .sayres.s2 .saymeter i.on { background: var(--accent); }
+  .sayres.s1 .saymeter i.on { background: var(--danger); }
+  .sayres > b { display: block; font-size: 18px; font-weight: 800; }
+  .sayres.s4 > b, .sayres.s3 > b { color: var(--ok); }
+  .saymine2 { margin: 6px 0 0; font-size: 13.5px; color: var(--sub); }
+  .saybetter { margin-top: 12px; padding: 14px 16px; border-radius: 18px; background: var(--surface2); }
+  .saybetter small { font-size: 12.5px; font-weight: 700; color: var(--sub); }
+  .saybetter p { display: flex; align-items: center; gap: 8px; margin: 4px 0 0; font-size: 18px; font-weight: 800; line-height: 1.4; }
+  .saytip { margin: 10px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--sub); }
   .ugram { display: flex; align-items: center; gap: 8px; margin: -4px 0 16px; font-size: 14px; font-weight: 600; }  /* 유닛의 핵심 문법 패턴 */
   .ugram span { flex: none; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-text); font-size: 12px; font-weight: 800; }
   @media (max-height: 600px) {  /* 크롬 주소창, 글자 확대 등으로 보이는 높이가 짧을 때 */
@@ -1191,7 +1245,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
-    <p id="ver">버전 v3.0</p>
+    <p id="ver">버전 v3.1</p>
     <p class="copyr">© 2026 Jin Howard. All rights reserved.<br>무단 복제 및 배포를 금지합니다.</p>
     <button type="button" id="devreset" class="pill wide ghost">처음부터 다시 하기 (개발자)</button>
   </div>
@@ -1231,7 +1285,13 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     </div>
     <button type="button" id="wbanner" class="rowcard" style="display:none"><span class="chip"><span class="ic"></span></span><span class="mt"><b id="wbn"></b><small>눌러서 오늘 복습을 시작해요</small></span><span class="go"></span></button>
     <p id="wnext" class="hint" style="display:none"></p>
-    <div class="vsearchbar"><label class="search"><span class="si"></span><input id="vsearch" placeholder="단어나 뜻 검색" autocomplete="off"></label></div>
+    <div class="group guide vrec" id="vrec">
+      <button type="button" id="vrechead" class="g-row"><span class="gtitle"><span class="mt">오늘의 추천 단어<small id="vrecsum"></small></span></span><span class="chev"></span></button>
+      <div class="g-blk" id="vrecbody"></div>
+    </div>
+    <div class="vsearchbar"><label class="search"><span class="si"></span><input id="vsearch" placeholder="단어나 뜻 검색 · 영어 단어는 사전에서도 찾아요" autocomplete="off" enterkeyhint="search"></label>
+      <div class="vfilt" id="vfilt"><button type="button" data-f="all" class="on">전체</button><button type="button" data-f="star">별표</button><button type="button" data-f="miss">자주 틀린</button></div></div>
+    <div id="vdict"></div>
     <div id="vlist" class="group"></div>
   </div>
 </div>
@@ -1398,8 +1458,8 @@ const MODELS = { lite: 'gemini-3.5-flash-lite', pro: 'gemini-3.5-flash', max: 'g
 const MODEL_NAME = { lite: 'Flash-Lite', pro: 'Flash', max: 'Pro' };
 const FALLBACK = { max: 'pro', pro: 'lite', lite: 'pro' };  // 선택한 모델이 막히면 이어서 시도할 모델
 let aiMode = ['pro', 'max'].includes(localStorage.getItem('aimode')) ? localStorage.getItem('aimode') : 'lite';  // 기본은 Flash-Lite
-const BASE_SYSTEM = `You are a friendly English tutor for a Korean learner. Reply in 1-2 short English sentences and end with ONE open question.
-Questions: ask what, how, why or "tell me about" questions that make the learner explain in a longer answer. Avoid yes/no questions. Pick one specific thing the learner just said and go one step deeper (for example, if they mention a test, a tool or a place, ask what it is for or how it works), instead of switching to a general topic. Do not keep repeating the same theme or praise.
+const BASE_SYSTEM = `You are a friendly English tutor for a Korean learner. Talk like a curious friend having a real conversation, not like an interviewer. Reply in 1-2 short English sentences.
+Conversation flow: first react to what the learner just said with a short comment that shows you understood, often with a natural guess about their situation (for example: learner "I'm a medical laboratory technologist." -> "Oh, so you must run all the lab tests!"). Then continue the same story with one question that grows out of their exact answer (for example: learner "I work in the blood test part." -> "That sounds busy! What kind of tests do you do most?" or "What machines do you use there?"). Stay on the same thread and go one step deeper each time instead of jumping to a new topic. About once every three turns, instead of a question, share a short thought or experience of your own that invites them to keep talking. Prefer what, how and why questions over yes/no questions. Do not keep repeating the same praise.
 Reuse: when the learner has just learned an expression from you (they asked how to say something), within the next 2 or 3 turns naturally create a moment where they can use it again in their own sentence. Do not say that it is a test.
 Format: always write your whole English reply first, including your question. If you add a "KO:" line, it must be the very last part of your message. Never write any English after the KO: line. Be perceptive: use the conversation so far and the learner's field of interest to guess what they most likely meant, and answer that.
 The user's text may come from speech recognition: never comment on repeated words, fillers, capitalization, punctuation or apostrophes.
@@ -2314,11 +2374,105 @@ $('vclear').onclick = async () => {
   renderVocab();
   toast('단어장을 비웠어요', 2400);
 };
-function renderVocab() {
+// ===== 3순위: 추천 단어, 사전 찾기, 별표와 자주 틀린 단어 =====
+const I_STAR = icon('<polygon points="12 2.5 15 8.6 21.7 9.6 16.8 14.3 18 21 12 17.8 6 21 7.2 14.3 2.3 9.6 9 8.6"/>', 20);
+let vFilter = 'all';
+function recWords() {  // 오늘의 추천 단어 10개: 내 레벨 코스 단어 중 아직 저장 안 한 것, 내 분야 먼저, 날마다 바뀜
+  const lv = courseLv(), dn = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+  const goal = (profile && profile.field) || (ob && ob.goals || []).join(',');
+  const units = [...(COURSE[lv] || []), ...(COURSE[lv + 1] || []), ...(COURSE[lv - 1] || [])];
+  const seen = new Set(), pool = [];
+  units.forEach(u => (u.words || []).forEach(([w, ko, pos]) => {
+    if (seen.has(w) || findWord(w)) return;
+    seen.add(w);
+    pool.push({ w, ko, pos, u, mine: (u.goals || []).some(g => g !== '일상 대화' && goal.includes(g)) });
+  }));
+  const rot = (a, k) => a.length ? [...a.slice(k % a.length), ...a.slice(0, k % a.length)] : a;
+  const fresh = [...rot(pool.filter(x => x.mine), dn), ...rot(pool.filter(x => !x.mine), dn)].slice(0, 10);
+  let day = null;  // 오늘의 10개는 날짜별로 고정: 저장해도 다음 10개로 바뀌지 않고 '저장됨'으로 남음
+  try { day = JSON.parse(localStorage.getItem('recday')); } catch (e) {}
+  if (!day || day.d !== dayKey || day.lv !== lv) { day = { d: dayKey, lv, ws: fresh.map(x => x.w) }; localStorage.setItem('recday', JSON.stringify(day)); }
+  const all = units.flatMap(u => (u.words || []).map(([w, ko, pos]) => ({ w, ko, pos, u })));
+  return day.ws.map(w => all.find(x => x.w === w)).filter(Boolean);
+}
+function addRecWord(x) {  // 추천 단어 저장: 예문은 같은 상황의 문장에서
+  const re = new RegExp('\\b' + x.w.replace(/e$/, '') + '(e|es|s|ed|d|ing)?\\b', 'i');
+  const ex = (x.u.ex || []).find(e => re.test(e[0])) || allEx().find(e => re.test(e[0])) || wexCache[x.w];
+  vocab.push({ w: x.w, base: '', meaning: `${POSMARK[x.pos] || ''} ${x.ko}`.trim(), exs: ex ? [{ ex: ex[0], exko: ex[1] }] : [], box: 1, due: addDays(dayKey, 1), src: 'rec' });
+}
+function paintRec() {
+  const list = recWords(), left = list.filter(x => !findWord(x.w));
+  $('vrecsum').textContent = !list.length ? '이 레벨 추천 단어를 모두 저장했어요'
+    : left.length ? `레벨 ${courseLv()} 단어 ${list.length}개 중 ${left.length}개 남음 · 눌러서 보기` : `오늘 ${list.length}개 모두 저장했어요 · 내일 새 단어가 나와요`;
+  const body = $('vrecbody');
+  body.textContent = '';
+  list.forEach(x => {
+    const r = el('div', 'rwrow'), t = el('div', 'rwt');
+    t.append(el('b', '', x.w), el('span', '', `${POSMARK[x.pos] || ''} ${x.ko}`.trim()));
+    const saved = !!findWord(x.w), add = el('button', 'rwadd', saved ? '저장됨' : '저장');
+    add.disabled = saved;
+    add.onclick = () => { addRecWord(x); saveVocab(); renderVocab(true); };
+    r.append(spkBtn(x.w), t, add);
+    body.append(r);
+  });
+  if (left.length) {
+    const all = el('button', 'pill', left.length === list.length ? '모두 저장' : `남은 ${left.length}개 모두 저장`);
+    all.id = 'vrecall';
+    all.onclick = () => { left.forEach(addRecWord); saveVocab(); toast(`추천 단어 ${left.length}개를 저장했어요. 내일부터 복습에 나와요`, 2800); renderVocab(); };
+    body.append(all);
+  }
+}
+$('vrechead').querySelector('.chev').innerHTML = I_CHEV;
+$('vrechead').onclick = () => $('vrec').classList.toggle('open');
+$('vfilt').onclick = e => {
+  const b = e.target.closest('[data-f]');
+  if (!b) return;
+  vFilter = b.dataset.f;
+  document.querySelectorAll('#vfilt [data-f]').forEach(x => x.classList.toggle('on', x === b));
+  renderVocab();
+};
+function paintDict(q) {  // 사전 찾기: 단어장에 없는 영어 단어면 버튼, 누를 때만 조회 (글자 칠 때마다 요청하지 않음)
+  const box = $('vdict');
+  box.textContent = '';
+  if (!/^[a-z][a-z' -]{1,30}$/i.test(q) || findWord(q.toLowerCase())) return;
+  const b = el('button', 'dictbtn', `'${q}' 사전에서 찾기`);
+  b.type = 'button';
+  b.onclick = () => dictLook(q);
+  box.append(b);
+}
+async function dictLook(q) {
+  const box = $('vdict'), w = q.toLowerCase().trim();
+  box.innerHTML = '<div class="dictcard"><span class="dtag">사전</span><p class="wait">찾는 중<i></i><i></i><i></i></p></div>';
+  try {
+    const d = BASIC[w] ? { base: '', ...BASIC[w] } : cache.get(w) || await lookup(w, w);
+    cache.set(w, d);
+    if ($('vsearch').value.trim().toLowerCase() !== w) return;  // 그 사이 검색어를 바꿨으면 버림
+    const c = el('div', 'dictcard');
+    c.append(el('span', 'dtag', '사전'), speakRow(d.base && d.base !== w ? `${w} (${d.base})` : w, w, 'vtitle'), el('div', '', d.meaning));
+    if (d.ex) { const s = el('div', 'vsec'); s.append(speakRow(d.ex, d.ex, 'vex'), el('div', 'vex', d.exko)); c.append(s); }
+    const save = el('button', 'pill wide', findWord(w) ? '저장됨' : '단어장에 저장');
+    save.disabled = !!findWord(w);
+    save.onclick = () => {
+      vocab.push({ w, base: d.base && d.base !== w ? d.base : '', meaning: d.meaning, exs: d.ex ? [{ ex: d.ex, exko: d.exko }] : [], box: 1, due: addDays(dayKey, 1), src: 'dict' });
+      saveVocab(); save.disabled = true; save.textContent = '저장됨'; renderVocab(true);
+    };
+    c.append(save);
+    box.textContent = '';
+    box.append(c);
+  } catch (e) { box.innerHTML = ''; toast(friendly(e).title, 2600); paintDict(q); }
+}
+$('vsearch').addEventListener('keydown', e => { const q = $('vsearch').value.trim(); if (e.key === 'Enter' && $('vdict').querySelector('.dictbtn')) dictLook(q); });
+function renderVocab(keepDict) {
   const box = $('vlist');
   const q = $('vsearch').value.trim().toLowerCase();
-  const list = [...vocab].reverse().filter(v => !q || [v.w, v.base, v.meaning].some(t => (t || '').toLowerCase().includes(q)));
+  const list = [...vocab].reverse().filter(v => (!q || [v.w, v.base, v.meaning].some(t => (t || '').toLowerCase().includes(q)))
+    && (vFilter === 'all' || (vFilter === 'star' ? v.star : (v.miss || 0) >= 2)));  // 자주 틀린: 단어 복습에서 2번 이상 틀림
   $('vcount').textContent = vocab.length || '';
+  if (!keepDict) paintDict(list.length ? '' : $('vsearch').value.trim());  // 내 단어장에서 먼저 찾고, 없을 때만 사전 버튼
+  paintRec();
+  const nStar = vocab.filter(v => v.star).length, nMiss = vocab.filter(v => (v.miss || 0) >= 2).length;
+  $('vfilt').querySelector('[data-f="star"]').textContent = nStar ? `별표 ${nStar}` : '별표';
+  $('vfilt').querySelector('[data-f="miss"]').textContent = nMiss ? `자주 틀린 ${nMiss}` : '자주 틀린';
   const due = dueWords().length, nd = nextDueText();
   $('wbanner').style.display = due ? 'flex' : 'none';
   $('wbn').textContent = `오늘 복습할 단어 ${due}개`;
@@ -2328,8 +2482,11 @@ function renderVocab() {
   box.textContent = '';
   if (!list.length) {
     const e = el('div', 'empty');
-    e.innerHTML = vocab.length ? '<b>검색 결과가 없어요</b>다른 단어로 찾아보세요'
-      : '<b>아직 저장한 단어가 없어요</b>대화 중 모르는 단어를 눌러 저장해 보세요';
+    e.innerHTML = q ? '<b>단어장에 없어요</b>영어 단어라면 위의 사전에서 찾기를 눌러 보세요'
+      : vFilter === 'star' ? '<b>별표한 단어가 없어요</b>단어 옆 별을 눌러 나만의 단어를 모아 보세요'
+      : vFilter === 'miss' ? '<b>자주 틀린 단어가 없어요</b>단어 복습에서 두 번 이상 틀린 단어가 여기에 모여요'
+      : vocab.length ? '<b>검색 결과가 없어요</b>다른 단어로 찾아보세요'
+      : '<b>아직 저장한 단어가 없어요</b>위의 오늘의 추천 단어나, 대화 중 모르는 단어를 눌러 저장해 보세요';
     box.append(e);
     return;
   }
@@ -2362,6 +2519,7 @@ function renderVocab() {
     const line = el('div', 'vtxt');
     const top = el('div', '');
     top.append(el('span', 'vw', v.w), `${v.base ? ` (${v.base})` : ''} : ${v.meaning}`);
+    if ((v.miss || 0) >= 2) top.append(el('span', 'vmiss', `${v.miss}번 틀림`));
     line.append(top);
     if (!BASIC[v.w]) line.append(el('span', 'vdue', dueText(v)));
     line.onclick = () => {
@@ -2378,8 +2536,12 @@ function renderVocab() {
       saveVocab();
       renderVocab();
     };
+    const star = el('button', 'vstar' + (v.star ? ' on' : ''));
+    star.setAttribute('aria-label', v.star ? '별표 빼기' : '별표');
+    star.innerHTML = I_STAR;
+    star.onclick = () => { v.star = !v.star; saveVocab(); renderVocab(true); };
     const row = el('div', 'vrow');
-    row.append(spkBtn(v.w), line, del);
+    row.append(spkBtn(v.w), line, star, del);
     const item = el('div', 'vitem');
     item.append(row, det);
     box.append(item);
@@ -2834,6 +2996,7 @@ function stopRecord(keep, silent) {
     setLoop(false);
   }
   if (ok) handleVoice(toWav(bufs, rate), bufs, rate);
+  else if (voiceTo) { const f = voiceTo; voiceTo = null; f(null); }
 }
 function toWav(bufs, inRate) {  // 16kHz 모노 16비트 WAV (구간 평균으로 줄여서 소리가 뭉개지지 않게)
   const n = bufs.reduce((a, b) => a + b.length, 0), all = new Float32Array(n);
@@ -3640,6 +3803,7 @@ const SPEAKQ = [null,
   [['제 생각엔 그 방법이 더 효율적일 것 같아요.', 'I think that method would be more efficient.'], ['미리 알려주셨으면 좋았을 텐데요.', 'It would have been nice if you had told me in advance.'], ['상황에 따라 다르지만 보통은 괜찮아요.', "It depends on the situation, but it's usually fine."]],
   [['그 문제를 해결하려면 근본적인 원인부터 찾아야 해요.', 'To solve that problem, we need to find the root cause first.'], ['솔직히 그 제안은 좀 무리인 것 같아요.', 'To be honest, I think that proposal is a bit unrealistic.'], ['결정하기 전에 생각할 시간을 조금 더 주시겠어요?', 'Could you give me a little more time to think before I decide?']]
 ];
+const TOEIC = ['', '약 250점 이하', '약 250~450점', '약 450~650점', '약 650~850점', '약 850점 이상'];  // 레벨별 토익 어림값 (공식 환산 아님, 토익은 듣기와 읽기 시험이라 알아보는 능력 기준)
 const SAY_LABEL = ['괜찮아요, 연습하면 돼요', '조금 어려웠어요', '뜻은 통해요', '잘 통해요', '완벽해요'];
 const clampLv = n => Math.min(5, Math.max(1, n));
 // 유닛 퀴즈나 단어 복습을 마칠 때마다 정답률로 레벨 점수를 아주 조금씩 조정 (화면에 알리지 않음)
@@ -3727,8 +3891,9 @@ function askSay() {  // 지금 난이도에서 아직 안 낸 말하기 문제
   return { ko, en, d };
 }
 function obGo(step) {
+  if (obs.step === 'speak' && step !== 'speak') sayStop();
   obs.step = step;
-  if (step === 'speak') { obs.sp = { d: clampLv(Math.round(estimate().th)), res: [], fb: null }; obs.q = askSay(); }  // 읽기 결과와 같은 단계에서 시작
+  if (step === 'speak') { obs.sp = { d: clampLv(Math.round(estimate().th)), res: [], fb: null, ui: 'idle', said: '' }; obs.q = askSay(); }  // 읽기 결과와 같은 단계에서 시작
   if (step === 'vocab') { obs.v = newSkill(obs.start); obs.used = new Set(); obs.log = []; obs.q = askWord(); }
   if (step === 'read') { obs.r = newSkill(obs.v.th); obs.usedS = new Set(); obs.q = askSent(); }
   renderOb();
@@ -3766,18 +3931,33 @@ function renderOb(anim = true) {
     } else {
       h = `<div class="qsent">${obs.q.en}</div>${opts('s', obs.q, '잘 모르겠어요')}`;
     }
-  } else if (st === 'speak') {
+  } else if (st === 'speak') {  // 말하기 확인: 큰 마이크가 주인공, 키보드는 보조
     showNext = false;
-    const q = obs.q, fb = obs.sp.fb, n = obs.sp.res.length + (fb ? 0 : 1);
-    h = `<p class="qtip">말하기 확인 ${Math.min(n, NSAY)}/${NSAY} · 튜터가 말할 수준을 정해요</p>
-      <p class="qlabel c">이 말을 영어로 해 보세요</p><div class="qsay">${escH(q.ko)}</div>`
-      + (fb ? `<div class="sayfb s${fb.score ?? 'x'}"><b>${fb.score === null ? '채점하지 못했어요' : SAY_LABEL[fb.score]}</b>${fb.said ? `<p class="saymine">내 답: ${escH(fb.said)}</p>` : ''}
-          <p class="saylead">이렇게 말하면 자연스러워요</p><p class="sayen" id="sayen">${escH(fb.fix)}</p>${fb.tip ? `<small>${escH(fb.tip)}</small>` : ''}</div>
-          <button type="button" class="pill wide" data-a="saynext">${obs.sp.res.length < NSAY ? '다음 문제' : '다음'}</button>`
-        : `<div class="sayrow"><input id="obsay" placeholder="영어로 입력하거나 마이크로 말해요" autocomplete="off" autocapitalize="off" enterkeyhint="done">
-          <button type="button" id="obmic" class="saymic" aria-label="말로 답하기"></button></div>
-          <button type="button" class="pill wide" data-a="say" id="obsayok">확인</button>
-          <button type="button" class="opt q idk" data-a="sayskip"><span class="ot">잘 모르겠어요</span></button>`);
+    const q = obs.q, sp = obs.sp, fb = sp.fb, ui = sp.ui || 'idle', n = sp.res.length + (fb ? 0 : 1);
+    const links = `<div class="saylinks">${ui === 'type' ? '<button type="button" data-a="sayvoice">말로 할게요</button>' : '<button type="button" data-a="saytype">키보드로 입력</button>'}<span>·</span><button type="button" data-a="sayskip">잘 모르겠어요</button></div>`;
+    let mid, bot;
+    if (fb) {
+      const s = fb.score;
+      mid = `<div class="sayres s${s ?? 'x'}"><div class="saymeter">${[1, 2, 3, 4].map(k => `<i class="${s !== null && k <= s ? 'on' : ''}"></i>`).join('')}</div>
+        <b>${s === null ? '채점하지 못했어요' : SAY_LABEL[s]}</b>${fb.said ? `<p class="saymine2">내 답 · ${escH(fb.said)}</p>` : ''}
+        <div class="saybetter"><small>${s === 4 ? '이렇게도 말해요' : '더 자연스럽게'}</small><p id="sayen">${escH(fb.fix)}</p></div>${fb.tip ? `<p class="saytip">${escH(fb.tip)}</p>` : ''}</div>`;
+      bot = `<button type="button" class="pill wide" data-a="saynext">${sp.res.length < NSAY ? '다음 문제' : '다음'}</button>`;
+    } else if (ui === 'check') {
+      mid = `<div class="saymine"><small>내가 말한 문장</small><p>${escH(sp.said)}</p></div>`;
+      bot = `<div class="saybtns"><button type="button" class="pill ghost" data-a="sayagain">다시 말하기</button><button type="button" class="pill" data-a="say" id="obsayok">제출하기</button></div>`;
+    } else if (ui === 'type') {
+      mid = `<input id="obsay" placeholder="영어로 입력해 보세요" autocomplete="off" autocapitalize="off" enterkeyhint="done">`;
+      bot = `<button type="button" class="pill wide" data-a="say" id="obsayok">제출하기</button>${links}`;
+    } else {
+      mid = ui === 'rec' ? '<div class="saywave"><i></i><i></i><i></i><i></i><i></i></div><p class="sayhelp live">듣는 중 <b id="saytime">0:00</b></p>'
+        : ui === 'stt' ? '<p class="sayhelp">받아쓰는 중<span class="sdots"><i></i><i></i><i></i></span></p>'
+        : '<p class="sayhelp">마이크를 누르고 영어로 말해 보세요<small>다 말하면 다시 누르거나, 잠깐 조용하면 자동으로 끝나요</small></p>';
+      bot = `<button type="button" id="obmic" class="bigmic${ui === 'rec' ? ' on' : ''}"${ui === 'stt' ? ' disabled' : ''} aria-label="${ui === 'rec' ? '말하기 끝내기' : '말하기 시작'}"></button>
+        <p class="miclab">${ui === 'rec' ? '다 말했으면 누르기' : ui === 'stt' ? '잠시만요' : '눌러서 말하기'}</p>${ui === 'idle' ? links : ''}`;
+    }
+    h = `<div class="saywrap"><div class="saytop"><span>말하기 확인</span><span>${Math.min(n, NSAY)} / ${NSAY}</span></div>
+      <div class="saycard"><small>이 말을 영어로 해 보세요</small><p>${escH(q.ko)}</p></div>
+      <div class="saymid">${mid}</div><div class="saybot">${bot}</div></div>`;
   } else if (st === 'plan') {
     h = `<h2>학습 계획을 정해요</h2><p class="sub">부담 없는 목표로 시작하세요.</p>
       <p class="qlabel">일주일에</p>${seg('days', [3, 5, 7], obs.days, '일')}
@@ -3791,6 +3971,7 @@ function renderOb(anim = true) {
       <p class="sub c">${LV_DESC[obs.lvl]}</p>
       <div class="skills">${bar('어휘', sg.vocab)}${bar('문장 이해', sg.read)}${sg.speak != null ? bar('말하기', sg.speak) : '<div class="sk off"><span>말하기</span><div class="sb"></div><small>대화하며 알아가요</small></div>'}</div>
       <p class="note">이 정도 범위예요: 레벨 ${lo === hi ? lo : lo + '~' + hi}${low ? ' (결과가 조금 달라요)' : ''}<br>처음 정한 레벨이라 정확하지 않을 수 있어요. 대화하면서 계속 맞춰 갈게요.</p>
+      ${obs.recTh != null ? `<p class="toeic">토익(듣기·읽기) 참고: <b>${TOEIC[clampLv(Math.round(obs.recTh))]}</b> 수준<br><small>읽고 알아보는 결과로 어림잡은 값이에요. 공식 환산표가 아니라 참고용이에요.</small></p>` : ''}
       <p class="note">안 맞는다면 설정 → 나의 레벨에서 다시 할 수 있어요.</p>`;
     next = inSettings ? '저장하기' : '이 레벨로 시작하기';
   }
@@ -3798,7 +3979,8 @@ function renderOb(anim = true) {
   if (st === 'vocab') $('qspk').append(spkBtn(obs.q.en));
   if (st === 'speak') {
     if ($('sayen')) $('sayen').append(spkBtn(obs.sp.fb.fix));
-    if ($('obmic')) $('obmic').innerHTML = sz(I_MIC, 22);
+    if ($('obmic')) $('obmic').innerHTML = sz(I_MIC, 34);
+    if ($('obsay')) $('obsay').focus();
   }
   box.classList.remove('obin');
   if (anim) { void box.offsetWidth; box.classList.add('obin'); }
@@ -3814,17 +3996,16 @@ function obDone() {  // 온보딩을 마치고 나가기
   obs = null;
   if ((window.history.state?.d || 0) > 0) goBack(); else setRoot(permsDone() ? 'menu' : 'perm');
 }
-async function sayAnswer(skip) {  // 말하기 답 채점 → 다음 난이도 정하기 (잘하면 한 단계 위, 어려워하면 아래)
+async function sayAnswer(skip, text) {  // 말하기 답 채점 → 다음 난이도 정하기 (잘하면 두 단계 위, 어려워하면 아래)
   if (obs.busy) return;
-  const q = obs.q, said = skip ? '' : ($('obsay') ? $('obsay').value.trim() : '');
-  if (!skip && !said) { toast('영어로 입력하거나 마이크를 눌러 말해 주세요', 2400); return; }
-  if (recCtx) stopRecord(false);
+  const q = obs.q, said = skip ? '' : String(text || '').trim();
+  if (!skip && !said) { toast(obs.sp.ui === 'type' ? '영어로 입력해 주세요' : '마이크를 눌러 말해 주세요', 2400); return; }
+  sayStop();
   let r;
   if (skip) r = { score: 0, fix: q.en, tip: '천천히 따라 말해 보세요' };
   else {
     obs.busy = true;
-    $('obsayok').textContent = '확인 중...';
-    $('obsayok').disabled = true;
+    if ($('obsayok')) { $('obsayok').textContent = '채점 중...'; $('obsayok').disabled = true; }
     try { r = await gradeSay(q.ko, q.en, said); }
     catch (e) { r = { score: null, fix: q.en, tip: '채점을 못 해서 이 문제는 레벨에 넣지 않았어요' }; }  // 채점이 안 되면 레벨 계산에서 뺌
     obs.busy = false;
@@ -3835,19 +4016,43 @@ async function sayAnswer(skip) {  // 말하기 답 채점 → 다음 난이도 �
   if (r.score !== null) obs.sp.d = clampLv(q.d + [-2, -1, 0, 1, 2][r.score]);  // 완벽하면 두 단계 위, 전혀 못 하면 두 단계 아래
   renderOb();
 }
-let voiceTo = null;  // 녹음이 끝나면 대화 대신 여기로 (레벨 테스트 말하기 문제)
-$('obbody').addEventListener('keydown', e => { if (e.target.id === 'obsay' && e.key === 'Enter') { e.preventDefault(); sayAnswer(false); } });
+let voiceTo = null, sayTimer = 0;  // 녹음이 끝나면 대화 대신 여기로 (레벨 테스트 말하기 문제)
+function sayStop() {  // 녹음과 시간 표시 정리
+  clearInterval(sayTimer);
+  voiceTo = null;
+  if (recCtx) stopRecord(false);
+}
+$('obbody').addEventListener('keydown', e => { if (e.target.id === 'obsay' && e.key === 'Enter') { e.preventDefault(); sayAnswer(false, e.target.value); } });
 $('obbody').addEventListener('click', async e => {
-  if (!e.target.closest('#obmic')) return;
-  if (recCtx) { stopRecord(true); return; }  // 말하는 중에 다시 누르면 끝내기
-  voiceTo = async audio => {
-    $('obmic') && $('obmic').classList.remove('on');
-    if ($('obsay')) $('obsay').placeholder = '받아쓰는 중...';
-    try { const t = await transcribe(audio); if ($('obsay')) { $('obsay').value = t; $('obsay').placeholder = '영어로 입력하거나 마이크로 말해요'; } }
-    catch (x) { toast('받아쓰지 못했어요. 입력으로 답해 주세요', 2600); }
+  if (!e.target.closest('#obmic') || !obs || obs.step !== 'speak') return;
+  const sp = obs.sp;
+  if (sp.ui === 'rec') { stopRecord(true); return; }  // 다 말했으면 다시 눌러서 끝내기
+  voiceTo = async audio => {  // audio가 null이면 목소리가 없었던 것
+    clearInterval(sayTimer);
+    if (!obs || obs.step !== 'speak') return;
+    if (!audio) { sp.ui = 'idle'; return renderOb(); }
+    sp.ui = 'stt';
+    renderOb();
+    try {
+      const t = (await transcribe(audio)).trim();
+      if (obs.step !== 'speak') return;
+      if (!t) { toast('잘 들리지 않았어요. 다시 말해 주세요', 2600); sp.ui = 'idle'; }
+      else { sp.said = t; sp.ui = 'check'; }
+    } catch (x) { toast('받아쓰지 못했어요. 다시 말하거나 키보드로 입력해 주세요', 3000); sp.ui = 'idle'; }
+    renderOb();
   };
-  try { $('obmic').classList.add('on'); await startRecord(); }
-  catch (x) { voiceTo = null; $('obmic') && $('obmic').classList.remove('on'); if (recCtx) stopRecord(false); toast('마이크를 쓸 수 없어서 입력으로 답해 주세요', 2800); }
+  try {
+    sp.ui = 'rec';
+    renderOb();
+    await startRecord();
+    const t0 = Date.now();
+    sayTimer = setInterval(() => { const s = Math.floor((Date.now() - t0) / 1000); if ($('saytime')) $('saytime').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; }, 250);
+  } catch (x) {
+    sayStop();
+    sp.ui = 'type';  // 마이크를 못 쓰면 바로 키보드로
+    renderOb();
+    toast('마이크를 쓸 수 없어서 키보드로 입력해 주세요', 3000);
+  }
 });
 function obResult() {
   const e = estimate(), sp = spTh();
@@ -3857,6 +4062,7 @@ function obResult() {
   obs.lvl = clampLv(Math.round(th));
   obs.range = [clampLv(Math.round(th - 1.28 * e.se)), clampLv(Math.round(th + 1.28 * e.se))];  // 약 80% 범위
   obs.sig = { self: obs.start, vocab: obs.v.th, read: obs.r.th, speak: sp };
+  obs.recTh = e.th;  // 알아보는 능력 (토익 참고용)
   obs.conf = e.se <= 0.45 && Math.abs(obs.v.th - obs.r.th) <= 1.2 ? 'mid' : 'low';
 }
 $('obbody').onclick = e => {
@@ -3876,9 +4082,13 @@ $('obbody').onclick = e => {
   }
   if (a === 'days') { obs.days = +b.dataset.v; return renderOb(false); }
   if (a === 'mins') { obs.mins = +b.dataset.v; return renderOb(false); }
-  if (a === 'say' || a === 'sayskip') return sayAnswer(a === 'sayskip');
+  if (a === 'say') return sayAnswer(false, obs.sp.ui === 'type' ? ($('obsay') ? $('obsay').value : '') : obs.sp.said);
+  if (a === 'sayskip') return sayAnswer(true);
+  if (a === 'saytype' || a === 'sayvoice' || a === 'sayagain') { sayStop(); obs.sp.ui = a === 'saytype' ? 'type' : 'idle'; obs.sp.said = ''; return renderOb(); }
   if (a === 'saynext') {
     obs.sp.fb = null;
+    obs.sp.ui = 'idle';
+    obs.sp.said = '';
     if (obs.sp.res.length >= NSAY) return obGo('plan');
     obs.q = askSay();
     return renderOb();
@@ -4261,7 +4471,7 @@ $('keypaste').onclick = async () => {
     st.textContent = '입력칸을 길게 눌러 붙여넣기를 누르거나, 키보드 위의 복사한 내용을 눌러 주세요';
   }
 };
-$('vsearch').oninput = renderVocab;
+$('vsearch').oninput = () => renderVocab();  // 입력 이벤트가 첫 값으로 넘어가지 않게 (첫 값은 '사전 칸 유지' 표시)
 $('vsearch').parentNode.querySelector('.si').innerHTML = I_SEARCH;
 
 
@@ -4799,6 +5009,7 @@ $('wbody').onclick = e => {
   if (o && wr && wr.picked === undefined) {
     const v = wr.q.v, i = +o.dataset.i, ok = i >= 0 && wr.q.opts[i] === wr.q.ok;
     v.box = ok ? Math.min(5, (v.box || 1) + 1) : 1;  // 맞히면 상자 올림, 틀리면 처음으로
+    if (!ok) v.miss = (v.miss || 0) + 1;  // 틀린 횟수 (자주 틀린 단어 모음용)
     v.due = addDays(dayKey, INTERVALS[v.box - 1]);
     if (ok) wr.ok++;
     saveVocab();
