@@ -1,6 +1,7 @@
 // 서비스 워커: 앱 껍데기를 저장해 두고, 인터넷이 되면 항상 최신 파일을 먼저 가져옴
-const CACHE = 'etutor-v1';
-const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const CACHE = 'etutor-v2';  // 파일 구성 바뀌면 숫자 올림
+const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
+  './fonts/pjs.woff2', './img/avatar.webp', './img/art.webp', './img/key-list.jpg', './img/app-paste.jpg'];
 
 self.addEventListener('install', e => {
   e.waitUntil(
