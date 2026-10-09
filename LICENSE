@@ -11,6 +11,9 @@ without prior written permission from the copyright holder.
 
 Viewing this repository does not grant any license to use its contents.
 
+Third-party components listed at the end of this file are not covered by
+the terms above and remain under their own licenses.
+
 --------------------------------------------------------------------------
 
 [한국어 요약]
@@ -22,6 +25,8 @@ Jin Howard에게 있습니다.
 복제, 수정, 배포, 게시, 재허락, 판매하거나 2차 저작물을 만드는 것을 금지합니다.
 
 이 저장소를 볼 수 있다고 해서 내용을 사용할 권리가 주어지는 것은 아닙니다.
+
+단, 아래에 적은 제3자 구성요소는 위 조건이 아니라 각자의 라이선스를 따릅니다.
 
 --------------------------------------------------------------------------
 
@@ -49,3 +54,20 @@ Licensed under the MIT License:
   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   THE SOFTWARE.
+
+--------------------------------------------------------------------------
+
+Third-party data used only by the course checker (tools/), not loaded by the app:
+
+CEFR-J Wordlist Version 1.5
+Compiled by Yukio Tono, Tokyo University of Foreign Studies
+Copyright (c) Tono Laboratory, TUFS. http://www.cefr-j.org/download.html
+File: tools/cefr/cefrj-vocabulary-profile-1.5.csv
+Free for research and commercial use with proper citation.
+
+Octanove Vocabulary Profile C1/C2 (ver 1.0)
+Created by Octanove Labs. http://www.octanove.com/
+File: tools/cefr/octanove-vocabulary-profile-c1c2-1.0.csv
+Licensed under CC BY-SA 4.0: https://creativecommons.org/licenses/by-sa/4.0/
+
+Details: tools/cefr/README.md
