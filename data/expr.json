@@ -1,0 +1,70 @@
+{
+  "일상": [
+    ["How's it going?", "요즘 어떻게 지내요?"],
+    ["I'm running a little late.", "조금 늦을 것 같아요."],
+    ["Could you say that again?", "다시 한번 말씀해 주시겠어요?"],
+    ["That sounds great!", "좋은 생각이에요!"],
+    ["I'm not sure yet.", "아직 잘 모르겠어요."],
+    ["Let me think about it.", "생각해 볼게요."],
+    ["What do you recommend?", "추천해 주실 게 있나요?"],
+    ["No worries.", "괜찮아요, 걱정 마세요."],
+    ["Could I get the check, please?", "계산서 부탁드려요."],
+    ["How do I get to the station?", "역에는 어떻게 가나요?"]
+  ],
+  "병원": [
+    ["I'd like to make an appointment.", "진료를 예약하고 싶어요."],
+    ["I've had a fever since yesterday.", "어제부터 열이 나요."],
+    ["Where does it hurt?", "어디가 아프세요?"],
+    ["How often should I take this medicine?", "이 약은 얼마나 자주 먹어야 하나요?"],
+    ["Is it serious?", "심각한 건가요?"],
+    ["You may feel a little pinch.", "조금 따끔할 수 있어요."],
+    ["Please roll up your sleeve.", "소매를 걷어 주세요."],
+    ["Do you have any allergies?", "알레르기가 있으세요?"],
+    ["Please fill out this form.", "이 서류를 작성해 주세요."],
+    ["The results will be ready tomorrow.", "결과는 내일 나옵니다."]
+  ],
+  "회사": [
+    ["Let's schedule a meeting.", "회의 일정을 잡아요."],
+    ["I'll follow up by email.", "이메일로 후속 연락드릴게요."],
+    ["Could you send me the file?", "파일을 보내 주시겠어요?"],
+    ["Let me check and get back to you.", "확인해 보고 다시 연락드릴게요."],
+    ["Sorry for the delay.", "늦어서 죄송합니다."],
+    ["I'm on it.", "제가 처리하고 있어요."],
+    ["Let's touch base tomorrow.", "내일 다시 이야기해요."],
+    ["What's the deadline?", "마감이 언제인가요?"],
+    ["I'll send the report by Friday.", "금요일까지 보고서를 보낼게요."],
+    ["That works for me.", "저는 그 시간 좋아요."]
+  ],
+  "학교": [
+    ["I have a question about the assignment.", "과제에 대해 질문이 있어요."],
+    ["Could you explain that again?", "다시 설명해 주시겠어요?"],
+    ["When is the deadline?", "마감이 언제예요?"],
+    ["I missed the class yesterday.", "어제 수업을 놓쳤어요."],
+    ["Can I get an extension?", "기한을 연장할 수 있을까요?"],
+    ["What does this word mean?", "이 단어는 무슨 뜻이에요?"],
+    ["Let's study together.", "같이 공부해요."],
+    ["I didn't catch that.", "못 알아들었어요."],
+    ["Could you speak more slowly?", "조금 더 천천히 말씀해 주시겠어요?"]
+  ],
+  "여행": [
+    ["Where can I buy a ticket?", "표는 어디서 살 수 있나요?"],
+    ["How much is this?", "이건 얼마예요?"],
+    ["I'd like to check in, please.", "체크인하고 싶어요."],
+    ["Could you take a picture of us?", "사진 좀 찍어 주시겠어요?"],
+    ["Is there a bus to the airport?", "공항 가는 버스가 있나요?"],
+    ["Do you have a table for two?", "두 명 자리 있나요?"],
+    ["I'm looking for the subway station.", "지하철역을 찾고 있어요."],
+    ["Can I pay by card?", "카드로 결제할 수 있나요?"]
+  ],
+  "교회": [
+    ["Welcome! Please have a seat.", "환영합니다! 앉으세요."],
+    ["God bless you.", "하나님의 축복이 있기를 바랍니다."],
+    ["Let's pray together.", "함께 기도해요."],
+    ["I'm glad you could come.", "와 주셔서 기뻐요."],
+    ["Would you like some coffee after the service?", "예배 후에 커피 한잔 하실래요?"],
+    ["Please join us next Sunday.", "다음 주일에도 함께해요."],
+    ["It's nice to meet you.", "만나서 반가워요."],
+    ["Thank you for your prayers.", "기도해 주셔서 감사합니다."],
+    ["The service starts at eleven.", "예배는 11시에 시작해요."]
+  ]
+}
