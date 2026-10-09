@@ -219,6 +219,10 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .hero .ht b { display: block; font-size: 15px; font-weight: 800; letter-spacing: -.2px; white-space: nowrap; }
   .hero .go { width: 18px; height: 18px; margin-left: -2px; background: none; color: var(--cta-fg); opacity: .5; }
   .hero .go svg { width: 16px; height: 16px; }
+  .herorow { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; }
+  .callbtn { flex: none; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; padding: 0; border: 0; border-radius: 50%;
+             background: var(--surface); color: var(--text); box-shadow: var(--shadow); }  /* 통화하기 */
+  #bar .callbtn { width: 40px; height: 40px; background: var(--surface2); box-shadow: none; }
   .hero:active { transform: scale(.97); }
   /* 학습 코스, 복습: 같은 크기의 흰 카드 2칸 */
   .bento { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 12px; }
@@ -976,7 +980,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   #lang { flex: none; padding: 6px 10px; border: 0; border-radius: 14px; background: var(--surface2);
           color: var(--sub); font-size: 13px; font-weight: 700; }
   #lang.ko { background: var(--accent); color: var(--on-accent); }
-  #bar.listening #inp, #bar.listening #lang { display: none; }
+  #bar.listening #inp, #bar.listening #lang, #bar.listening #barcall { display: none; }
   #bar.listening #cancel, #bar.listening #wave { display: flex; }
 
   /* 단어 카드 */
@@ -1089,11 +1093,14 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
       <span class="lvchip" id="m-eyebrow"></span>
       <h2>AI 튜터와 대화하기</h2>
       <p class="tsub" id="m-chat-sub"></p>
-      <button id="m-chat" class="hero">
-        <span class="hic"></span>
-        <span class="ht"><b>대화 시작하기</b></span>
-        <span class="go"></span>
-      </button>
+      <div class="herorow">
+        <button id="m-chat" class="hero">
+          <span class="hic"></span>
+          <span class="ht"><b>대화 시작하기</b></span>
+          <span class="go"></span>
+        </button>
+        <button type="button" id="m-call" class="callbtn" aria-label="AI 튜터와 통화하기"></button>
+      </div>
     </section>
     <div id="install" class="banner">
       <button type="button" id="install-go" class="in-main">
@@ -1289,6 +1296,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     <button type="button" id="cancel" aria-label="취소"></button>
     <input id="inp" placeholder="영어나 한글로 입력하세요" enterkeyhint="send" autocomplete="off">
     <div id="wave"></div>
+    <button type="button" id="barcall" class="callbtn" aria-label="AI 튜터와 통화하기"></button>
     <button type="button" id="lang" aria-label="말하기 언어 전환">EN</button>
     <button type="button" id="act" aria-label="말하기 또는 보내기"></button>
   </form>
@@ -3264,11 +3272,14 @@ const sz = (svg, n) => svg.replace(/width="\d+" height="\d+"/, `width="${n}" hei
 const I_HOME = icon('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>');
 const I_WAVE = icon('<path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/>');
 const I_FLAME = icon('<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>');
+const I_PHONE = icon('<path d="M5 3h3l2 5-2.5 1.5a11 11 0 0 0 7 7L16 14l5 2v3a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2z"/>');  // 수화기
 const I_CHECK = icon('<polyline points="20 6 9 17 4 12"/>', 16).replace('stroke-width="2"', 'stroke-width="3"');
 const TAB_ICONS = { menu: I_HOME, vocab: I_BOOK, hist: I_CLOCK, setup: I_SLIDERS };
 document.querySelectorAll('#tabs .tab[data-s]').forEach(t => t.querySelector('.ti-ic').innerHTML = sz(TAB_ICONS[t.dataset.s], 24));
 $('fab').querySelector('.fab-ic').innerHTML = sz(I_WAVE, 28);
 $('m-chat').querySelector('.hic').innerHTML = sz(I_WAVE, 28);
+$('m-call').innerHTML = sz(I_PHONE, 22);
+$('barcall').innerHTML = sz(I_PHONE, 20);
 $('m-rev').querySelector('.ic').innerHTML = sz(I_REV, 22);
 $('m-course').querySelector('.ic').innerHTML = sz(I_BOOK, 22);
 $('wbanner').querySelector('.ic').innerHTML = sz(I_REV, 22);
@@ -3441,6 +3452,22 @@ function paintMenu() {
   paintExpr();
 }
 $('m-chat').onclick = $('fab').onclick = () => navTo('main');
+// 통화: live.js는 처음 누를 때만 불러옴. 소리 장치는 누른 순간 만들어야 아이폰에서 소리가 남
+let liveP = null;
+const loadLive = () => liveP || (liveP = new Promise((ok, no) => {
+  const sc = document.createElement('script');
+  sc.src = 'live.js';
+  sc.onload = ok;
+  sc.onerror = () => { liveP = null; no(); };
+  document.head.appendChild(sc);
+}));
+$('m-call').onclick = $('barcall').onclick = () => {
+  if (!apiKey) return toast('설정에서 API 키를 먼저 넣어 주세요', 2600);
+  if (!window.WebSocket || !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) return toast('이 브라우저는 통화를 지원하지 않아요. 크롬이나 사파리에서 열어 주세요.', 3000);
+  const ac = new (window.AudioContext || window.webkitAudioContext)();
+  ac.resume();
+  loadLive().then(() => window.LiveCall.open(ac)).catch(() => { ac.close(); toast('통화 기능을 불러오지 못했어요. 인터넷을 확인해 주세요.', 2600); });
+};
 $('m-rev').onclick = () => {
   if ($('m-rev').dataset.empty) {  // 복습할 게 없으면 오늘의 단어로 데려감
     xTab = 'word';
