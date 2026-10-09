@@ -1709,8 +1709,7 @@ function setRate(v, byUser) {
 }
 const SAMPLE = "Hi! I'm your English tutor. Let's practice speaking together every day.";
 ['ttsrate', 'p-rate'].forEach(id => {
-  $(id).oninput = () => setRate(parseFloat($(id).value), true);
-  $(id).onchange = () => speak(SAMPLE);  // 손을 떼면 바뀐 속도로 한 번 들려줌
+  $(id).oninput = () => setRate(parseFloat($(id).value), true);  // 소리는 들어보기 버튼으로만 (아이폰은 미는 중에도 change가 계속 옴)
 });
 $('ratetest').onclick = $('p-ratetest').onclick = () => speak(SAMPLE);
 // 레벨별 목표 속도 (분당 단어 수). 0번은 레벨을 모를 때.
@@ -1980,7 +1979,9 @@ function speak(text, onEnd, timing) {  // 음성 엔진에서 어떤 오류가 �
 }
 function speakNow(text, onEnd, timing) {  // onEnd: 끝까지 읽었을 때만 호출. timing: 읽기 시작과 끝 시각을 적어 줌 (속도 측정용)
   if (!text.trim() || !tts || !window.SpeechSynthesisUtterance) return false;
-  tts.cancel();
+  const busy = tts.speaking || tts.pending;
+  if (busy) tts.cancel();
+  if (!enVoice) loadVoices();  // 아이폰은 목록이 늦게 오고 알림도 없을 수 있음
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'en-US';
   u.rate = ttsRate;  // 설정의 읽는 속도 (0.5~1.5배)
@@ -1999,7 +2000,8 @@ function speakNow(text, onEnd, timing) {  // onEnd: 끝까지 읽었을 때만 �
   };
   cur = u;
   curText = text;
-  tts.speak(u);
+  if (busy) setTimeout(() => { if (cur === u) tts.speak(u); }, 80);  // 아이폰: 끊은 직후 바로 말하면 소리 없이 무시됨
+  else tts.speak(u);
   refreshSpk();
   const iv = setInterval(() => {  // 일부 폰은 끝 신호를 빠뜨려서, 말이 멈췄는지 직접 확인
     if (ended || cur !== u) return clearInterval(iv);
@@ -2010,9 +2012,12 @@ function speakNow(text, onEnd, timing) {  // onEnd: 끝까지 읽었을 때만 �
 }
 // 영어 음성 고르기 (폰마다 목록이 늦게 채워질 수 있음)
 let enVoice = null, ttsWarned = false;
+const NOVELTY = /^(Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Good News|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Eddy|Flo|Grandma|Grandpa|Reed|Rocko|Sandy|Shelley)\b/i;
 function loadVoices() {
   const v = tts && tts.getVoices ? tts.getVoices() : [];
-  enVoice = v.find(x => /^en[-_]US/i.test(x.lang) && x.localService) || v.find(x => /^en[-_]US/i.test(x.lang)) || v.find(x => /^en/i.test(x.lang)) || null;
+  const ok = v.filter(x => !NOVELTY.test(x.name));  // 맥, 아이폰의 효과음 목소리 제외
+  const us = ok.filter(x => /^en[-_]US/i.test(x.lang));
+  enVoice = us.find(x => /premium|enhanced/i.test(x.name + x.voiceURI)) || us.find(x => /samantha/i.test(x.name)) || us.find(x => x.localService) || us[0] || ok.find(x => /^en/i.test(x.lang)) || null;
 }
 const TTS_HELP = '폰 설정에서 "텍스트 음성 변환(TTS)"의 영어(미국) 음성을 설치해 주세요. 삼성폰은 설정 → 일반 → 언어 → 텍스트 음성 변환이에요.';
 function ttsHint(why) {  // 세션당 한 번만 안내
@@ -2021,6 +2026,9 @@ function ttsHint(why) {  // 세션당 한 번만 안내
   toast(`${why}. ${TTS_HELP}`, 7000);
 }
 if (tts) {
+  const wake = () => { try { const w = new SpeechSynthesisUtterance(' '); w.volume = 0; tts.speak(w); } catch (e) {} };
+  document.addEventListener('touchend', wake, { once: true, capture: true });
+  document.addEventListener('click', wake, { once: true, capture: true });
   loadVoices();
   if (tts.addEventListener) tts.addEventListener('voiceschanged', loadVoices); else tts.onvoiceschanged = loadVoices;
 }
@@ -3179,6 +3187,7 @@ async function startVoice() {
   paint();
   try { await startRecord(); }
   catch (e) {
+    if (recStream) recStream.getTracks().forEach(t => t.stop());
     if (recCtx) { recCtx.close(); recCtx = recSrc = recNode = recStream = null; }
     listening = false;
     paint();
