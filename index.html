@@ -92,6 +92,8 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     color-scheme: light;
   }
   * { -webkit-tap-highlight-color: transparent; }
+  h1, h2, h3, .sub, .note, .qtip, .qsent { text-wrap: balance; }  /* 줄 길이 균형 */
+  p, small, li { text-wrap: pretty; }  /* 마지막 줄 외톨이 단어 방지 */
   html { background: var(--bg); }
   html, body { overscroll-behavior-y: contain; }  /* 아래로 당겨 새로고침되는 것 방지 */
   body { margin: 0 auto; max-width: 520px; box-sizing: border-box; height: 100vh; height: 100dvh; display: flex; flex-direction: column; font-family: var(--font);
@@ -755,7 +757,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .saytop { display: flex; align-items: center; justify-content: space-between; margin: 2px 0 14px; font-size: 13px; font-weight: 700; color: var(--sub); }
   .saycard { padding: 28px 20px 30px; border-radius: 24px; background: var(--surface2); text-align: center; }
   .saycard small { display: block; margin-bottom: 10px; font-size: 14px; font-weight: 700; color: var(--sub); }
-  .saycard p { margin: 0; font-size: 26px; line-height: 1.4; font-weight: 800; letter-spacing: -.4px; word-break: keep-all; }
+  .saycard p { margin: 0; font-size: 26px; line-height: 1.5; font-weight: 800; letter-spacing: 0; word-break: keep-all; }  /* 한글은 자간 좁히면 뭉쳐 보임 */
   .saymid { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 150px; padding: 16px 0; text-align: center; }
   .sayhelp { margin: 0; font-size: 15px; font-weight: 700; line-height: 1.5; }
   .sayhelp small { display: block; margin-top: 4px; font-size: 13px; font-weight: 500; color: var(--sub); }
@@ -767,6 +769,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .saywave i { width: 6px; height: 12px; border-radius: 3px; background: var(--danger); animation: swave .9s ease-in-out infinite; }
   .saywave i:nth-child(2) { animation-delay: .12s; } .saywave i:nth-child(3) { animation-delay: .24s; } .saywave i:nth-child(4) { animation-delay: .36s; } .saywave i:nth-child(5) { animation-delay: .48s; }
   @keyframes swave { 50% { height: 36px; } }
+  .saymid.top { justify-content: flex-start; padding-top: 28px; }  /* 문제와 답은 다른 덩어리 */
   .saybot { display: flex; flex-direction: column; align-items: center; padding-bottom: 6px; }
   .bigmic { display: flex; align-items: center; justify-content: center; width: 84px; height: 84px; border: 0; border-radius: 50%; background: var(--accent); color: #111; box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 45%, transparent); }
   .bigmic.on { background: var(--danger); color: #fff; animation: cpulse 1.2s ease-out infinite; }
@@ -776,7 +779,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   #obsay:focus { outline: none; border-color: var(--accent); }
   .saybtns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }  /* 두 버튼 크기 같게 */
   .saybtns .pill { height: 56px; border-radius: 28px; font-size: 16.5px; }
-  .saylink { margin-top: 12px; padding: 6px; border: 0; background: none; color: var(--sub); font: inherit; font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+  .saylink { margin-bottom: 10px; padding: 6px; border: 0; background: none; color: var(--sub); font: inherit; font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
   .mictools { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; justify-items: center; row-gap: 10px; width: 100%; }  /* 1줄: 키보드 · 마이크 · 모르겠어요 (가운데 정렬), 2줄: 글자 */
   .sayside { display: flex; padding: 4px; border: 0; background: none; color: var(--sub); font: inherit; }
   .sayside .sayicon { width: 52px; height: 52px; background: var(--surface2); color: var(--text); }
@@ -784,23 +787,24 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .sidelab.main { font-size: 13.5px; }
   .sayicon { display: flex; align-items: center; justify-content: center; border-radius: 50%; }
   .miclab { min-height: 20px; }
-  .saybub { width: 100%; box-sizing: border-box; padding: 18px 20px; border-radius: 22px 22px 6px 22px; background: var(--accent); color: #111; text-align: left; }  /* 대화 화면의 내 말풍선과 같은 모양 */
+  .saybub { width: auto; max-width: 88%; align-self: flex-end; box-sizing: border-box; padding: 18px 20px; border-radius: 22px 22px 6px 22px; background: var(--accent); color: #111; text-align: left; }  /* 대화 화면의 내 말풍선과 같은 모양 */
   .saybub small { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; opacity: .7; }
   .saybub p { margin: 6px 0 0; font-size: 22px; font-weight: 800; line-height: 1.4; word-break: break-word; }
   .sayres { width: 100%; text-align: left; }
-  .sayhead { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .sayhead { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
   .sayicon.big { flex: none; width: 48px; height: 48px; background: var(--surface2); color: var(--sub); }
   .sayres.s4 .sayicon.big, .sayres.s3 .sayicon.big { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
   .sayres.s2 .sayicon.big { background: var(--accent-soft); color: var(--accent-text); }
   .sayhead b { display: block; font-size: 20px; font-weight: 800; }
   .sayres.s4 .sayhead b, .sayres.s3 .sayhead b { color: var(--ok); }
   .sayhead small { font-size: 13px; color: var(--sub); }
-  .saymine2 { margin: 12px 0 0; font-size: 14px; line-height: 1.5; color: var(--sub); }
-  .saymine2 span { margin-right: 6px; padding: 1px 7px; border-radius: 999px; background: var(--surface2); font-size: 12px; font-weight: 700; }
+  .saymine2, .saytip { padding: 0 16px; }  /* 말풍선 안 글자와 같은 열 */
+  .saymine2 { display: grid; grid-template-columns: auto 1fr; column-gap: 8px; align-items: baseline; margin: 14px 0 0; font-size: 14px; line-height: 1.5; color: var(--sub); }
+  .saymine2 span { align-self: start; padding: 1px 7px; border-radius: 999px; background: var(--surface2); font-size: 12px; font-weight: 700; }
   .saybetter { margin-top: 12px; padding: 14px 16px; border-radius: 18px; background: var(--surface2); }
   .saybetter small { font-size: 12.5px; font-weight: 700; color: var(--sub); }
-  .saybetter p { display: flex; align-items: center; gap: 8px; margin: 4px 0 0; font-size: 18px; font-weight: 800; line-height: 1.4; }
-  .saytip { margin: 10px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--sub); }
+  .saybetter p { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin: 4px 0 0; font-size: 18px; font-weight: 800; line-height: 1.4; }
+  .saytip { margin: 12px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--sub); }
   .ugram { display: flex; align-items: center; gap: 8px; margin: -4px 0 16px; font-size: 14px; font-weight: 600; }  /* 유닛의 핵심 문법 패턴 */
   .ugram span { flex: none; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-text); font-size: 12px; font-weight: 800; }
   @media (max-height: 600px) {  /* 크롬 주소창, 글자 확대 등으로 보이는 높이가 짧을 때 */
@@ -3837,9 +3841,9 @@ const SPEAKQ = [null,
   [['제 생각엔 그 방법이 더 효율적일 것 같아요.', 'I think that method would be more efficient.'], ['미리 알려주셨으면 좋았을 텐데요.', 'It would have been nice if you had told me in advance.'], ['상황에 따라 다르지만 보통은 괜찮아요.', "It depends on the situation, but it's usually fine."]],
   [['그 문제를 해결하려면 근본적인 원인부터 찾아야 해요.', 'To solve that problem, we need to find the root cause first.'], ['솔직히 그 제안은 좀 무리인 것 같아요.', 'To be honest, I think that proposal is a bit unrealistic.'], ['결정하기 전에 생각할 시간을 조금 더 주시겠어요?', 'Could you give me a little more time to think before I decide?']]
 ];
-const TOEIC = ['', '약 250점 이하', '약 250~450점', '약 450~650점', '약 650~850점', '약 850점 이상'];  // 레벨별 토익 어림값 (공식 환산 아님, 토익은 듣기와 읽기 시험이라 알아보는 능력 기준)
 const I_KBD = icon('<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>', 22);
 const I_QMARK = icon('<circle cx="12" cy="12" r="9.5"/><path d="M9.3 9.3a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.4-2.7 4"/><path d="M12 17.3h.01"/>', 24);
+const I_X = icon('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>', 24);
 const I_HALF = icon('<circle cx="12" cy="12" r="9.5"/><path d="M8 12h8"/>', 24);
 const SAY_LABEL = ['괜찮아요, 연습하면 돼요', '조금 어려웠어요', '뜻은 통해요', '잘 통해요', '완벽해요'];
 const clampLv = n => Math.min(5, Math.max(1, n));
@@ -3990,8 +3994,8 @@ function renderOb(anim = true) {
       bot = `<div class="saybtns"><button type="button" class="pill ghost" data-a="sayagain">다시 말하기</button><button type="button" class="pill" data-a="say" id="obsayok">제출하기</button></div>`;
     } else if (ui === 'type') {
       mid = `<input id="obsay" placeholder="영어로 입력해 보세요" autocomplete="off" autocapitalize="off" enterkeyhint="done">`;
-      bot = `<div class="saybtns"><button type="button" class="pill ghost" data-a="sayvoice">말로 하기</button><button type="button" class="pill" data-a="say" id="obsayok">제출하기</button></div>
-        <button type="button" class="saylink" data-a="sayskip">잘 모르겠어요</button>`;
+      bot = `<button type="button" class="saylink" data-a="sayskip">건너뛰기</button>
+        <div class="saybtns"><button type="button" class="pill ghost" data-a="sayvoice">말로 하기</button><button type="button" class="pill" data-a="say" id="obsayok">제출하기</button></div>`;
     } else {
       mid = ui === 'rec' ? '<div class="saywave"><i></i><i></i><i></i><i></i><i></i></div><p class="sayhelp live">듣는 중 <b id="saytime">0:00</b></p>'
         : ui === 'stt' ? '<p class="sayhelp">받아쓰는 중<span class="sdots"><i></i><i></i><i></i></span></p>'
@@ -3999,12 +4003,12 @@ function renderOb(anim = true) {
       const busy = ui !== 'idle';  // 듣는 중에는 양옆 버튼을 숨기되 자리는 그대로 (마이크가 움직이지 않게)
       bot = `<div class="mictools">${side('saytype', I_KBD, '키보드로 입력', busy)}
           <button type="button" id="obmic" class="bigmic${ui === 'rec' ? ' on' : ''}"${ui === 'stt' ? ' disabled' : ''} aria-label="${ui === 'rec' ? '말하기 끝내기' : '말하기 시작'}"></button>
-          ${side('sayskip', I_QMARK, '잘 모르겠어요', busy)}
-          ${sideLab('키보드', busy)}<small class="sidelab main">${ui === 'rec' ? '다 말했으면 누르기' : ui === 'stt' ? '잠시만요' : '눌러서 말하기'}</small>${sideLab('모르겠어요', busy)}</div>`;  // 아이콘끼리 한 줄, 글자끼리 한 줄
+          ${side('sayskip', I_X, '건너뛰기', busy)}
+          ${sideLab('키보드', busy)}<small class="sidelab main">${ui === 'rec' ? '다 말했으면 누르기' : ui === 'stt' ? '잠시만요' : '눌러서 말하기'}</small>${sideLab('건너뛰기', busy)}</div>`;  // 아이콘끼리 한 줄, 글자끼리 한 줄
     }
     h = `<div class="saywrap"><div class="saytop"><span>말하기 확인</span><span>${Math.min(n, NSAY)} / ${NSAY}</span></div>
       <div class="saycard"><small>이 말을 영어로 해 보세요</small><p>${escH(q.ko)}</p></div>
-      <div class="saymid">${mid}</div><div class="saybot">${bot}</div></div>`;
+      <div class="saymid${fb || ui === 'check' || ui === 'type' ? ' top' : ''}">${mid}</div><div class="saybot">${bot}</div></div>`;
   } else if (st === 'plan') {
     h = `<h2>학습 계획을 정해요</h2><p class="sub">부담 없는 목표로 시작하세요.</p>
       <p class="qlabel">일주일에</p>${seg('days', [3, 5, 7], obs.days, '일')}
@@ -4018,7 +4022,6 @@ function renderOb(anim = true) {
       <p class="sub c">${LV_DESC[obs.lvl]}</p>
       <div class="skills">${bar('어휘', sg.vocab)}${bar('문장 이해', sg.read)}${sg.speak != null ? bar('말하기', sg.speak) : '<div class="sk off"><span>말하기</span><div class="sb"></div><small>대화하며 알아가요</small></div>'}</div>
       <p class="note">이 정도 범위예요: 레벨 ${lo === hi ? lo : lo + '~' + hi}${low ? ' (결과가 조금 달라요)' : ''}<br>처음 정한 레벨이라 정확하지 않을 수 있어요. 대화하면서 계속 맞춰 갈게요.</p>
-      ${obs.recTh != null ? `<p class="toeic">토익(듣기·읽기) 참고: <b>${TOEIC[clampLv(Math.round(obs.recTh))]}</b> 수준<br><small>읽고 알아보는 결과로 어림잡은 값이에요. 공식 환산표가 아니라 참고용이에요.</small></p>` : ''}
       <p class="note">안 맞는다면 설정 → 나의 레벨에서 다시 할 수 있어요.</p>`;
     next = inSettings ? '저장하기' : '이 레벨로 시작하기';
   }
@@ -4110,7 +4113,6 @@ function obResult() {
   obs.lvl = clampLv(Math.round(th));
   obs.range = [clampLv(Math.round(th - 1.28 * e.se)), clampLv(Math.round(th + 1.28 * e.se))];  // 약 80% 범위
   obs.sig = { self: obs.start, vocab: obs.v.th, read: obs.r.th, speak: sp };
-  obs.recTh = e.th;  // 알아보는 능력 (토익 참고용)
   obs.conf = e.se <= 0.45 && Math.abs(obs.v.th - obs.r.th) <= 1.2 ? 'mid' : 'low';
 }
 $('obbody').onclick = e => {
