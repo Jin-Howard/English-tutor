@@ -1,0 +1,20 @@
+# 교재 자동 검사: 교재나 검사기가 바뀌어 올라오면 node tools/check.js 실행. 오류가 있으면 빨간 X
+name: 교재 검사
+on:
+  push:
+    paths: ['data/**', 'tools/**', 'index.html', '.github/workflows/check.yml']
+  pull_request:
+    paths: ['data/**', 'tools/**', 'index.html']
+  workflow_dispatch:  # Actions 탭에서 직접 실행 버튼
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node tools/check.js
