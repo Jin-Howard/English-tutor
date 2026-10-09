@@ -807,6 +807,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .saybetter p { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin: 4px 0 0; font-size: 18px; font-weight: 800; line-height: 1.4; }
   .saytip { margin: 12px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--sub); }
   .ugram { display: flex; align-items: center; gap: 8px; margin: -4px 0 16px; font-size: 14px; font-weight: 600; }  /* 유닛의 핵심 문법 패턴 */
+  .cefr { margin-left: 4px; padding: 2px 7px; border-radius: 6px; background: var(--surface2); color: var(--sub); font-size: 12px; font-weight: 700; vertical-align: 2px; }
   .ugram span { flex: none; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-text); font-size: 12px; font-weight: 800; }
   @media (max-height: 600px) {  /* 크롬 주소창, 글자 확대 등으로 보이는 높이가 짧을 때 */
     #obbody h2 { font-size: 22px; }
@@ -1535,6 +1536,7 @@ let vocab = JSON.parse(localStorage.getItem('vocab') || '[]');  // 저장한 단
 vocab.forEach(v => { if (!v.due) { v.box = v.box || 1; v.due = dayKey; } });  // 예전에 저장한 단어는 오늘부터 복습
 let ob = JSON.parse(localStorage.getItem('ob') || 'null');  // 온보딩 결과 { lvl, goals, mins, days, ... } 또는 { skipped: true }
 const LV_NAME = ['', '입문', '초급', '중급', '중상급', '상급'];
+const LV_CEFR = ['', 'A1', 'A2', 'B1', 'B1+', 'B2'];  // 교재 난이도 기준 (국제 기준 CEFR)
 const LV_RULE = ['',
   'Level 1 (beginner): use only very short sentences (max 6 words) and basic words, speak slowly, and add a short Korean help line after "KO:" in almost every reply (this overrides the rule about not writing KO: otherwise). Simple yes/no or either/or questions are fine at this level.',
   'Level 2: sentences up to 10 words with everyday vocabulary; add a short Korean note after "KO:" for key words when useful.',
@@ -4617,7 +4619,7 @@ function paintLearn() {
   const all = st.done === st.total;
   const fin = all ? `<div class="pcard fin"><b>레벨 ${st.lv} 코스를 마쳤어요!</b><p>${st.avg >= 0.7 ? '퀴즈 평균이 좋아요. 레벨을 다시 확인해 볼까요?' : '퀴즈를 다시 풀어 점수를 올리거나, 레벨을 다시 확인해 보세요.'}</p><button type="button" class="pill" id="lretest">레벨 다시 확인하기</button></div>` : '';
   $('lbody').innerHTML = `<h2 class="pg">학습 코스</h2>
-    <div class="pcard cprog"><div class="sec-h"><h3>레벨 ${st.lv} · ${LV_NAME[st.lv]}</h3><span class="goal"><b class="num">${st.done}</b> / ${st.total} 유닛</span></div>
+    <div class="pcard cprog"><div class="sec-h"><h3>레벨 ${st.lv} · ${LV_NAME[st.lv]} <span class="cefr">${LV_CEFR[st.lv]}</span></h3><span class="goal"><b class="num">${st.done}</b> / ${st.total} 유닛</span></div>
       <div class="pbar"><b style="width:${Math.round(st.done / st.total * 100)}%"></b></div>
       <p class="cmeta">${st.avg === null ? '유닛을 마치면 퀴즈 평균 점수가 나와요' : `퀴즈 평균 ${Math.round(st.avg * 100)}%`}</p></div>
     ${ob && ob.lvl && ob.lvl !== st.lv ? `<p class="hint">지금은 레벨 ${st.lv} 유닛만 준비돼 있어요. 다른 레벨은 곧 추가돼요.</p>` : ''}
@@ -4632,7 +4634,7 @@ function paintUnit() {
   if (uv === 'home') {
     box.innerHTML = `<h2 class="pg">${u.title}</h2><p class="sub">${u.scene}</p>${u.grammar ? `<p class="ugram"><span>핵심 패턴</span>${escH(u.grammar)}</p>` : ''}
       <div class="usteps">${step('ex', 1, '표현 익히기', `표현 ${u.ex.length}개 · 단어 ${u.words.length}개`, c.seen)}${step('role', 2, '역할극', `표현 ${c.used.length}/${u.ex.length} 사용`, c.role)}${step('quiz', 3, '미니 퀴즈', c.quiz !== null ? `최고 ${Math.round(c.quiz * 100)}%` : '5문제', c.quiz !== null)}</div>
-      ${c.done ? '<p class="hint">이 유닛을 마쳤어요. 언제든 다시 해도 좋아요.</p>' : '<p class="hint">순서대로 해도 되고, 원하는 것부터 해도 돼요. 역할극과 퀴즈를 모두 마치면 유닛이 완료돼요.</p>'}`;
+      ${c.done ? `<p class="hint">${u.cando ? `<b>이제 ${escH(u.cando)}.</b> ` : '이 유닛을 마쳤어요. '}언제든 다시 해도 좋아요.</p>` : '<p class="hint">순서대로 해도 되고, 원하는 것부터 해도 돼요. 역할극과 퀴즈를 모두 마치면 유닛이 완료돼요.</p>'}`;
     box.querySelectorAll('.ustep .go').forEach(g => g.innerHTML = sz(I_ARROW, 18));
   } else if (uv === 'ex') {
     box.innerHTML = `<h2 class="pg">${u.title}</h2><p class="qlabel">핵심 표현 · 눌러서 들어 보세요</p><div class="group exlist">${u.ex.map((e, i) => `<div class="exrow" data-i="${i}"><span class="spk"></span><span class="mt"><b>${escH(e[0])}</b><small>${e[1]}</small></span></div>`).join('')}</div>

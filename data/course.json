@@ -4,6 +4,7 @@
       "id": "intro1",
       "title": "첫인사",
       "scene": "처음 만난 사람과 인사하고 이름을 말해요",
+      "cando": "이름, 출신, 직업을 한 문장씩 말하며 인사할 수 있어요",
       "goals": ["일상 대화", "학교", "직장", "교회"],
       "grammar": "be동사 현재형 (I am ~)",
       "role": "You are a friendly new classmate meeting a complete beginner. Ask only very easy questions, one at a time: their name, where they are from, and their job. If the learner seems stuck or answers in Korean, give one short model sentence they can repeat, like \"I'm Jin.\"",
@@ -20,6 +21,7 @@
       "id": "cafe1",
       "title": "음료 주문",
       "scene": "카페에서 음료 한 잔을 주문해요",
+      "cando": "음료 하나를 온도와 포장까지 정해서 주문할 수 있어요",
       "goals": ["일상 대화", "여행"],
       "grammar": "요청하기 (~, please)",
       "role": "You are a friendly barista. The learner is a customer and a complete beginner. Ask very simple questions one at a time: what drink, hot or iced, for here or to go. Tell the price and say thank you. If the learner seems stuck or answers in Korean, give one short model sentence they can repeat, like \"One latte, please.\"",
@@ -40,6 +42,7 @@
       "id": "route1",
       "title": "길 묻기",
       "scene": "길에서 역과 화장실이 어디 있는지 물어봐요",
+      "cando": "역이나 화장실 위치를 묻고 방향을 알아들을 수 있어요",
       "goals": ["여행", "일상 대화"],
       "grammar": "Where is ~? (위치 묻기)",
       "role": "You are a kind local person on the street. The learner is a tourist and a complete beginner. Give very short directions with easy words: go straight, turn left, turn right, near, far. If the learner seems stuck or answers in Korean, give one short model sentence they can repeat, like \"Where is the station?\"",
@@ -56,6 +59,7 @@
       "id": "clinic1",
       "title": "아픈 곳 말하기",
       "scene": "병원에서 어디가 아픈지 간단히 말해요",
+      "cando": "어디가 언제부터 아픈지 짧게 말할 수 있어요",
       "goals": ["병원", "일상 대화"],
       "grammar": "I have ~ (증상 말하기)",
       "role": "You are a kind doctor at a clinic. The learner is a patient and a complete beginner. Ask very simple questions one at a time: what is wrong, where it hurts, since when. Give short, easy advice. If the learner seems stuck or answers in Korean, give one short model sentence they can repeat, like \"I have a headache.\"",
@@ -72,6 +76,7 @@
       "id": "shop1",
       "title": "가격 묻고 사기",
       "scene": "가게에서 가격을 묻고 물건을 사요",
+      "cando": "가격을 묻고 사겠다고 말할 수 있어요",
       "goals": ["일상 대화", "여행"],
       "grammar": "How much ~? / I'll ~ (가격 묻고 정하기)",
       "role": "You are a friendly shop assistant. The learner is a customer and a complete beginner. Keep everything very simple: greet them, show items, say the price, and help them pay. If the learner seems stuck or answers in Korean, give one short model sentence they can repeat, like \"How much is this?\"",
@@ -94,6 +99,7 @@
       "id": "intro",
       "title": "자기소개",
       "scene": "처음 만난 사람에게 나를 소개해요",
+      "cando": "직업과 취미를 넣어 짧게 자기소개를 할 수 있어요",
       "goals": ["일상 대화", "학교", "직장", "교회"],
       "grammar": "현재형으로 나 소개하기 (I work / I like)",
       "role": "You are a friendly person at a language meetup, meeting the learner for the first time. Chat about names, hometown, jobs and hobbies. Ask one simple question at a time.",
@@ -120,6 +126,7 @@
       "id": "cafe",
       "title": "카페 주문",
       "scene": "카페에서 음료를 주문하고 계산해요",
+      "cando": "사이즈, 온도, 결제 방법까지 정해서 주문할 수 있어요",
       "goals": ["일상 대화", "여행"],
       "grammar": "Can I ~? / ~, please (공손한 요청)",
       "role": "You are a friendly barista at a café. The learner is a customer. Take their order step by step: drink, size, hot or iced, for here or to go, then the price and payment. Ask one short question at a time.",
@@ -140,12 +147,14 @@
         ["change", "거스름돈", "n"],
         ["sweet", "달콤한", "a"],
         ["bitter", "쓴", "a"]
-      ]
+      ],
+      "situational": ["straw", "bitter"]
     },
     {
       "id": "route",
       "title": "길 묻기",
       "scene": "낯선 곳에서 길을 물어봐요",
+      "cando": "길을 묻고 왼쪽, 오른쪽 같은 길 안내를 알아들을 수 있어요",
       "goals": ["여행", "일상 대화"],
       "grammar": "How do I get to ~? / 명령문 (길 안내)",
       "role": "You are a helpful local person on the street. The learner is a tourist asking for directions. Give short, simple directions (turn left, go straight, next to, five minutes) and check that they understood.",
@@ -166,19 +175,21 @@
         ["landmark", "랜드마크, 명소", "n"],
         ["block", "블록, 구역", "n"],
         ["nearby", "근처의", "a"]
-      ]
+      ],
+      "situational": ["nearby"]
     },
     {
       "id": "clinic",
       "title": "병원 가기",
       "scene": "병원에서 증상을 말하고 진료를 받아요",
+      "cando": "증상과 기간을 말하고 약 먹는 법을 물어볼 수 있어요",
       "goals": ["병원", "일상 대화"],
       "grammar": "Do I need to ~? / should (조언 구하기)",
       "role": "You are a kind receptionist and doctor at a clinic. The learner is a patient. Ask about the symptoms, how long they have had them, and give simple advice such as rest, water and medicine. Ask one short question at a time.",
       "ex": [
-        ["I'd like to make an appointment.", "진료 예약을 하고 싶어요.", "appointment|make a|book|see (a|the) doctor"],
+        ["I'd like to make an appointment.", "진료 예약을 하고 싶어요.", "appointment|book (a|an)|see (a|the) doctor"],
         ["I have a headache.", "머리가 아파요.", "headache|stomach|cough|sore throat|hurts|pain|dizzy|sick|runny nose"],
-        ["I've had a fever since yesterday.", "어제부터 열이 났어요.", "since|for (two|three|four|[0-9]+) days|days|fever"],
+        ["I've had a fever since yesterday.", "어제부터 열이 나요.", "since|for (two|three|four|[0-9]+) days|days|fever"],
         ["Do I need to take medicine?", "약을 먹어야 하나요?", "medicine|prescription|pills?|tablet"],
         ["Is it serious?", "심각한가요?", "serious|worried|worry|bad"],
         ["How often should I take this?", "이건 얼마나 자주 먹어야 하나요?", "how often|how many times|times a day|twice|three times|per day"]
@@ -192,12 +203,14 @@
         ["insurance", "보험", "n"],
         ["swollen", "부은", "a"],
         ["dizzy", "어지러운", "a"]
-      ]
+      ],
+      "situational": ["rest", "symptom", "prescription", "pharmacy", "insurance", "swollen"]
     },
     {
       "id": "shop",
       "title": "쇼핑",
       "scene": "옷 가게에서 사이즈를 묻고 사요",
+      "cando": "사이즈를 묻고 입어 본 뒤 할인을 부탁할 수 있어요",
       "goals": ["일상 대화", "여행"],
       "grammar": "Can I ~? / Do you have ~ in ...? (묻고 부탁하기)",
       "role": "You are a friendly shop assistant in a clothing store. The learner is a customer. Help them find a size, let them try it on, talk about the price and finish the payment. Ask one short question at a time.",
@@ -205,7 +218,7 @@
         ["How much is this jacket?", "이 재킷은 얼마예요?", "how much|price|cost"],
         ["Do you have this in a larger size?", "이거 더 큰 사이즈 있나요?", "larger|smaller|bigger|size|other (color|colour|size)"],
         ["Can I try it on?", "입어 봐도 될까요?", "try (it|this|them|that) on|fitting room"],
-        ["It's a little too expensive.", "조금 비싸요.", "expensive|pricey|too much|a bit much"],
+        ["It's a little too expensive.", "생각보다 좀 비싸네요.", "expensive|pricey|too much|a bit much"],
         ["Can you give me a discount?", "할인해 주실 수 있나요?", "discount|deal|cheaper|lower the price|sale"],
         ["I'll take it.", "이걸로 할게요.", "i'?ll take|i want (it|this|that)|i'?ll buy|i'?ll get"]
       ],
@@ -216,9 +229,10 @@
         ["size", "사이즈, 크기", "n"],
         ["cashier", "계산원", "n"],
         ["coupon", "쿠폰", "n"],
-        ["stylish", "멋진", "a"],
+        ["stylish", "세련된", "a"],
         ["tight", "꽉 끼는", "a"]
-      ]
+      ],
+      "situational": ["wrap", "stylish"]
     }
   ],
   "3": [
@@ -226,6 +240,7 @@
       "id": "intro3",
       "title": "대화 이어가기",
       "scene": "새 모임에서 경력을 소개하고 대화를 이어가요",
+      "cando": "경력을 소개하고 질문을 되물으며 대화를 이어갈 수 있어요",
       "goals": ["일상 대화", "학교", "직장", "교회"],
       "grammar": "현재완료 진행 (I've been ~ing for ...)",
       "role": "You are a friendly person at a networking event. Talk with the learner about their work experience and hobbies. Ask follow-up questions like \"How did you get into that?\" so the learner has to explain and keep the conversation going. If the learner seems stuck, give only the first two or three words of a possible answer as a hint, not the whole sentence.",
@@ -250,12 +265,14 @@
         ["outgoing", "외향적인", "a"],
         ["relax", "쉬다", "v"],
         ["prefer", "더 좋아하다", "v"]
-      ]
+      ],
+      "situational": ["colleague"]
     },
     {
       "id": "cafe3",
       "title": "원하는 대로 주문",
       "scene": "취향대로 주문을 바꾸고, 잘못 나온 음료를 바로잡아요",
+      "cando": "주문을 취향대로 바꾸고 잘못 나온 음료를 정중히 바로잡을 수 있어요",
       "goals": ["일상 대화", "여행"],
       "grammar": "Could I ~? / instead (공손하게 바꿔 달라기)",
       "role": "You are a busy barista. The learner wants to customize their drink. At some point, say one ingredient is sold out so they must choose something else, and later hand them the wrong drink so they have to politely point it out. If the learner seems stuck, give only the first two or three words of a possible answer as a hint, not the whole sentence.",
@@ -280,12 +297,14 @@
         ["mild", "순한", "a"],
         ["replace", "바꾸다", "v"],
         ["recommend", "추천하다", "v"]
-      ]
+      ],
+      "situational": ["lid"]
     },
     {
       "id": "route3",
       "title": "길을 잃었을 때",
       "scene": "길을 잃은 상황을 설명하고 가장 좋은 방법을 찾아요",
+      "cando": "길을 잃은 상황을 설명하고 가장 좋은 이동 방법을 고를 수 있어요",
       "goals": ["여행", "일상 대화"],
       "grammar": "간접의문문 (Do you know where ~ is?)",
       "role": "You are a kind local person near a big, busy station. The learner is lost. Ask where they want to go, compare walking, bus and taxi, and mention how long each takes. If the learner seems stuck, give only the first two or three words of a possible answer as a hint, not the whole sentence.",
@@ -312,6 +331,7 @@
       "id": "clinic3",
       "title": "증상 자세히 말하기",
       "scene": "증상이 언제부터, 어떻게 심해지는지 설명하고 치료를 물어봐요",
+      "cando": "증상이 언제부터 어떻게 심해졌는지 설명하고 치료를 물어볼 수 있어요",
       "goals": ["병원", "일상 대화"],
       "grammar": "현재완료 기간 (I've had ~ for ...)",
       "role": "You are a careful doctor. Ask the learner detailed questions: how long they have had the symptoms, when they get worse, and whether they have any allergies. Then explain the treatment and answer their questions about it. If the learner seems stuck, give only the first two or three words of a possible answer as a hint, not the whole sentence.",
@@ -324,7 +344,7 @@
         ["When should I come back?", "언제 다시 오면 될까요?", "come back|follow[- ]?up|next appointment|when should i (return|visit)"]
       ],
       "words": [
-        ["throat", "목구멍", "n"],
+        ["throat", "목, 인후", "n"],
         ["cough", "기침", "n"],
         ["dose", "복용량", "n"],
         ["checkup", "검진", "n"],
@@ -332,28 +352,34 @@
         ["severe", "심한", "a"],
         ["worse", "더 나쁜", "a"],
         ["recover", "회복하다", "v"]
-      ]
+      ],
+      "situational": ["throat", "dose", "injection"]
     },
     {
       "id": "shop3",
       "title": "교환과 환불",
       "scene": "산 물건이 맞지 않아 교환하거나 환불받아요",
+      "cando": "영수증을 보여 주며 교환이나 환불을 요청할 수 있어요",
       "goals": ["일상 대화", "여행"],
       "grammar": "I bought ~, but ~ (과거형으로 이유 설명하기)",
       "role": "You are a polite but strict store clerk. The learner wants to return or exchange something they bought. At first, say refunds need a receipt, and offer store credit or an exchange before agreeing. If the learner seems stuck, give only the first two or three words of a possible answer as a hint, not the whole sentence.",
       "ex": [
-        ["I bought this yesterday, but it doesn't fit.", "어제 샀는데 사이즈가 안 맞아요.", "i (bought|buy|got)|(doesn'?t|does not|not) fit|too (small|big|tight|loose)"],
+        [
+          "I bought this yesterday, but it doesn't fit.",
+          "어제 샀는데 사이즈가 안 맞아요.",
+          "i (bought|got) (this|it|these)|(doesn'?t|does not|not) fit|too (small|big|tight|loose)"
+        ],
         ["Could I exchange it for a smaller size?", "더 작은 사이즈로 교환할 수 있을까요?", "\\bexchange\\b|\\bswap\\b|change (it|this) (to|for)"],
         ["Is it possible to get a refund?", "환불받을 수 있을까요?", "refund|money back|return (it|this)"],
         ["Here's the receipt.", "여기 영수증이요.", "receipt|here it is|here you (go|are)"],
-        ["Is there a better deal if I buy two?", "두 개 사면 더 싸게 해 주세요?", "deal|discount|\\bsale\\b|buy two|one plus one|promotion"],
+        ["Is there a better deal if I buy two?", "두 개 사면 더 싸게 되나요?", "deal|discount|\\bsale\\b|buy two|one plus one|promotion"],
         ["I'll think about it and come back.", "생각해 보고 다시 올게요.", "think about it|come back later|maybe later|not today|i (will|'?ll) come back"]
       ],
       "words": [
         ["refund", "환불", "n"],
         ["receipt", "영수증", "n"],
         ["warranty", "보증", "n"],
-        ["credit", "적립금", "n"],
+        ["store credit", "교환권 (환불 대신 받는 금액)", "n"],
         ["loose", "헐렁한", "a"],
         ["damaged", "손상된", "a"],
         ["return", "반품하다", "v"],
@@ -366,6 +392,7 @@
       "id": "intro4",
       "title": "의견 나누기",
       "scene": "대화하며 내 생각을 말하고, 다른 의견에 부드럽게 반응해요",
+      "cando": "다른 의견에 부드럽게 반대하며 내 생각을 말할 수 있어요",
       "goals": ["일상 대화", "학교", "직장", "교회"],
       "grammar": "완곡하게 의견 말하기 (I'd say ~ / I see your point, but ~)",
       "role": "You are a thoughtful coworker chatting during a break. Share opinions about work, careers and life, and sometimes gently disagree with the learner so they have to explain or politely push back. Speak naturally. Do not give hints unless the learner asks for help; instead, ask follow-up \"why\" or \"how\" questions so they explain in longer sentences.",
@@ -391,19 +418,20 @@
       ],
       "words": [
         ["challenge", "도전 과제", "n"],
-        ["opinion", "의견", "n"],
+        ["consensus", "합의, 의견 일치", "n"],
         ["perspective", "관점", "n"],
         ["impression", "인상", "n"],
-        ["confident", "자신 있는", "a"],
+        ["objective", "객관적인", "a"],
         ["reliable", "믿을 만한", "a"],
-        ["mention", "언급하다", "v"],
-        ["admit", "인정하다", "v"]
+        ["persuade", "설득하다", "v"],
+        ["concede", "(마지못해) 인정하다", "v"]
       ]
     },
     {
       "id": "cafe4",
       "title": "단체 주문 조율",
       "scene": "회의용 음료를 단체로 주문하고 시간과 조건을 조율해요",
+      "cando": "단체 주문의 수량, 시간, 조건을 조율할 수 있어요",
       "goals": ["일상 대화", "직장"],
       "grammar": "I was wondering if ~ / Would it be possible to ~? (아주 공손한 요청)",
       "role": "You are a café manager taking a large order for an office meeting. Discuss the number of drinks, timing, delivery, price and special requests. Point out one problem, like a delivery limit or a minimum order, so the learner has to negotiate. Speak naturally. Do not give hints unless the learner asks for help; instead, ask follow-up \"why\" or \"how\" questions so they explain in longer sentences.",
@@ -432,12 +460,14 @@
         ["available", "가능한", "a"],
         ["confirm", "확정하다", "v"],
         ["arrange", "준비하다", "v"]
-      ]
+      ],
+      "situational": ["invoice"]
     },
     {
       "id": "route4",
       "title": "일정 다시 짜기",
       "scene": "기차를 놓쳐 일정을 다시 짜고, 선택지를 비교해 결정해요",
+      "cando": "놓친 기차 대신 선택지를 비교해 일정을 다시 짤 수 있어요",
       "goals": ["여행", "일상 대화"],
       "grammar": "If I took ~, would I ~? (가정해서 선택지 비교하기)",
       "role": "You are a staff member at a train station ticket counter. The learner missed their connecting train. Offer two or three options with different costs and times, and let them compare and decide. Speak naturally. Do not give hints unless the learner asks for help; instead, ask follow-up \"why\" or \"how\" questions so they explain in longer sentences.",
@@ -458,12 +488,12 @@
         ["Thanks, that saves me a lot of trouble.", "덕분에 수고를 많이 덜었어요.", "saves? me|lifesaver|that helps a lot|really helpful"]
       ],
       "words": [
-        ["delay", "지연", "n"],
-        ["schedule", "일정", "n"],
+        ["stopover", "경유, 도중 체류", "n"],
+        ["standby", "대기 (탑승)의", "a"],
         ["platform", "승강장", "n"],
         ["connection", "환승편", "n"],
         ["alternative", "대안", "n"],
-        ["crowded", "붐비는", "a"],
+        ["packed", "꽉 찬, 붐비는", "a"],
         ["punctual", "시간을 잘 지키는", "a"],
         ["cancel", "취소하다", "v"]
       ]
@@ -472,11 +502,12 @@
       "id": "clinic4",
       "title": "진료 내용 확인하기",
       "scene": "진단과 치료 계획을 듣고, 헷갈리는 부분을 되물어 확인해요",
+      "cando": "진단과 치료 계획을 되물어 확인하고 걱정을 말할 수 있어요",
       "goals": ["병원", "일상 대화"],
       "grammar": "So you're saying ~? / Just to make sure ~ (되물어 확인하기)",
       "role": "You are a doctor explaining a diagnosis and two treatment options to the learner, using a few medical words. Give instructions that are easy to misunderstand, so the learner has to check and confirm, and answer their concerns honestly. Speak naturally. Do not give hints unless the learner asks for help; instead, ask follow-up \"why\" or \"how\" questions so they explain in longer sentences.",
       "ex": [
-        ["So you're saying it's nothing serious?", "그러니까 심각한 건 아니라는 말씀이죠?", "so you'?re saying|you mean|so (it'?s|it is) (not|nothing)"],
+        ["So you're saying it's nothing serious?", "그러니까 심각한 건 아니라는 말씀이죠?", "so you('?re| are) saying|you mean|so (it'?s|it is) (not|nothing)"],
         [
           "Just to make sure, I take this twice a day?",
           "확실히 하려고요, 하루에 두 번 먹는 거죠?",
@@ -499,17 +530,18 @@
         ["diagnosis", "진단", "n"],
         ["treatment", "치료", "n"],
         ["procedure", "시술", "n"],
-        ["condition", "상태", "n"],
+        ["thorough", "철저한", "a"],
         ["chronic", "만성의", "a"],
         ["temporary", "일시적인", "a"],
         ["monitor", "지켜보다", "v"],
-        ["prevent", "예방하다", "v"]
+        ["persist", "(증상이) 계속되다", "v"]
       ]
     },
     {
       "id": "shop4",
       "title": "고객센터 문제 해결",
       "scene": "고객센터에 연락해 파손되거나 늦은 주문을 해결해요",
+      "cando": "고객센터에 문제를 설명하고 원하는 해결책을 정중히 요구할 수 있어요",
       "goals": ["일상 대화", "직장"],
       "grammar": "It was supposed to ~ / I'd appreciate it if ~ (단호하지만 정중하게)",
       "role": "You are a customer service agent on the phone. The learner ordered something online that arrived damaged and late. Follow the company policy at first and offer only a partial refund, so the learner has to explain clearly and firmly ask for a better solution. Speak naturally. Do not give hints unless the learner asks for help; instead, ask follow-up \"why\" or \"how\" questions so they explain in longer sentences.",
@@ -532,7 +564,7 @@
         ["policy", "규정", "n"],
         ["faulty", "결함 있는", "a"],
         ["urgent", "급한", "a"],
-        ["complain", "항의하다", "v"],
+        ["dispute", "이의 제기, 분쟁", "n"],
         ["resolve", "해결하다", "v"]
       ]
     }
@@ -542,6 +574,7 @@
       "id": "intro5",
       "title": "스몰토크의 기술",
       "scene": "파티에서 오랜만에 만난 사람과 수다 떨고 자연스럽게 빠져나와요",
+      "cando": "오랜만에 만난 사람과 맞장구치며 화제를 자연스럽게 바꿀 수 있어요",
       "goals": ["일상 대화", "학교", "직장", "교회"],
       "grammar": "Speaking of which ~ / I couldn't agree more (맞장구와 화제 전환)",
       "role": "You are an old acquaintance the learner runs into at a friend's party. Catch up, share a funny story, jump between topics, and react with surprise and humor. Keep talking until the learner politely wraps up the conversation. Speak like a native speaker at natural speed, using common idioms and phrasal verbs. Never give hints; if the learner sounds unnatural, keep the conversation flowing and let the KO line handle corrections.",
@@ -549,7 +582,7 @@
         ["It's been ages! How have you been?", "진짜 오랜만이다! 어떻게 지냈어?", "it'?s been (ages|a while|forever|so long)|long time no see|how have you been"],
         ["Speaking of which, did you ever go to Japan?", "말 나온 김에, 일본은 결국 갔어?", "speaking of (which|that)|that reminds me|by the way|on that note"],
         ["No way! You're kidding me.", "말도 안 돼! 농담이지?", "no way|you'?re kidding|are you serious|get out of here"],
-        ["I couldn't agree more.", "완전 내 말이 그 말이야.", "couldn'?t agree more|totally agree|tell me about it|you('?re| are) so right"],
+        ["I couldn't agree more.", "완전 내 말이 그 말이야.", "(couldn'?t|could not) agree more|totally agree|tell me about it|you('?re| are) so right"],
         [
           "Anyway, I should probably go mingle a bit.",
           "아무튼 나 다른 사람들이랑도 좀 얘기하고 올게.",
@@ -572,6 +605,7 @@
       "id": "cafe5",
       "title": "솔직한 피드백",
       "scene": "카페를 연 친구에게 새 메뉴에 대한 의견을 부드럽지만 솔직하게 전해요",
+      "cando": "상대가 기분 상하지 않게 솔직한 피드백을 줄 수 있어요",
       "goals": ["일상 대화", "직장"],
       "grammar": "Have you considered ~? / It might be worth ~ (돌려서 제안하기)",
       "role": "You are the learner's friend who just opened a café and is proud but nervous about the new menu. Ask for their honest opinion, and get a little defensive at first when they criticize something, so they have to give feedback tactfully. Speak like a native speaker at natural speed, using common idioms and phrasal verbs. Never give hints; if the learner sounds unnatural, keep the conversation flowing and let the KO line handle corrections.",
@@ -598,14 +632,15 @@
         ["signature", "대표 메뉴", "n"],
         ["overpriced", "너무 비싼", "a"],
         ["subtle", "은은한", "a"],
-        ["suggest", "제안하다", "v"],
-        ["improve", "개선하다", "v"]
+        ["enhance", "더 좋게 하다, 살리다", "v"],
+        ["tactful", "말을 요령 있게 하는", "a"]
       ]
     },
     {
       "id": "route5",
       "title": "여행 코스 추천",
       "scene": "한국에 온 외국인 친구에게 여행 코스를 추천하고 설득해요",
+      "cando": "가정법으로 여행 코스를 추천하고 설득할 수 있어요",
       "goals": ["여행", "일상 대화"],
       "grammar": "If I were you, I'd ~ / way better than ~ (가정법으로 추천하기)",
       "role": "You are a foreign friend visiting Korea for a week who only plans to stay in Seoul. Be a bit hesitant about traveling further (it sounds tiring, expensive, or far), so the learner has to describe places vividly and persuade you. Speak like a native speaker at natural speed, using common idioms and phrasal verbs. Never give hints; if the learner sounds unnatural, keep the conversation flowing and let the KO line handle corrections.",
@@ -613,7 +648,7 @@
         [
           "You can't go wrong with Jeonju.",
           "전주는 절대 실패 없어.",
-          "can'?t go wrong|you (have to|should definitely|must) (go|visit|see|try)|definitely (go|visit|check)"
+          "(can'?t|cannot|can not) go wrong|you (have to|should definitely|must) (go|visit|see|try)|definitely (go|visit|check)"
         ],
         ["It's way less crowded than Seoul.", "서울보다 사람이 훨씬 적어.", "way (less|more|better)|(much|far) (less|more|better)|than seoul|compared to"],
         ["If I were you, I'd stay at least two nights.", "나라면 적어도 2박은 할 거야.", "if i were you|i'?d (stay|go|recommend|spend)|at least"],
@@ -623,22 +658,23 @@
       ],
       "words": [
         ["itinerary", "여행 일정", "n"],
-        ["scenery", "경치", "n"],
+        ["picturesque", "그림 같은", "a"],
         ["atmosphere", "분위기", "n"],
         ["attraction", "명소", "n"],
         ["authentic", "진짜 그대로의", "a"],
         ["breathtaking", "숨 막히게 멋진", "a"],
-        ["explore", "둘러보다", "v"],
-        ["wander", "돌아다니다", "v"]
+        ["immerse", "푹 빠지다, 몰입하다", "v"],
+        ["worthwhile", "~할 가치가 있는", "a"]
       ]
     },
     {
       "id": "clinic5",
       "title": "환자 안심시키기",
       "scene": "의료진이 되어 불안해하는 외국인 환자에게 채혈을 설명하고 안심시켜요",
+      "cando": "불안해하는 환자에게 채혈 과정을 설명하고 안심시킬 수 있어요",
       "goals": ["병원", "직장"],
       "grammar": "You might feel ~ / There's nothing to worry about (설명하며 안심시키기)",
-      "role": "Role reversal: you are a nervous foreign patient, and the learner is the medical staff about to take your blood sample. Ask anxious questions (Will it hurt? How long will it take? When will I get the results?), mention that you fainted once during a blood test, and react to how well they explain and reassure you. Speak like a native speaker at natural speed, using common idioms and phrasal verbs. Never give hints; if the learner sounds unnatural, keep the conversation flowing and let the KO line handle corrections.",
+      "role": "Role reversal: you are a nervous foreign patient; the learner is the medical staff about to take your blood sample. Ask anxious questions (Will it hurt? How long will it take? When will I get the results?), mention you once fainted during a blood test, and react to how well they explain and reassure you. Speak naturally at native speed with common idioms. Never give hints; keep the conversation flowing and let the KO line handle corrections.",
       "ex": [
         ["I'm going to take a quick blood sample.", "간단하게 채혈할게요.", "i'?m going to (take|draw|do)|i'?ll (take|draw)|blood (sample|test)|draw (some )?blood"],
         ["You might feel a slight pinch.", "살짝 따끔할 수 있어요.", "(might|may|will) feel|\\bslight|a little (pinch|sting|prick)|\\bpinch"],
@@ -659,7 +695,7 @@
         ["sample", "검체", "n"],
         ["vein", "정맥", "n"],
         ["bruise", "멍", "n"],
-        ["anxious", "불안한", "a"],
+        ["apprehensive", "불안해하는, 걱정하는", "a"],
         ["routine", "일상적인", "a"],
         ["sterile", "멸균된", "a"],
         ["faint", "기절하다", "v"],
@@ -670,6 +706,7 @@
       "id": "shop5",
       "title": "중고 거래 흥정",
       "scene": "중고 거래에서 가격을 흥정하고 서로 괜찮은 합의점을 찾아요",
+      "cando": "중고 거래에서 가격을 흥정하고 서로 괜찮은 선에서 합의할 수 있어요",
       "goals": ["일상 대화", "여행"],
       "grammar": "Would you be willing to ~? / meet halfway (협상하기)",
       "role": "You are selling a used camera online and meeting the learner in person. Start with a high price, defend it with reasons, and only lower it if they negotiate well. Be friendly but firm. Speak like a native speaker at natural speed, using common idioms and phrasal verbs. Never give hints; if the learner sounds unnatural, keep the conversation flowing and let the KO line handle corrections.",
@@ -682,14 +719,14 @@
         ["Deal! I'll take it.", "좋아요! 살게요.", "\\bdeal\\b|i'?ll take it|sounds fair|fair enough"]
       ],
       "words": [
-        ["bargain", "싸게 산 물건", "n"],
+        ["concession", "양보", "n"],
         ["budget", "예산", "n"],
-        ["offer", "제안 가격", "n"],
+        ["reasonable", "합리적인, 적당한", "a"],
         ["secondhand", "중고의", "a"],
         ["negotiable", "협상 가능한", "a"],
         ["flawless", "흠 없는", "a"],
         ["haggle", "흥정하다", "v"],
-        ["accept", "받아들이다", "v"]
+        ["firm", "(가격이) 확정된, 고정된", "a"]
       ]
     }
   ]

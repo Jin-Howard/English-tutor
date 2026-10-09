@@ -1,0 +1,8 @@
+{
+  "_about": "CEFR-J 등급을 우리 기준으로 바로잡는 목록. 원본 csv는 고치지 않고 여기서 덮어씀. 근거 없이 추가하지 않음",
+  "country": { "level": "A1", "reason": "Oxford 3000 A1, 기초 생활 어휘" },
+  "far": { "level": "A1", "reason": "Oxford 3000 A1 (CEFR-J는 형용사 쓰임만 높게 매김)" },
+  "near": { "level": "A1", "reason": "Oxford 3000 A1 (CEFR-J는 형용사 쓰임만 높게 매김)" },
+  "cheap": { "level": "A1", "reason": "Oxford 3000 A1, 기초 생활 어휘" },
+  "friendly": { "level": "A1", "reason": "Oxford 3000 A1, CEFR-J B2는 일본 교재 기준 편차" }
+}
