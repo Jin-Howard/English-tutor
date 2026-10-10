@@ -186,7 +186,16 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   #menu .pad { padding-top: 6px; }
   .hello { padding: 4px 4px 18px; }
   .hello .gh { margin: 0 0 4px; font-size: 14px; font-weight: 700; color: var(--sub); }
-  .hello h1 { margin: 0; font-size: 24px; line-height: 1.32; font-weight: 800; letter-spacing: -.7px; word-break: keep-all; }
+  .hello h1 { margin: 0; font-size: clamp(18px, 5vw, 21px); line-height: 1.35; font-weight: 800; letter-spacing: -.5px; word-break: keep-all; }  /* 한 줄로 */
+  .today { display: flex; align-items: center; gap: 12px; margin-top: 14px; }  /* 오늘의 목표: 통화 시간 */
+  .today .ring { --p: 0; position: relative; flex: none; width: 40px; height: 40px; border-radius: 50%;
+                 background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--surface2) 0); }
+  .today .ring i { position: absolute; inset: 5px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--bg); color: var(--sub); line-height: 0; }
+  .today .ring.full i { color: var(--accent-text); }
+  .today .tt { display: flex; flex-direction: column; gap: 2px; }
+  .today b { font-size: 15px; font-weight: 800; }
+  .today small { font-size: 13px; color: var(--sub); }
+  .wkempty { margin: -4px 0 14px; font-size: 13px; color: var(--sub); text-align: center; }
   .talkcard { position: relative; margin: 0 0 12px; padding: 22px 20px 20px; border-radius: 28px; background: var(--today-bg); overflow: hidden; isolation: isolate; }
   .talkcard::before { content: ''; position: absolute; right: -40px; bottom: -50px; z-index: -1; width: 230px; height: 230px; border-radius: 50%;
                       background: radial-gradient(circle, var(--today-glow) 0%, transparent 68%); }  /* 로봇 뒤 은은한 빛 */
@@ -219,7 +228,13 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .hero .ht b { display: block; font-size: 15px; font-weight: 800; letter-spacing: -.2px; white-space: nowrap; }
   .hero .go { width: 18px; height: 18px; margin-left: -2px; background: none; color: var(--cta-fg); opacity: .5; }
   .hero .go svg { width: 16px; height: 16px; }
-  .herorow { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; }
+  .talktop { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }  /* 레벨 칩과 글로 대화를 한 줄에 */
+  .talktop .lvchip { margin-bottom: 0; }
+  .chatpill { display: inline-flex; align-items: center; gap: 4px; height: 27px; margin-left: auto; padding: 0 11px 0 9px; border: 0; border-radius: 999px;
+              background: rgba(255, 255, 255, .7); color: var(--sub); font-size: 12px; font-weight: 800; }  /* 보조 동작: 레벨 칩과 같은 모양 */
+  .chatpill .ic { display: flex; line-height: 0; }
+  :root[data-theme="dark"] .chatpill, :root:not([data-theme]) .chatpill { background: rgba(255, 212, 59, .12); }
+  .talkcard .gart { pointer-events: auto; cursor: pointer; }  /* 캐릭터를 눌러도 통화 */
   .callbtn { flex: none; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; padding: 0; border: 0; border-radius: 50%;
              background: var(--surface); color: var(--text); box-shadow: var(--shadow); }  /* 통화하기 */
   #bar .callbtn { width: 40px; height: 40px; background: var(--surface2); box-shadow: none; }
@@ -644,6 +659,26 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .kstat { display: block; margin: 4px 0 0 6px; font-size: 13px; font-weight: 600; }
   .kstat:empty { display: none; }  /* 상태 문구가 없으면 빈 줄을 남기지 않음 */
   #info { margin-top: 12px; }
+  /* 설정: 목록 한 화면 + 눌러서 들어가는 화면 (처음 설정 때는 목록 없이 키, 정보만) */
+  #setup.list .spg:not(.on) { display: none; }
+  #setup.list.sub .slist, #setup.list.sub #ver, #setup.list.sub .copyr { display: none; }
+  #setup.list:not(.needsave) .savebar, #setup.list .spg .sec.head, #setup.list #infohead, #setup.list #keyhead, #setup.list .advsum { display: none; }
+  #setup.list #info { margin-top: 0; }
+  #sback { visibility: hidden; }
+  .profcard { display: flex; align-items: center; gap: 14px; width: 100%; box-sizing: border-box; margin: 4px 0 0; padding: 16px; border: 0; border-radius: 22px;
+              background: var(--accent-soft); text-align: left; }
+  .profcard .pav { flex: none; width: 52px; height: 52px; border-radius: 50%; background: var(--surface) url(img/art.webp) center 6px / 40px auto no-repeat; }  /* 메인 캐릭터 */
+  .profcard .pt { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+  .profcard b { font-size: 17px; font-weight: 800; color: var(--text); }
+  .profcard small { font-size: 13px; color: var(--sub); }
+  .profcard .chev, .slist .chev { display: flex; color: var(--sub); }
+  .slist .sl { display: flex; align-items: center; gap: 12px; }
+  .slist .sic { flex: none; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 10px; background: var(--accent-soft); color: var(--accent-text); }
+  .slist .g-row .val b { font-size: 15px; font-weight: 700; color: var(--sub); }  /* 값은 이름보다 옅게 */
+  .slist .g-row .val { font-size: 14px; }
+  .srow .seg.full { width: auto; }
+  .srow .seg button { padding: 6px 11px; font-size: 13px; }
+  .savenote { margin: 18px 0 0; font-size: 12.5px; color: var(--sub); text-align: center; }
   .kstat.ok { color: var(--ok); }
   .kstat.bad, .kstat.warn { color: var(--danger); }
 
@@ -1087,20 +1122,24 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     <section class="hello">
       <p class="gh" id="g-en"></p>
       <h1 id="g-ko"></h1>
+      <div class="today" id="today">
+        <span class="ring" id="t-ring"><i></i></span>
+        <span class="tt"><b id="t-main"></b><small id="t-sub"></small></span>
+      </div>
     </section>
     <section class="talkcard">
       <img class="gart" id="gart" src="img/art.webp" alt="" decoding="async">
-      <span class="lvchip" id="m-eyebrow"></span>
-      <h2>AI 튜터와 대화하기</h2>
-      <p class="tsub" id="m-chat-sub"></p>
-      <div class="herorow">
-        <button id="m-chat" class="hero">
-          <span class="hic"></span>
-          <span class="ht"><b>대화 시작하기</b></span>
-          <span class="go"></span>
-        </button>
-        <button type="button" id="m-call" class="callbtn" aria-label="AI 튜터와 통화하기"></button>
+      <div class="talktop">
+        <span class="lvchip" id="m-eyebrow"></span>
+        <button type="button" id="m-chat" class="chatpill"><span class="ic"></span><span id="m-chat-t">글로 대화</span></button>
       </div>
+      <h2>튜터에게 전화 걸기</h2>
+      <p class="tsub">전화하듯 바로 말해요</p>
+      <button type="button" id="m-call" class="hero">
+        <span class="hic"></span>
+        <span class="ht"><b>통화하기</b></span>
+        <span class="go"></span>
+      </button>
     </section>
     <div id="install" class="banner">
       <button type="button" id="install-go" class="in-main">
@@ -1133,6 +1172,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     <section class="pcard week">
       <div class="sec-h"><h3>이번 주 학습</h3><span class="goal"><b class="num" id="w-done">0</b> / <span id="w-goal">5</span>일</span></div>
       <div class="dots" id="w-dots"></div>
+      <p class="wkempty" id="w-empty">이번 주 첫 기록을 남겨 봐요. 통화 한 번이면 돼요</p>
       <div class="stats">
         <div class="stat t-orange"><span class="chip" id="s-flame"></span><span><small>연속 학습</small><b class="num" id="w-streak"></b></span></div>
         <div class="stat t-blue"><span class="chip" id="s-book"></span><span><small>저장한 단어</small><b class="num" id="w-words"></b></span></div>
@@ -1143,17 +1183,42 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 </div>
 
 <div id="setup" class="screen">
-  <div class="hd"><span class="sp"></span><div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div><span class="sp"></span></div>
+  <div class="hd"><button id="sback" class="back" aria-label="설정으로"></button><div class="brand"><span class="logo"></span><span class="title"><b>AI</b> E-Tutor</span></div><span class="sp"></span></div>
   <div class="pad">
     <p class="fstep" id="fstep-s">2/4단계 · AI 연결</p><h2 class="pg" id="setuptitle">설정</h2>
 
-    <p class="sec only-set">화면</p>
-    <div class="group only-set">
-      <div class="g-row"><span>화면 모드</span>
+    <!-- 설정 목록: 이름 · 현재 값 한 줄씩, 자세한 조절은 눌러서 들어간 화면에서 (바꾸면 바로 저장) -->
+    <div class="slist only-set">
+      <button type="button" class="profcard" data-go="info"><span class="pav"></span><span class="pt"><b id="pc-lv"></b><small id="pc-sub"></small></span><span class="chev"></span></button>
+      <p class="sec">학습</p>
+      <div class="group">
+        <button type="button" id="obbtn" class="g-row"><span class="sl"><span class="sic" data-i="lv"></span>나의 레벨</span><span class="val"><b id="lvstat"></b><span class="chev"></span></span></button>
+        <div class="g-row srow"><span class="sl"><span class="sic" data-i="pen"></span>교정</span><div class="seg s3 full" id="strictseg"><button type="button" data-k="soft">부드럽게</button><button type="button" data-k="normal">보통</button><button type="button" data-k="strict">엄격</button></div></div>
+        <button type="button" class="g-row" data-go="memo"><span class="sl"><span class="sic" data-i="memo"></span>튜터가 기억하는 나</span><span class="val"><span id="sv-memo"></span><span class="chev"></span></span></button>
+        <button type="button" class="g-row" data-go="alarm"><span class="sl"><span class="sic" data-i="bell"></span>학습 알림</span><span class="val"><span id="sv-alarm"></span><span class="chev"></span></span></button>
+      </div>
+      <p class="sec">소리</p>
+      <div class="group">
+        <button type="button" class="g-row" data-go="rate"><span class="sl"><span class="sic" data-i="spk"></span>튜터 목소리 속도</span><span class="val"><span id="sv-rate"></span><span class="chev"></span></span></button>
+        <button type="button" id="permbtn" class="g-row"><span class="sl"><span class="sic" data-i="mic"></span>마이크 · 소리 점검</span><span class="val"><span id="permstat"></span><span class="chev"></span></span></button>
+      </div>
+      <p class="sec">계정</p>
+      <div class="group">
+        <button type="button" class="g-row" data-go="key"><span class="sl"><span class="sic" data-i="key"></span>API 키</span><span class="val"><span id="sv-key"></span><span class="chev"></span></span></button>
+      </div>
+      <p class="sec">앱</p>
+      <div class="group">
+        <div class="g-row"><span class="sl"><span class="sic" data-i="moon"></span>화면 모드</span>
         <button type="button" id="themesw" class="tsw" aria-label="라이트, 다크 전환"><span class="ti"></span><span class="ti"></span><span class="thumb"></span></button>
       </div>
+        <button type="button" class="g-row" data-go="share"><span class="sl"><span class="sic" data-i="share"></span>친구에게 소개</span><span class="val"><span class="chev"></span></span></button>
+        <button type="button" class="g-row" data-go="adv"><span class="sl"><span class="sic" data-i="gear"></span>고급 설정</span><span class="val"><span class="chev"></span></span></button>
+      </div>
+      <p class="savenote">바꾸면 바로 저장돼요</p>
     </div>
 
+    <!-- 들어간 화면들. 처음 설정 때는 API 키와 내 정보만 한 화면에 나옴 -->
+    <section class="spg" data-sp="key">
     <p class="lead" id="setuplead">AI 튜터와 대화하려면 <b>API 키</b>가 필요해요. 처음 한 번만 아래 순서대로 해 주세요.</p>
     <p class="sec only-set">도움말</p>
     <div class="group guide" id="guide">
@@ -1169,8 +1234,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
         <p class="hint">AI Studio에서 새로 만든 키를 써야 해요. 예전 방식으로 만든 키는 막혔을 수 있어요. 결제 수단을 등록하지 않으면 무료 한도 안에서만 쓰이고, 한도를 넘으면 앱이 알려줘요. 무료 등급에서는 대화 내용이 구글 서비스 개선에 쓰일 수 있으니, 개인정보는 알려주지 않는 게 좋아요.</p>
       </div>
     </div>
-
-    <p class="sec">API 키</p>
+    <p class="sec head">API 키</p>
     <div class="group fields guide keyacc" id="keyacc">
       <button type="button" id="keyhead" class="g-row"><span class="gtitle"><span class="mt">API 키<small id="keysum"></small></span></span><span class="chev"></span></button>
       <label class="keybody"><span class="lb">API 키<button type="button" id="keypaste" class="mini">붙여넣기</button></span>
@@ -1178,7 +1242,8 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
         <span class="kstat" id="keystat"></span>
       </label>
     </div>
-
+    </section>
+    <section class="spg" data-sp="info">
     <div class="group guide only-set" id="info">
       <button type="button" id="infohead" class="g-row"><span class="gtitle"><span class="mt">내 정보</span></span><span class="chev"></span></button>
       <div class="g-blk" id="infobody">
@@ -1205,42 +1270,16 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
         </div>
       </div>
     </div>
-    
-    <p class="sec only-set">AI 교정 스타일</p>
-    <div class="group only-set">
-      <div class="g-blk"><div class="seg s3 full" id="strictseg"><button type="button" data-k="soft">부드럽게</button><button type="button" data-k="normal">보통</button><button type="button" data-k="strict">엄격</button></div></div>
-    </div>
-    <p class="hint only-set" id="stricthint"></p>
-
-    <p class="sec only-set">튜터가 기억하는 나</p>
+    </section>
+    <section class="spg only-set" data-sp="memo">
     <div class="group only-set">
       <div class="g-blk" id="memobody"></div>
       <div class="memoact"><button type="button" id="memonew" class="pill ghost">지금 새로 만들기</button><button type="button" id="memoclr" class="pill ghost">모두 지우기</button></div>
     </div>
     <p class="hint only-set">하루 한 번, 최근 대화에서 튜터가 고쳐 준 내용으로 만들어요. 틀린 항목은 ×를 눌러 지우면 다시 만들 때 빠져요. 이 메모는 대화할 때 튜터에게 함께 전달돼요.</p>
-
-    <p class="sec only-set">학습 레벨</p>
-    <div class="group only-set">
-      <button type="button" id="obbtn" class="g-row"><span>나의 레벨</span><span class="val"><b id="lvstat"></b><span class="chev"></span></span></button>
-    </div>
-
-    <p class="sec only-set">말하기</p>
-    <div class="group only-set">
-      <button type="button" id="permbtn" class="g-row"><span>마이크 · 소리 점검</span><span class="val"><span id="permstat"></span><span class="chev"></span></span></button>
-    </div>
-
-    <p class="sec only-set">튜터 목소리</p>
-    <div class="group only-set">
-      <div class="g-blk">
-        <div class="g-top"><span>읽는 속도</span><b id="ratev" class="ratev">1.0배</b></div>
-        <div class="raterow"><span>느리게</span><input type="range" id="ttsrate" min="0.5" max="1.5" step="0.1" value="1" aria-label="튜터 목소리 읽는 속도"><span>빠르게</span></div>
-        <button type="button" id="ratetest" class="pill wide ghost">들어보기</button>
-      </div>
-    </div>
-    <p class="hint only-set">튜터 대답, 단어 발음, 오늘의 표현 등 앱의 모든 영어 읽기에 적용돼요.</p>
-
-    <p class="sec only-set">학습 알림</p>
-    <div class="group only-set">
+    </section>
+    <section class="spg only-set" data-sp="alarm">
+    <div class="group">
       <button type="button" id="timebtn" class="g-row"><span>시간</span><span class="val"><b id="timeval"></b><span class="chev"></span></span></button>
       <div class="g-blk"><div class="g-top"><span>반복</span><span class="val" id="dayssum"></span></div><div class="days" id="days"></div></div>
       <div class="g-blk">
@@ -1248,15 +1287,26 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
         <p class="hint">파일을 내려받아 열고 저장하면, 정해진 시각에 폰이 알려줘요. 바꾸거나 끄려면 캘린더에서 그 일정을 지우고 다시 추가하세요.</p>
       </div>
     </div>
-
-    <p class="sec only-set">친구에게 소개</p>
-    <div class="group only-set">
+    </section>
+    <section class="spg only-set" data-sp="rate">
+    <div class="group">
+      <div class="g-blk">
+        <div class="g-top"><span>읽는 속도</span><b id="ratev" class="ratev">1.0배</b></div>
+        <div class="raterow"><span>느리게</span><input type="range" id="ttsrate" min="0.5" max="1.5" step="0.1" value="1" aria-label="튜터 목소리 읽는 속도"><span>빠르게</span></div>
+        <button type="button" id="ratetest" class="pill wide ghost">들어보기</button>
+      </div>
+    </div>
+    <p class="hint only-set">튜터 대답, 단어 발음, 오늘의 표현 등 앱의 모든 영어 읽기에 적용돼요.</p>
+    </section>
+    <section class="spg only-set" data-sp="share">
+    <div class="group">
       <div class="g-blk">
         <div class="shrow"><button type="button" id="sharebtn" class="pill"><span class="ic"></span>링크 보내기</button><button type="button" id="qrbtn" class="pill ghost"><span class="ic"></span>QR 코드</button></div>
         <p class="hint">카카오톡으로 보내도 친구 폰에서 크롬으로 바로 열려요. 옆에 있다면 QR을 폰 카메라로 찍게 해 주세요.</p>
       </div>
     </div>
-
+    </section>
+    <section class="spg only-set" data-sp="adv">
     <details class="adv only-set" id="adv">
       <summary class="advsum"><span>고급 설정</span><span class="chev"></span></summary>
       <p class="hint">잘 모르겠다면 그대로 두세요. 기본값이 가장 잘 맞아요.</p>
@@ -1273,6 +1323,8 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
       </div>
     <p class="hint only-set" id="michint2">인식된 글자가 입력칸에 먼저 나오고, 확인하고 보내면 엉뚱한 단어가 그대로 전송되는 걸 막을 수 있어요.</p>
     </details>
+    </section>
+    <p class="hint" hidden id="stricthint"></p>
 
     <p id="err"></p>
     <div class="savebar"><button id="save">저장</button></div>
@@ -1280,6 +1332,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     <p class="copyr">© 2026 Jin Howard. All rights reserved.<br>무단 복제 및 배포를 금지합니다.</p>
     <button type="button" id="devreset" class="pill wide ghost">처음부터 다시 하기 (개발자)</button>
   </div>
+</div>
 </div>
 
 <div id="main">
@@ -1385,7 +1438,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
 <nav id="tabs" aria-label="메인 메뉴">
   <button type="button" class="tab" data-s="menu"><span class="ti-ic"></span>홈</button>
   <button type="button" class="tab" data-s="vocab"><span class="ti-ic"></span>단어장</button>
-  <button type="button" class="tab fab" id="fab" aria-label="대화하기"><span class="fab-ic"></span>대화</button>
+  <button type="button" class="tab fab" id="fab" aria-label="AI 튜터와 통화하기"><span class="fab-ic"></span>통화</button>
   <button type="button" class="tab" data-s="hist"><span class="ti-ic"></span>기록</button>
   <button type="button" class="tab" data-s="setup"><span class="ti-ic"></span>설정</button>
 </nav>
@@ -1617,6 +1670,7 @@ function swap(screen, fade) {
   stopMyVoice();
   if (mode !== 'chat' && screen !== 'main') exitReview();  // 복습이나 역할극 중에 다른 화면으로 가면 마무리
   if (screen === 'menu') paintMenu();
+  if (screen === 'setup') applySub();
   if (screen === 'onb') obStart();
   if (screen === 'perm') setTimeout(permCoach, 400);
   if (screen === 'learn') paintLearn();
@@ -3277,8 +3331,8 @@ const I_CHECK = icon('<polyline points="20 6 9 17 4 12"/>', 16).replace('stroke-
 const TAB_ICONS = { menu: I_HOME, vocab: I_BOOK, hist: I_CLOCK, setup: I_SLIDERS };
 document.querySelectorAll('#tabs .tab[data-s]').forEach(t => t.querySelector('.ti-ic').innerHTML = sz(TAB_ICONS[t.dataset.s], 24));
 $('fab').querySelector('.fab-ic').innerHTML = sz(I_WAVE, 28);
-$('m-chat').querySelector('.hic').innerHTML = sz(I_WAVE, 28);
-$('m-call').innerHTML = sz(I_PHONE, 22);
+$('m-call').querySelector('.hic').innerHTML = sz(I_PHONE, 22);
+$('m-chat').querySelector('.ic').innerHTML = sz(I_CHAT, 14);
 $('barcall').innerHTML = sz(I_PHONE, 20);
 $('m-rev').querySelector('.ic').innerHTML = sz(I_REV, 22);
 $('m-course').querySelector('.ic').innerHTML = sz(I_BOOK, 22);
@@ -3295,7 +3349,8 @@ document.querySelectorAll('#themesw .ti')[1].innerHTML = I_MOON;
 const two = n => String(n).padStart(2, '0');
 const isoDate = d => `${d.getFullYear()}-${two(d.getMonth() + 1)}-${two(d.getDate())}`;
 const revDays = () => JSON.parse(localStorage.getItem('revdays') || '[]');
-const studied = k => (chats[k] || []).some(m => m.role === 'user') || revDays().includes(k);  // 대화나 복습을 한 날
+const talkSec = k => (JSON.parse(localStorage.getItem('talksec') || '{}'))[k] || 0;  // 날짜별 통화 초 (live.js가 기록)
+const studied = k => (chats[k] || []).some(m => m.role === 'user') || revDays().includes(k) || talkSec(k) >= 30;  // 대화, 복습, 통화(30초 이상)를 한 날
 function streakDays() {  // 오늘 안 했으면 어제부터 거꾸로 세기
   const d = new Date();
   if (!studied(isoDate(d))) d.setDate(d.getDate() - 1);
@@ -3426,11 +3481,17 @@ function paintExpr() {
 function paintMenu() {
   const [en, ko] = greeting();
   $('g-en').textContent = en;
-  $('g-ko').innerHTML = ko.replace('\n', '<br>');
-  $('m-eyebrow').textContent = ob && ob.lvl ? `레벨 ${ob.lvl}` : '';
+  $('g-ko').textContent = ko.replace('\n', ' ');
+  const goal = (ob && ob.mins) || 10, min = Math.floor(talkSec(dayKey) / 60), pct = Math.min(100, Math.round(min / goal * 100));
+  $('t-ring').style.setProperty('--p', pct);
+  $('t-ring').classList.toggle('full', pct >= 100);
+  $('t-ring').querySelector('i').innerHTML = sz(pct >= 100 ? I_CHECK : I_PHONE, 16);  // 시작 전엔 통화 아이콘, 달성하면 체크
+  $('t-main').textContent = pct >= 100 ? '오늘 목표 달성!' : min ? `오늘 ${min}분 통화했어요` : `오늘의 목표 통화 ${goal}분`;
+  $('t-sub').textContent = pct >= 100 ? `${min}분 말했어요. 내일도 이어가요` : min ? `목표까지 ${goal - min}분 남았어요` : '첫 통화로 시작해요';
+  $('m-eyebrow').textContent = ob && ob.lvl ? `레벨 ${ob.lvl}${profile && profile.field ? ' · ' + profile.field.split(',')[0].trim() : ''}` : '';  // 무엇을 연습할지
   $('m-eyebrow').style.display = ob && ob.lvl ? '' : 'none';
   $('w-goal').textContent = (ob && ob.days) || 5;
-  $('m-chat-sub').textContent = (chats[dayKey] || []).length ? '오늘 대화 이어서 하기' : '실생활 표현을 말해 보세요';
+  $('m-chat-t').textContent = (chats[dayKey] || []).length ? '대화 이어서' : '글로 대화';
   const cs = courseStats(), rec = recUnit(), dueN = dueWords().length;
   $('m-course-sub').textContent = rec ? `${rec.title} ${unitStatus(rec) === 'progress' ? '이어서 하기' : '시작하기'} · ${cs.done}/${cs.total}` : `레벨 ${cs.lv} 코스 완료 · ${cs.done}/${cs.total}`;
   $('m-course-bar').style.width = Math.round(cs.done / cs.total * 100) + '%';
@@ -3443,6 +3504,7 @@ function paintMenu() {
   $('lvbanner').style.display = checkpointDue() ? 'flex' : 'none';
   const wk = weekDays(), st = streakDays();
   $('w-done').textContent = wk.filter(d => d.done).length;
+  $('w-empty').style.display = wk.some(d => d.done) ? 'none' : '';
   $('w-dots').innerHTML = wk.map(d => `<div class="dy${d.done ? ' done' : ''}${d.today ? ' today' : ''}"><span>${d.label}</span><i>${d.done ? I_CHECK : ''}</i></div>`).join('');
   $('w-streak').textContent = `${st}일`;
   $('w-words').textContent = `${vocab.length}개`;
@@ -3451,7 +3513,7 @@ function paintMenu() {
   chip.innerHTML = `${sz(I_FLAME, 16)}<span class="num">${st}</span>`;
   paintExpr();
 }
-$('m-chat').onclick = $('fab').onclick = () => navTo('main');
+$('m-chat').onclick = () => navTo('main');
 // 통화: live.js는 처음 누를 때만 불러옴. 소리 장치는 누른 순간 만들어야 아이폰에서 소리가 남
 let liveP = null;
 const loadLive = () => liveP || (liveP = new Promise((ok, no) => {
@@ -3461,7 +3523,9 @@ const loadLive = () => liveP || (liveP = new Promise((ok, no) => {
   sc.onerror = () => { liveP = null; no(); };
   document.head.appendChild(sc);
 }));
-$('m-call').onclick = $('barcall').onclick = () => {
+$('gart').onclick = () => $('m-call').click();
+$('m-call').onclick = $('barcall').onclick = $('fab').onclick = () => {
+  if (navigator.vibrate) navigator.vibrate(8);  // 안드로이드: 누른 느낌
   if (!apiKey) return toast('설정에서 API 키를 먼저 넣어 주세요', 2600);
   if (!window.WebSocket || !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) return toast('이 브라우저는 통화를 지원하지 않아요. 크롬이나 사파리에서 열어 주세요.', 3000);
   const ac = new (window.AudioContext || window.webkitAudioContext)();
@@ -4314,6 +4378,39 @@ function paintKeySum() {  // 접혀 있을 때 보이는 요약: 저장된 키�
   $('keyacc').classList.toggle('open', !k);  // 키가 없으면 펼쳐 둠
 }
 paintKeySum();
+// 설정 목록: 줄을 누르면 같은 화면 안의 하위 화면으로 (뒤로가기로 목록 복귀)
+const SUBT = { key: 'API 키', info: '내 정보', memo: '튜터가 기억하는 나', alarm: '학습 알림', rate: '튜터 목소리 속도', share: '친구에게 소개', adv: '고급 설정' };
+const SICON = { lv: '<path d="M5 20v-6M12 20V9M19 20V4"/>', pen: '<path d="M4 20l4-1L19 8l-3-3L5 16z"/><path d="M14 7l3 3"/>',
+  bell: '<path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>' };
+const SICON2 = { memo: I_BOOK, spk: I_SPK, mic: I_MIC, key: I_KEY, moon: I_MOON, share: I_SHARE, gear: I_SLIDERS };
+document.querySelectorAll('#setup .sic').forEach(e => { const k = e.dataset.i; e.innerHTML = sz(SICON[k] ? icon(SICON[k]) : SICON2[k], 18); });
+document.querySelectorAll('#setup .slist .chev, #setup .profcard .chev').forEach(e => { if (!e.innerHTML) e.innerHTML = I_CHEV; });
+document.querySelectorAll('#setup [data-go]').forEach(b => { b.onclick = () => navTo('setup', { sub: b.dataset.go }); });
+$('sback').onclick = goBack;
+function applySub() {  // 목록인지, 어느 하위 화면인지 (처음 설정이면 예전처럼 키, 정보 한 화면)
+  const box = $('setup'), list = !!profile, sub = list ? (window.history.state?.sub || '') : '';
+  box.classList.toggle('list', list);
+  box.classList.toggle('sub', !!sub);
+  box.classList.toggle('needsave', sub === 'key' || sub === 'info');  // 저장 버튼은 키, 내 정보에만 (나머지는 바꾸면 바로 저장)
+  box.querySelectorAll('.spg').forEach(e => e.classList.toggle('on', e.dataset.sp === sub));
+  $('sback').style.visibility = sub ? 'visible' : 'hidden';
+  $('setuptitle').textContent = !list ? '처음 설정' : sub ? SUBT[sub] : '설정';
+  if (sub === 'key') $('keyacc').classList.add('open');
+  if (sub === 'info') $('info').classList.add('open');
+  if (sub === 'adv') $('adv').open = true;
+  if (list && !sub) paintSetList();
+  box.querySelector('.pad').scrollTop = 0;
+}
+function paintSetList() {  // 목록의 현재 값
+  const lv = ob && ob.lvl, st = streakDays();
+  $('pc-lv').textContent = lv ? `레벨 ${lv} · ${LV_NAME[lv]}` : '레벨 테스트 전';
+  $('pc-sub').textContent = [profile && profile.field, `하루 ${(ob && ob.mins) || 10}분`, st ? `${st}일 연속` : ''].filter(Boolean).join(' · ');
+  const n = memoHas(memo) ? ['weak', 'words', 'topics'].reduce((a, k) => a + (memo[k] || []).length, 0) + (memo.strong ? 1 : 0) : 0;
+  $('sv-memo').textContent = n ? `${n}개` : '없음';
+  $('sv-alarm').textContent = `${daysText(alarm.days)} ${fmtTime(alarm.time)}`;
+  $('sv-rate').textContent = $('ratev').textContent;
+  $('sv-key').textContent = apiKey ? '연결됨' : '없음';
+}
 $('keyopen').onclick = () => {
   if (coachStep === 'studio') { closeCoach(); pasteNext = true; }  // 돌아오면 붙여넣기를 비춤
   window.open('https://aistudio.google.com/apikey', '_blank', 'noopener');

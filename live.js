@@ -4,6 +4,31 @@ window.LiveCall = (() => {
   const MODEL = 'models/gemini-3.8-live';
   const URL_WS = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=';
   const IN_RATE = 16000, OUT_RATE = 24000, LONG_SEC = 15 * 60;  // 음성 세션은 약 15분이 한계라 그 전에 안내
+  const JITTER = 0.15;   // 말 시작 때 모아 두는 시간 (인터넷 지연에도 끊김 없이)
+  const FADE = 0.03;     // 끊을 때 소리를 줄이는 시간 (뚝 소리 방지)
+  const GATE = 0.035, HOLD = 500;  // 튜터가 말하는 동안은 이 크기 이상만 보냄 (에코 줄이기), 넘으면 0.5초 유지
+  // 마이크 처리기: 오디오 전용 스레드에서 16kHz로 줄이고 40ms씩 묶어 보냄
+  const WORKLET = `class Cap extends AudioWorkletProcessor {
+    constructor() { super(); this.r = sampleRate / ${IN_RATE}; this.acc = 0; this.sum = 0; this.n = 0; this.e = 0; this.m = 0; this.out = new Int16Array(640); this.k = 0; }
+    process(inp) {
+      const x = inp[0] && inp[0][0];
+      if (!x) return true;
+      for (let i = 0; i < x.length; i++) {
+        const v = x[i]; this.sum += v; this.n++; this.e += v * v; this.m++;
+        if (++this.acc >= this.r) {
+          this.acc -= this.r;
+          const a = Math.max(-1, Math.min(1, this.sum / this.n)); this.sum = 0; this.n = 0;
+          this.out[this.k++] = a < 0 ? a * 32768 : a * 32767;
+          if (this.k === this.out.length) {
+            this.port.postMessage({ pcm: this.out.buffer, lv: Math.sqrt(this.e / this.m) }, [this.out.buffer]);
+            this.out = new Int16Array(640); this.k = 0; this.e = 0; this.m = 0;
+          }
+        }
+      }
+      return true;
+    }
+  }
+  registerProcessor('cap', Cap);`;
   const LIVE_RULE = ['',
     'Level 1: speak slowly in very short sentences (max 6 words) with basic words. Ask yes/no or either/or questions. If the learner is stuck, give one short sentence to repeat.',
     'Level 2: short everyday sentences (max 10 words). If the learner is stuck, offer a model sentence.',
@@ -11,7 +36,7 @@ window.LiveCall = (() => {
     'Level 4: natural speed; common idioms are fine.',
     'Level 5: native speed with idioms and nuance; do not simplify.'];
 
-  let ws, ctx, stream, src, node, timer, wake = null, attempt = 0;
+  let spoke = 0, ws, ctx, stream, src, node, sink, out, ana, raf, timer, wake = null, attempt = 0, rest = null, gateT = 0, meT = 0, wantLat = false, lat = [];
   let ready = false, ended = true, muted = false, t0 = 0, playAt = 0, playing = [], lines = [], tokens = 0;
   const $c = id => document.getElementById(id);
 
@@ -23,12 +48,16 @@ window.LiveCall = (() => {
   #call .cl-top { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 12px; }
   #call .cl-top b { font-size: 19px; font-weight: 800; }
   #call .cl-top span { font-size: 14px; color: var(--sub); font-variant-numeric: tabular-nums; }
-  #call .cl-orb { position: relative; width: 132px; height: 132px; margin: 44px 0 18px; }
-  #call .cl-orb i { position: absolute; inset: 0; border-radius: 50%; background: var(--accent); transform: scale(calc(.82 + var(--lv, 0) * .35)); transition: transform .12s; }
-  #call .cl-orb::before { content: ''; position: absolute; inset: -18px; border-radius: 50%; background: var(--accent-soft); }
-  #call.wait .cl-orb i { animation: clpulse 1.2s ease-in-out infinite; }
-  #call.listen .cl-orb i { opacity: .55; }
-  @keyframes clpulse { 50% { transform: scale(.7); opacity: .6; } }
+  #call .cl-orb { position: relative; width: 156px; height: 156px; margin: 44px 0 38px; }
+  #call .cl-orb::before { content: ''; position: absolute; inset: -14px; border-radius: 50%; background: var(--accent);
+                          opacity: calc(.18 + var(--lv, 0) * .5); transform: scale(calc(1 + var(--lv, 0) * .1)); transition: transform .08s, opacity .08s; }  /* 목소리에 반응하는 테두리 */
+  #call .cl-orb .face { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; background: var(--today-bg, var(--accent-soft)); }
+  #call .cl-orb img { position: absolute; left: 50%; bottom: -10px; width: 112px; transform: translateX(-50%); }
+  #call.speak .cl-orb img { animation: clbob .5s ease-in-out infinite alternate; }  /* 말할 때 살짝 들썩 */
+  #call.wait .cl-orb::before { animation: clpulse 1.4s ease-in-out infinite; }
+  @keyframes clbob { to { transform: translateX(-50%) translateY(-4px); } }
+  @keyframes clpulse { 50% { transform: scale(.92); opacity: .08; } }
+  #call .cl-top small { font-size: 12px; color: var(--sub); }
   #call .cl-state { margin: 0 0 18px; font-size: 15px; font-weight: 700; color: var(--sub); }
   #call .cl-cap { flex: 1; width: 100%; max-width: 520px; overflow-y: auto; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; }
   #call .cl-cap p { margin: 0; font-size: 16px; line-height: 1.5; text-wrap: pretty; }
@@ -65,13 +94,13 @@ window.LiveCall = (() => {
     d.id = 'call';
     d.setAttribute('role', 'dialog');
     d.setAttribute('aria-label', 'AI 튜터와 통화');
-    d.innerHTML = `<div class="cl-top"><b>AI 튜터</b><span id="cl-time">통화 준비</span></div>
+    d.innerHTML = `<div class="cl-top"><b>AI 튜터</b><span id="cl-time">통화 준비</span><small id="cl-lat"></small></div>
       <div class="cl-first">
         <p>AI 튜터와 전화하듯 영어로 대화해요.<br>틀려도 괜찮아요. 교정은 통화가 끝난 뒤에 따로 해 드려요.</p>
         <p>이어폰을 쓰면 더 잘 들리고 울림도 줄어요. 무료 API 키로 통화하면 음성이 구글 모델 개선에 쓰일 수 있어요.</p>
         <button type="button" id="cl-go">통화 시작</button><button type="button" id="cl-back" class="ghost">닫기</button>
       </div>
-      <div class="cl-orb"><i></i></div>
+      <div class="cl-orb"><div class="face"><img src="img/art.webp" alt=""></div></div>
       <p class="cl-state" id="cl-state"></p>
       <div class="cl-cap" id="cl-cap" aria-live="polite"></div>
       <p class="cl-note" id="cl-note"></p>
@@ -84,7 +113,7 @@ window.LiveCall = (() => {
     $c('cl-go').onclick = () => { localStorage.setItem('livenote', '1'); $c('call').classList.remove('first'); begin(); };
     $c('cl-back').onclick = close;
     $c('cl-end').onclick = close;
-    $c('cl-again').onclick = () => { stop(); begin(); };
+    $c('cl-again').onclick = () => { logTime(); stop(); begin(); };
     $c('cl-text').onclick = () => { close(); if (typeof navTo === 'function') navTo('main'); };
     $c('cl-mute').onclick = () => setMute(!muted);
   }
@@ -151,23 +180,41 @@ window.LiveCall = (() => {
 
   // ===== 재생: 받은 조각을 빈틈없이 이어 붙임 =====
   function play(b64) {
-    const bin = atob(b64), n = bin.length >> 1, buf = ctx.createBuffer(1, n, OUT_RATE), ch = buf.getChannelData(0);
+    let bin = atob(b64);
+    if (rest !== null) { bin = rest + bin; rest = null; }  // 조각이 샘플 중간에서 잘려 오면 다음 조각과 이어 붙임 (지직 방지)
+    if (bin.length & 1) { rest = bin[bin.length - 1]; bin = bin.slice(0, -1); }
+    const n = bin.length >> 1;
+    if (!n) return;
+    const buf = ctx.createBuffer(1, n, OUT_RATE), ch = buf.getChannelData(0);
     for (let i = 0; i < n; i++) { let v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); if (v >= 0x8000) v -= 0x10000; ch[i] = v / 32768; }
+    const now = ctx.currentTime, gap = playAt < now + 0.01;
+    if (gap) {  // 새 말 시작이거나 조각이 늦게 옴: 잠깐 모았다가 재생, 첫 3ms는 부드럽게 시작 (틱 방지)
+      playAt = now + (playing.length ? 0.06 : JITTER);
+      const f = Math.min(n, Math.round(OUT_RATE * 0.003));
+      for (let i = 0; i < f; i++) ch[i] *= i / f;
+    }
     const s = ctx.createBufferSource();
     s.buffer = buf;
-    s.connect(ctx.destination);
-    playAt = Math.max(playAt, ctx.currentTime + 0.04);
+    s.connect(out);
     s.start(playAt);
     playAt += buf.duration;
     playing.push(s);
     s.onended = () => { playing = playing.filter(x => x !== s); if (!playing.length && !ended && ready) setState('listen'); };
+    if (wantLat && meT) { wantLat = false; const d = (performance.now() - meT) / 1000; lat.push(+d.toFixed(2)); $c('cl-lat').textContent = `반응 약 ${d.toFixed(1)}초`; }
     setState('speak');
-    $c('call').style.setProperty('--lv', .5);
   }
-  function flush() {  // 끼어들면 튜터 말을 바로 멈춤
-    playing.forEach(s => { try { s.onended = null; s.stop(); } catch (e) {} });
+  function flush(soft) {  // 끼어들거나 끊으면 튜터 말을 멈춤. 0.03초 동안 줄인 뒤 멈춰서 뚝 소리가 안 남
+    const list = playing;
     playing = [];
     playAt = 0;
+    rest = null;
+    if (!ctx || !out) return;
+    const t = ctx.currentTime;
+    out.gain.cancelScheduledValues(t);
+    out.gain.setValueAtTime(out.gain.value, t);
+    out.gain.linearRampToValueAtTime(0, t + FADE);
+    list.forEach(s => { s.onended = null; try { s.stop(t + FADE + 0.01); } catch (e) {} });
+    out.gain.setValueAtTime(1, t + FADE + 0.02);
   }
 
   // ===== 시스템 지시문 =====
@@ -202,6 +249,7 @@ window.LiveCall = (() => {
       if (m.setupComplete) {
         ready = true;
         t0 = Date.now();
+        $c('cl-time').textContent = '00:00';
         setState('listen');
         ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: 'Start the call: greet me briefly and ask one easy question.' }] }], turnComplete: true } }));
         return;
@@ -211,7 +259,7 @@ window.LiveCall = (() => {
       if (c) {
         if (c.interrupted) { flush(); closeLine(); setState('listen'); }
         ((c.modelTurn && c.modelTurn.parts) || []).forEach(p => { if (p.inlineData && /audio/.test(p.inlineData.mimeType || '')) play(p.inlineData.data); });
-        if (c.inputTranscription && c.inputTranscription.text) cap('me', c.inputTranscription.text);
+        if (c.inputTranscription && c.inputTranscription.text) { cap('me', c.inputTranscription.text); meT = performance.now(); wantLat = true; }  // 내 말 마지막 시각 → 튜터 첫 소리까지 = 반응 시간
         if (c.outputTranscription && c.outputTranscription.text) cap('ai', c.outputTranscription.text);
         if (c.turnComplete) closeLine();
       }
@@ -222,6 +270,7 @@ window.LiveCall = (() => {
       if (!ready && attempt === 0 && e.code === 1007) { attempt = 1; return connect(); }  // 설정 거부: 선택 옵션 빼고 한 번 더
       const why = /api key|permission|unauth/i.test(e.reason) ? 'API 키를 확인해 주세요.' : /quota|exhaust|rate/i.test(e.reason) ? '사용 한도에 걸렸어요. 잠시 뒤 다시 걸어 주세요.'
         : ready ? '연결이 끊겼어요. 인터넷을 확인하고 다시 걸어 주세요.' : '통화를 연결하지 못했어요.';
+      logTime();
       stopAudio();
       setState('fail');
       note(why + (e.reason ? ` (${e.reason.slice(0, 80)})` : ''));
@@ -229,24 +278,59 @@ window.LiveCall = (() => {
   }
 
   // ===== 마이크 =====
+  let micLv = 0;
+  function sendPcm(b64, lv) {  // 튜터가 말하는 중엔 큰 소리(내 목소리)만 보냄: 스피커 소리가 다시 들어가는 에코 줄이기
+    micLv = muted ? 0 : lv;
+    if (!ready || muted || !ws || ws.readyState !== 1) return;
+    const now = performance.now();
+    if (playing.length) {
+      if (lv > GATE) gateT = now + HOLD;
+      else if (now > gateT) return;
+    }
+    ws.send(JSON.stringify({ realtimeInput: { audio: { data: b64, mimeType: 'audio/pcm;rate=16000' } } }));
+  }
   async function startMic() {
     stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
     await ctx.resume();
     src = ctx.createMediaStreamSource(stream);
-    node = ctx.createScriptProcessor(4096, 1, 1);
-    node.onaudioprocess = e => {
-      const x = e.inputBuffer.getChannelData(0);
-      if (!playing.length) $c('call').style.setProperty('--lv', muted ? 0 : level(x));
-      if (!ready || muted || !ws || ws.readyState !== 1) return;
-      ws.send(JSON.stringify({ realtimeInput: { audio: { data: toB64(down(x, ctx.sampleRate)), mimeType: 'audio/pcm;rate=16000' } } }));
-    };
+    sink = ctx.createGain();  // 처리기가 돌게 출력에 연결하되 소리는 0
+    sink.gain.value = 0;
+    sink.connect(ctx.destination);
+    try {
+      if (!ctx.audioWorklet) throw 0;
+      const url = URL.createObjectURL(new Blob([WORKLET], { type: 'application/javascript' }));
+      await ctx.audioWorklet.addModule(url);
+      URL.revokeObjectURL(url);
+      node = new AudioWorkletNode(ctx, 'cap');
+      node.port.onmessage = e => { const u = new Uint8Array(e.data.pcm); let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); sendPcm(btoa(s), e.data.lv); };
+    } catch (e) {  // 오래된 브라우저: 예전 방식 (작은 묶음으로 지연 줄임)
+      node = ctx.createScriptProcessor(2048, 1, 1);
+      node.onaudioprocess = ev => { const x = ev.inputBuffer.getChannelData(0); sendPcm(toB64(down(x, ctx.sampleRate)), level(x) / 6); };
+    }
     src.connect(node);
-    node.connect(ctx.destination);  // 연결해야 처리가 돌아감 (출력은 무음)
+    node.connect(sink);
+  }
+  function meter() {  // 테두리 크기: 튜터가 말하면 튜터 소리, 아니면 내 마이크
+    if (ended || !ctx) return;
+    let v = micLv * 6;
+    if (playing.length && ana) {
+      const a = new Uint8Array(ana.fftSize);
+      ana.getByteTimeDomainData(a);
+      let s = 0;
+      for (let i = 0; i < a.length; i += 4) { const d = (a[i] - 128) / 128; s += d * d; }
+      v = Math.sqrt(s / (a.length / 4)) * 5;
+    }
+    $c('call').style.setProperty('--lv', Math.min(1, v).toFixed(2));
+    raf = requestAnimationFrame(meter);
   }
   function stopAudio() {
     flush();
-    if (node) { node.onaudioprocess = null; try { node.disconnect(); } catch (e) {} }
+    if (node) { node.onaudioprocess = null; if (node.port) node.port.onmessage = null; try { node.disconnect(); } catch (e) {} }
     if (src) try { src.disconnect(); } catch (e) {}
+    if (sink) try { sink.disconnect(); } catch (e) {}
+    cancelAnimationFrame(raf);
+    micLv = 0;
+    sink = null;
     if (stream) stream.getTracks().forEach(t => t.stop());  // 마이크를 꺼야 아이폰 소리가 스피커로 돌아옴
     node = src = stream = null;
   }
@@ -259,19 +343,27 @@ window.LiveCall = (() => {
   }
 
   async function begin() {
-    ended = false; attempt = 0; lines = []; tokens = 0; playAt = 0;
+    ended = false; attempt = 0; spoke = 0; lines = []; tokens = 0; playAt = 0; lat = []; meT = 0; wantLat = false;
     setMute(false);
+    $c('cl-lat').textContent = '';
+    if (!out) {  // 튜터 소리 → 볼륨(페이드용) → 분석기(테두리용) → 스피커
+      out = ctx.createGain();
+      ana = ctx.createAnalyser();
+      ana.fftSize = 512;
+      out.connect(ana);
+      ana.connect(ctx.destination);
+    }
     drawCap();
     note('');
     setState('wait');
     if (navigator.wakeLock) navigator.wakeLock.request('screen').then(w => { wake = w; }).catch(() => {});  // 통화 중 화면 꺼짐 방지
     timer = setInterval(() => {
-      if (!ready) return;
-      const sec = Math.round((Date.now() - t0) / 1000);
+      if (!ready || !t0) return;
+      const sec = spoke + Math.round((Date.now() - t0) / 1000);
       $c('cl-time').textContent = `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
       if (sec === LONG_SEC) note('15분이 지났어요. 한 번 끊고 다시 걸면 더 안정적이에요.');
     }, 1000);
-    try { await startMic(); }
+    try { await startMic(); meter(); }
     catch (e) {
       stop();
       setState('fail');
@@ -281,16 +373,32 @@ window.LiveCall = (() => {
   }
 
   function save() {  // 통화 후 교정 리포트(다음 단계)를 위해 마지막 통화 기록 저장
-    const sec = t0 ? Math.round((Date.now() - t0) / 1000) : 0;
+    const sec = spoke;
     if (!lines.length) return;
-    try { localStorage.setItem('lastcall', JSON.stringify({ at: Date.now(), sec, tokens, lines: lines.map(l => ({ who: l.who, text: l.text.trim() })) })); } catch (e) {}
+    try { localStorage.setItem('lastcall', JSON.stringify({ at: Date.now(), sec, tokens, lat, lines: lines.map(l => ({ who: l.who, text: l.text.trim() })) })); } catch (e) {}
+  }
+  function logTime() {  // 날짜별 통화 시간 (홈의 오늘 목표, 연속 학습에 씀). 최근 60일만 보관
+    if (!t0 || !ready) return;
+    const sec = Math.round((Date.now() - t0) / 1000), d = new Date();
+    t0 = 0;
+    spoke += sec;
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    try {
+      const m = JSON.parse(localStorage.getItem('talksec') || '{}');
+      m[key] = (m[key] || 0) + sec;
+      Object.keys(m).sort().slice(0, -60).forEach(k => delete m[k]);
+      localStorage.setItem('talksec', JSON.stringify(m));
+    } catch (e) {}
   }
   function close() {
+    logTime();
     save();
     stop();
     if (ctx) { ctx.close().catch(() => {}); ctx = null; }
+    out = ana = null;
     $c('call').classList.remove('on', 'first', 'wait', 'listen', 'speak', 'fail');
     $c('cl-time').textContent = '통화 준비';
+    if (typeof paintMenu === 'function') paintMenu();  // 홈의 오늘 목표 바로 반영
   }
 
   // c: 버튼을 누른 순간 만든 AudioContext (아이폰은 누른 순간에 만들어야 소리가 남)
@@ -303,5 +411,5 @@ window.LiveCall = (() => {
     if (!localStorage.getItem('livenote')) { $c('call').classList.add('first'); return; }
     begin();
   }
-  return { open, close, _test: { down, toB64, sys } };
+  return { open, close, _test: { down, toB64, sys, sendPcm, fake: on => { playing = on ? [{}] : []; gateT = 0; }, ready: () => ready } };  // 검사용
 })();
