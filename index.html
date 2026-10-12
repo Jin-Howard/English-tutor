@@ -234,7 +234,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .cta { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; height: 50px; padding: 0 12px; border: 0; border-radius: 16px;
          font-size: 15px; font-weight: 800; letter-spacing: -.2px; white-space: nowrap; }
   .cta .ic { display: flex; line-height: 0; }
-  .cta.main { background: #111111; color: #FFFFFF; box-shadow: 0 6px 16px rgba(0, 0, 0, .16); }  /* 통화: 가장 진하게 */
+  .cta.main { background: var(--accent); color: #111111; box-shadow: 0 6px 14px rgba(230, 170, 0, .3); }  /* 통화: 카드와 같은 노란 계열로 조화, 그림자로 구분 */
   .cta.sub { background: rgba(255, 255, 255, .78); color: #111111; }  /* 채팅: 옅게 */
   :root[data-theme="dark"] .cta.main, :root:not([data-theme]) .cta.main { background: var(--accent); color: #111111; box-shadow: none; }
   :root[data-theme="dark"] .cta.sub, :root:not([data-theme]) .cta.sub { background: rgba(255, 255, 255, .08); color: var(--text); }
@@ -585,12 +585,15 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .tourtrack::-webkit-scrollbar { display: none; }
   .tourpg { flex: none; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 58px 22px 6px; box-sizing: border-box; text-align: center; scroll-snap-align: center; }
   .tourpg svg { width: 100%; max-width: 230px; }
-  .cmbox { position: relative; width: 100%; max-width: 320px; overflow: hidden; border-radius: 22px; border: 1px solid var(--line); }
+  .cmbox { position: relative; width: 100%; max-width: 320px; overflow: hidden; border-radius: 22px; border: 1px solid var(--line); container-type: inline-size; }
   .cmbox img { display: block; width: 100%; }
   /* 코치마크: 바깥이 어두워지며 타깃 쪽으로 좁혀 들어감 */
-  .cmspot { position: absolute; border-radius: 16px; box-shadow: 0 0 0 999px rgba(0, 0, 0, 0); }
+  /* 밝게 뚫린 곳의 모서리 = 사진 속 칸의 실제 모서리 (--r: 원본 720px 사진 기준 px, 화면 크기에 맞춰 줄어듦) */
+  .cmspot { --r: 22; --rr: calc(var(--r) * 100cqw / 720); position: absolute; border-radius: 16px; border-radius: var(--rr); box-shadow: 0 0 0 999px rgba(0, 0, 0, 0); }
   .cmspot.round { border-radius: 50%; }
-  .cmspot::before, .cmspot::after { content: ''; position: absolute; inset: -5px; border-radius: inherit; border: 3px solid var(--accent); opacity: 0; }
+  .cmspot::before, .cmspot::after { content: ''; position: absolute; inset: -5px; border-radius: 21px; border-radius: calc(var(--rr) + 5px); border: 3px solid var(--accent); opacity: 0; }  /* 동심 둥글기: 안쪽 + 5px */
+  .cmspot.round::before, .cmspot.round::after { border-radius: 50%; }
+  .cmspot.capsule::before, .cmspot.capsule::after { border-radius: 999px; }
   .play .cmspot { animation: iris .75s cubic-bezier(.2, .8, .2, 1) forwards; }
   .play .cmspot::before { animation: ringin .3s .6s forwards; }
   .play .cmspot::after { border-width: 2px; animation: ringpulse 1.4s .9s ease-out infinite; }
@@ -1258,13 +1261,6 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
               <option value="">선택</option><option>남성</option><option>여성</option>
             </select>
           </label>
-          <label>영어 시험 점수
-            <select id="f-level">
-              <option value="">없음</option><option>토익</option><option>토플</option>
-              <option>아이엘츠</option><option>초등회화 미만</option>
-            </select>
-            <input id="f-score" type="number" step="any" placeholder="점수 (예: 600)">
-          </label>
           <label>학습 분야 (목표)
             <input id="f-field" list="fields" placeholder="목록에서 고르거나 직접 입력">
           </label>
@@ -1502,7 +1498,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   <button type="button" id="tourx" class="tourx" aria-label="닫기">×</button>
   <div id="tourtrack" class="tourtrack">
     <section class="tourpg">
-      <div class="cmbox"><img src="img/key-list.jpg" loading="lazy" decoding="async" alt="자동으로 만들어진 키 목록"><i class="cmspot" style="left:3.89%;top:40.96%;width:92.13%;height:44.07%"></i></div>
+      <div class="cmbox"><img src="img/key-list.jpg" loading="lazy" decoding="async" alt="자동으로 만들어진 키 목록"><i class="cmspot" style="--r:22;left:3.89%;top:40.89%;width:92.13%;height:44.07%"></i></div>
       <div class="tourtx"><span class="must">필독</span><h3>잠깐! 먼저 기다려 주세요</h3><p>AI Studio에 처음 들어가면 <b>키가 자동으로 1개</b> 만들어져요. 화면이 다 뜰 때까지 기다리고, <b>새로 만들지 마세요.</b></p></div>
     </section>
     <section class="tourpg">
@@ -1514,7 +1510,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
       <div class="tourtx"><h3>키가 안 보일 때만 만들기</h3><p>10초쯤 기다려도 목록이 비어 있을 때만 <b>API 키 만들기</b>를 눌러요. 키가 여러 개여도 하나만 쓰면 돼요.</p></div>
     </section>
     <section class="tourpg">
-      <div class="cmbox"><img src="img/app-paste.jpg" loading="lazy" decoding="async" alt="이 앱의 붙여넣기"><i class="cmspot" style="left:4.54%;top:38.0%;width:90.83%;height:24.0%"></i></div>
+      <div class="cmbox"><img src="img/app-paste.jpg" loading="lazy" decoding="async" alt="이 앱의 붙여넣기"><i class="cmspot" style="--r:36;left:4.58%;top:38.11%;width:90.83%;height:24.0%"></i></div>
       <div class="tourtx"><h3>이 앱으로 돌아와 붙여넣기</h3><p><b>붙여넣기</b>를 누르면 끝이에요. 안 되면 입력칸을 길게 눌러 붙여넣어요.</p></div>
     </section>
   </div>
@@ -1586,8 +1582,7 @@ When you correct something, your English reply must respond to what they meant (
 Otherwise do not write KO:.`;
 
 const $ = id => document.getElementById(id);
-const F = ['age', 'gender', 'level', 'score', 'field'];  // 저장할 설정 항목
-const NONE = '초등회화 미만';
+const F = ['age', 'gender', 'field'];  // 저장할 설정 항목 (시험 점수는 레벨 테스트로 대신)
 const dayKey = (() => {  // 오늘 날짜 (YYYY-MM-DD)
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -1734,12 +1729,6 @@ window.addEventListener('popstate', e => {  // 시스템 뒤로가기
   if (st.s === 'hist') (st.day && chats[st.day] ? openDay(st.day) : renderHistList());
   show(st.s);
 });
-
-// 점수칸: 초등회화 미만이면 숨김
-function toggleScore() {
-  $('f-score').style.display = !$('f-level').value || $('f-level').value === NONE ? 'none' : 'block';
-}
-$('f-level').onchange = toggleScore;
 
 // AI 모델 선택 표시: 선택 상태, 설명, 오늘 사용 횟수
 let asr = localStorage.getItem('asr') === 'device' ? 'device' : 'ai';  // 음성 인식: ai(제미나이가 녹음을 직접 들음, 기본) | device(브라우저 인식기)
@@ -1934,7 +1923,6 @@ function fillForm() {
   const p = profile || {};
   $('f-key').value = apiKey;
   F.forEach(k => $('f-' + k).value = p[k] || '');
-  toggleScore();
   paintAlarm();
   $('setuptitle').textContent = profile ? '설정' : '처음 설정';
   $('fstep-s').style.display = apiKey ? 'none' : '';  // 처음 설정 중일 때만
@@ -1956,11 +1944,6 @@ $('save').onclick = async () => {
   const key = $('f-key').value.trim();
   const p = {};
   F.forEach(k => p[k] = $('f-' + k).value.trim());
-  if (p.level === NONE || !p.level) p.score = '';
-  if (p.level && p.level !== NONE && !p.score) {
-    $('err').textContent = '시험 점수를 입력해 주세요';
-    return;
-  }
   if (!key) {
     $('err').textContent = 'API 키를 입력해 주세요';
     return;
@@ -2009,11 +1992,9 @@ $('devreset').onclick = () => {
 function buildSystem() {
   const p = profile || {};
   const who = [p.age && `age ${p.age}`, p.gender].filter(Boolean).join(', ');
-  const exam = p.level && p.level !== NONE ? ` Test score: ${p.level} ${p.score}.` : '';
-  const lvl = ob && ob.lvl ? ` Learner level: ${ob.lvl} of 5 (${LV_NAME[ob.lvl]}). ${LV_RULE[ob.lvl]}`
-    : p.level === NONE ? ' Learner level: below elementary conversation (use very simple words).' : '';
+  const lvl = ob && ob.lvl ? ` Learner level: ${ob.lvl} of 5 (${LV_NAME[ob.lvl]}). ${LV_RULE[ob.lvl]}` : '';
   const goals = p.field || (ob && ob.goals && ob.goals.join(', ')) || 'daily conversation';  // 설정의 학습 분야가 기준
-  return `${BASE_SYSTEM}\nLearner: ${who || 'Korean adult'}.${exam}${lvl} Goals and situations: ${goals}. Match the level and use situations and words from these goals.${STRICT_RULE[corrMode] ? '\n' + STRICT_RULE[corrMode] : ''}${memoNotes()}`;
+  return `${BASE_SYSTEM}\nLearner: ${who || 'Korean adult'}.${lvl} Goals and situations: ${goals}. Match the level and use situations and words from these goals.${STRICT_RULE[corrMode] ? '\n' + STRICT_RULE[corrMode] : ''}${memoNotes()}`;
 }
 
 // 말풍선 추가
@@ -3039,7 +3020,8 @@ if (rec) {
   rec.onend = () => {
     heard += ' ' + pending;  // 확정 전 말도 포함
     pending = '';
-    if (listening) { rec.lang = lang; return rec.start(); }  // 말이 멈춰 끊겨도 계속 듣기
+    if (listening && !inCall()) { rec.lang = lang; return rec.start(); }  // 말이 멈춰 끊겨도 계속 듣기 (통화 중엔 멈춤: 안드로이드는 켤 때마다 알림음)
+    if (inCall()) { listening = false; heard = ''; return paint(); }
     clearTimeout(silence);
     const said = heard.trim();
     heard = '';
@@ -3535,6 +3517,7 @@ $('m-call').onclick = $('barcall').onclick = $('fab').onclick = () => {
   if (!window.WebSocket || !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) return toast('이 브라우저는 통화를 지원하지 않아요. 크롬이나 사파리에서 열어 주세요.', 3000);
   setLoop(false);  // 채팅 대화 모드를 끄고, 녹음 중이면 버림 (통화와 마이크를 동시에 쓰면 알림음, 잡음이 남)
   if (recCtx) stopRecord(false);
+  if (listening && SR) { listening = false; try { rec.abort(); } catch (e) {} paint(); }  // 기기 음성 인식도 끔
   stopSpeak();
   const ac = new (window.AudioContext || window.webkitAudioContext)();
   ac.resume();
@@ -3885,6 +3868,7 @@ const NSAY = 3;                       // 말하기 문제 수 (읽기만으로�
 const I_KBD = icon('<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>', 22);
 const I_QMARK = icon('<circle cx="12" cy="12" r="9.5"/><path d="M9.3 9.3a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.4-2.7 4"/><path d="M12 17.3h.01"/>', 24);
 const I_X = icon('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>', 24);
+const I_SKIP = icon('<path d="M3.5 18.3a8.5 8.5 0 0 1 15.4-6.4"/><polyline points="20.2 5.6 20.2 12.4 13.4 12.4"/>', 24);  // 둥근 화살표로 넘어가기 (원 가운데 정렬)
 const I_HALF = icon('<circle cx="12" cy="12" r="9.5"/><path d="M8 12h8"/>', 24);
 const SAY_LABEL = ['괜찮아요, 연습하면 돼요', '조금 어려웠어요', '뜻은 통해요', '잘 통해요', '완벽해요'];
 const clampLv = n => Math.min(5, Math.max(1, n));
@@ -4044,7 +4028,7 @@ function renderOb(anim = true) {
       const busy = ui !== 'idle';  // 듣는 중에는 양옆 버튼을 숨기되 자리는 그대로 (마이크가 움직이지 않게)
       bot = `<div class="mictools">${side('saytype', I_KBD, '키보드로 입력', busy)}
           <button type="button" id="obmic" class="bigmic${ui === 'rec' ? ' on' : ''}"${ui === 'stt' ? ' disabled' : ''} aria-label="${ui === 'rec' ? '말하기 끝내기' : '말하기 시작'}"></button>
-          ${side('sayskip', I_X, '건너뛰기', busy)}
+          ${side('sayskip', I_SKIP, '건너뛰기', busy)}
           ${sideLab('키보드', busy)}<small class="sidelab main">${ui === 'rec' ? '다 말했으면 누르기' : ui === 'stt' ? '잠시만요' : '눌러서 말하기'}</small>${sideLab('건너뛰기', busy)}</div>`;  // 아이콘끼리 한 줄, 글자끼리 한 줄
     }
     h = `<div class="saywrap"><div class="saytop"><span>말하기 확인</span><span>${Math.min(n, NSAY)} / ${NSAY}</span></div>

@@ -3,9 +3,9 @@
 window.LiveCall = (() => {
   const MODEL = 'models/gemini-3.8-live';
   const URL_WS = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=';
-  const WAIT_MS = [1300, 1600, 1300, 1100, 900, 800];  // 레벨별: 말이 끝났다고 보기까지 기다리는 침묵 (0 = 레벨 모름, 최대 2000)
+  const IDLE_SEC = 15, IDLE_MAX = 2;  // 침묵 안부: 몇 초 뒤, 연속 몇 번까지
   const IN_RATE = 16000, OUT_RATE = 24000, LONG_SEC = 15 * 60;  // 음성 세션은 약 15분이 한계라 그 전에 안내
-  const JITTER = 0.3, REBUF = 0.15;  // 말 시작 때 / 조각이 늦게 왔을 때 모아 두는 시간 (인터넷이 출렁여도 말이 뚝뚝 끊기지 않게)
+  const JITTER = 0.15, REBUF = 0.15;  // 말 시작 때 / 조각이 늦게 왔을 때 모아 두는 시간 (인터넷이 출렁여도 말이 뚝뚝 끊기지 않게)
   const FADE = 0.03;     // 끊을 때 소리를 줄이는 시간 (뚝 소리 방지)
   // 튜터가 말하는 동안 스피커 소리가 마이크로 다시 들어가면, 서버가 내가 말한 줄 알고 튜터 말을 끊음.
   // 그래서 튜터가 말하는 중엔 '울림 크기'를 계속 재고, 그보다 확실히 큰 소리가 잠깐 이어질 때만 내 말로 보고 보냄
@@ -39,7 +39,7 @@ window.LiveCall = (() => {
     'Level 4: natural speed; common idioms are fine.',
     'Level 5: native speed with idioms and nuance; do not simplify.'];
 
-  let spoke = 0, ws, ctx, stream, src, node, sink, out, ana, raf, timer, wake = null, attempt = 0, rest = null, gateT = 0, echo = 0, loud = 0, pre = [], under = 0, cuts = 0, meT = 0, wantLat = false, lat = [];
+  let spoke = 0, ws, ctx, stream, src, node, sink, out, ana, raf, timer, wake = null, attempt = 0, rest = null, lastAct = 0, nudges = 0, gateT = 0, echo = 0, loud = 0, pre = [], under = 0, cuts = 0, meT = 0, wantLat = false, lat = [];
   let ready = false, ended = true, muted = false, t0 = 0, playAt = 0, playing = [], lines = [], tokens = 0;
   const $c = id => document.getElementById(id);
   const DEBUG = /[?&]debug/.test(location.search);  // 주소 끝에 ?debug 를 붙이면 통화 진단 숫자 표시
@@ -213,7 +213,7 @@ window.LiveCall = (() => {
     s.start(playAt);
     playAt += buf.duration;
     playing.push(s);
-    s.onended = () => { playing = playing.filter(x => x !== s); if (!playing.length && !ended && ready) setState('listen'); };
+    s.onended = () => { playing = playing.filter(x => x !== s); if (!playing.length && !ended && ready) { setState('listen'); lastAct = performance.now(); } };
     if (wantLat && meT) { wantLat = false; const d = (performance.now() - meT) / 1000; lat.push(+d.toFixed(2)); $c('cl-lat').textContent = `반응 약 ${d.toFixed(1)}초`; }
     setState('speak');
   }
@@ -242,9 +242,22 @@ window.LiveCall = (() => {
     slow = on;
     $c('cl-slow').classList.toggle('on', on);
     if (!ready || !ws || ws.readyState !== 1) return;
-    const t = on ? 'From now on, speak even more slowly and clearly, with longer pauses. Just say okay and continue.' : 'You can go back to the earlier pace now. Just say okay and continue.';
+    const t = on ? '(Note for your next replies: speak more slowly and clearly, with short pauses. Do not reply to this note.)' : '(Note for your next replies: go back to your normal pace. Do not reply to this note.)';
+    ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: t }] }], turnComplete: false } }));  // 다음 대답부터 적용, 지금 말은 그대로
+    toastIn(on ? '다음 대답부터 천천히 말해요' : '다음 대답부터 원래 속도로 말해요');
+  }
+  function idleCheck() {  // 튜터 말이 끝난 뒤 조용하면 먼저 안부 (음소거 중이면 일부러 조용한 거라 안 함)
+    if (!lastAct || playing.length || muted || nudges >= IDLE_MAX || !ws || ws.readyState !== 1) return;
+    if (performance.now() - lastAct < IDLE_SEC * 1000) return;
+    nudges++;
+    lastAct = performance.now();
+    const t = nudges === 1
+      ? '(The learner has been silent for a while. Gently check in with one short, warm line, like "Are you still there?" or "Everything okay? Take your time." Then offer an easier way to answer.)'
+      : '(The learner is still silent. Check in once more, light and playful, like "Hello? Did you fall asleep?" Keep it to one short line.)';
     ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: t }] }], turnComplete: true } }));
   }
+  const heardMe = () => { lastAct = performance.now(); nudges = 0; };  // 내가 말하면 침묵 시계와 안부 횟수 초기화
+  function toastIn(t) { note(t); clearTimeout(toastIn.t); toastIn.t = setTimeout(() => note(''), 2400); }
   // ===== 시스템 지시문 =====
   function sys() {
     const p = (typeof profile !== 'undefined' && profile) || {}, o = (typeof ob !== 'undefined' && ob) || {};
@@ -271,8 +284,6 @@ window.LiveCall = (() => {
         inputAudioTranscription: {}, outputAudioTranscription: {} };
       if (attempt === 0) {  // 선택 옵션: 서버가 거부하면 빼고 한 번 더 연결
         setup.contextWindowCompression = { slidingWindow: {} };  // 긴 통화에서 앞부분을 정리해 용량 확보
-        const lv = (typeof ob !== 'undefined' && ob && ob.lvl) || 0;
-        setup.realtimeInputConfig = { automaticActivityDetection: { endOfSpeechSensitivity: 'END_SENSITIVITY_LOW', silenceDurationMs: WAIT_MS[lv] } };  // 생각하며 멈춰도 끊지 않게
       }
       ws.send(JSON.stringify({ setup }));
     };
@@ -292,7 +303,7 @@ window.LiveCall = (() => {
       if (c) {
         if (c.interrupted) { cuts++; flush(); closeLine(); setState('listen'); }
         ((c.modelTurn && c.modelTurn.parts) || []).forEach(p => { if (p.inlineData && /audio/.test(p.inlineData.mimeType || '')) play(p.inlineData.data); });
-        if (c.inputTranscription && c.inputTranscription.text) { cap('me', c.inputTranscription.text); meT = performance.now(); wantLat = true; }  // 내 말 마지막 시각 → 튜터 첫 소리까지 = 반응 시간
+        if (c.inputTranscription && c.inputTranscription.text) { heardMe(); cap('me', c.inputTranscription.text); meT = performance.now(); wantLat = true; }  // 내 말 마지막 시각 → 튜터 첫 소리까지 = 반응 시간
         if (c.outputTranscription && c.outputTranscription.text) cap('ai', c.outputTranscription.text);
         if (c.turnComplete) closeLine();
       }
@@ -332,7 +343,7 @@ window.LiveCall = (() => {
       return;
     }
     if (playing.length && lv > Math.max(GATE_MIN, echo * GATE_X)) gateT = now + HOLD;  // 말하는 동안 계속 열어 둠
-    if (!playing.length) { echo *= .98; loud = 0; pre = []; }
+    if (!playing.length) { echo *= .98; loud = 0; pre = []; if (lv > GATE_MIN) lastAct = performance.now(); }  // 말소리가 나면 침묵 아님
     send(b64);
   }
   async function startMic() {
@@ -389,7 +400,7 @@ window.LiveCall = (() => {
   }
 
   async function begin() {
-    ended = false; attempt = 0; spoke = 0; echo = 0; loud = 0; pre = []; under = 0; cuts = 0; lines = []; tokens = 0; playAt = 0; lat = []; meT = 0; wantLat = false;
+    ended = false; attempt = 0; spoke = 0; lastAct = 0; nudges = 0; echo = 0; loud = 0; pre = []; under = 0; cuts = 0; lines = []; tokens = 0; playAt = 0; lat = []; meT = 0; wantLat = false;
     setMute(false);
     slow = false;
     $c('cl-slow').classList.remove('on');
@@ -410,6 +421,7 @@ window.LiveCall = (() => {
       const sec = spoke + Math.round((Date.now() - t0) / 1000);
       $c('cl-time').textContent = `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
       if (sec === LONG_SEC) note('15분이 지났어요. 한 번 끊고 다시 걸면 더 안정적이에요.');
+      idleCheck();
     }, 1000);
     try { await startMic(); meter(); }
     catch (e) {
@@ -459,5 +471,5 @@ window.LiveCall = (() => {
     if (!localStorage.getItem('livenote')) { $c('call').classList.add('first'); return; }
     begin();
   }
-  return { open, close, active: () => !ended, _test: { down, toB64, sys, pace, sendPcm, fake: on => { playing = on ? [{}] : []; gateT = 0; loud = 0; pre = []; }, echo: () => echo, ready: () => ready } };  // 검사용
+  return { open, close, active: () => !ended, _test: { idle: () => [lastAct, nudges], idleCheck, setAct: v => { lastAct = v; }, down, toB64, sys, pace, sendPcm, fake: on => { playing = on ? [{}] : []; gateT = 0; loud = 0; pre = []; }, echo: () => echo, ready: () => ready } };  // 검사용
 })();
