@@ -84,6 +84,33 @@ window.LiveCall = (() => {
   #call .cl-fail { display: none; gap: 10px; width: 100%; max-width: 420px; margin-bottom: 14px; }
   #call.fail .cl-fail { display: flex; }
   #call .cl-fail button { flex: 1; height: 48px; border: 0; border-radius: 14px; background: var(--surface2); color: var(--text); font-size: 15px; font-weight: 700; }
+  /* 통화 후 교정 리포트 */
+  #call .cl-rep { display: none; width: 100%; max-width: 520px; flex: 1; min-height: 0; flex-direction: column; margin-top: 18px; }
+  #call.report .cl-rep { display: flex; }
+  #call.report .cl-orb, #call.report .cl-state, #call.report .cl-cap, #call.report .cl-btns, #call.report .cl-note, #call.report .cl-fail { display: none; }
+  #call .rp-scroll { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 8px; }
+  #call .rp-sum { margin: 0 0 18px; font-size: 15px; line-height: 1.55; color: var(--sub); text-wrap: pretty; }
+  #call .rp-stats { display: flex; gap: 8px; margin: 0 0 18px; }
+  #call .rp-stats div { flex: 1; padding: 12px 8px; border-radius: 16px; background: var(--surface2); text-align: center; }
+  #call .rp-stats b { display: block; font-size: 20px; font-weight: 800; }
+  #call .rp-stats small { font-size: 12px; color: var(--sub); }
+  #call .rp-h { margin: 18px 0 8px; font-size: 13px; font-weight: 700; color: var(--sub); }
+  #call .rp-fix { margin: 0 0 10px; padding: 14px 16px; border-radius: 18px; background: var(--surface); box-shadow: var(--shadow); }
+  #call .rp-fix s { display: block; margin-bottom: 6px; font-size: 14px; color: var(--sub); }
+  #call .rp-fix .bt { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; font-size: 16px; font-weight: 700; line-height: 1.4; }
+  #call .rp-fix small { display: block; margin-top: 6px; font-size: 13px; color: var(--sub); line-height: 1.5; }
+  #call .rp-good { display: flex; flex-wrap: wrap; gap: 6px; }
+  #call .rp-good span { padding: 6px 12px; border-radius: 999px; background: var(--accent-soft); font-size: 14px; font-weight: 600; }
+  #call .rp-ph { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  #call .rp-ph div { flex: 1; }
+  #call .rp-ph b { display: block; font-size: 15px; }
+  #call .rp-ph small { font-size: 13px; color: var(--sub); }
+  #call .rp-ph button { flex: none; height: 34px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--surface2); color: var(--text); font-size: 13px; font-weight: 700; }
+  #call .rp-ph button.done { background: var(--accent-soft); color: var(--accent-text); }
+  #call .rp-wait { margin: 40px 0; font-size: 15px; color: var(--sub); text-align: center; }
+  #call .rp-btns { display: flex; gap: 8px; padding-top: 12px; }
+  #call .rp-btns button { flex: 1; height: 50px; border: 0; border-radius: 16px; background: var(--surface2); color: var(--text); font-size: 15px; font-weight: 800; }
+  #call .rp-btns button.go { background: var(--accent); color: #111111; }
   #call .cl-fail button.go { background: var(--accent); color: var(--on-accent); }`;
   const I_MIC = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>';
   const I_MUTE = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M9 9v2a3 3 0 0 0 5 2.2M15 9.3V5a3 3 0 0 0-5.7-1.3M5 11a7 7 0 0 0 11.5 5.3M19 11a7 7 0 0 1-.6 2.8M12 18v4"/></svg>';
@@ -109,6 +136,10 @@ window.LiveCall = (() => {
       <p class="cl-state" id="cl-state"></p>
       <div class="cl-cap" id="cl-cap" aria-live="polite"></div>
       <p class="cl-note" id="cl-note"></p>
+      <div class="cl-rep">
+        <div class="rp-scroll" id="rp-body"></div>
+        <div class="rp-btns"><button type="button" id="rp-close">닫기</button><button type="button" id="rp-review" class="go">틀린 문장 복습하기</button></div>
+      </div>
       <div class="cl-fail"><button type="button" id="cl-text">글로 대화하기</button><button type="button" id="cl-again" class="go">다시 걸기</button></div>
       <div class="cl-btns">
         <button type="button" id="cl-slow"><span>${I_SLOW}</span>천천히</button>
@@ -118,7 +149,9 @@ window.LiveCall = (() => {
     document.body.appendChild(d);
     $c('cl-go').onclick = () => { localStorage.setItem('livenote', '1'); $c('call').classList.remove('first'); begin(); };
     $c('cl-back').onclick = close;
-    $c('cl-end').onclick = close;
+    $c('cl-end').onclick = endCall;
+    $c('rp-close').onclick = close;
+    $c('rp-review').onclick = () => { close(); if (typeof startReview === 'function') startReview(); };
     $c('cl-again').onclick = () => { logTime(); stop(); begin(); };
     $c('cl-text').onclick = () => { close(); if (typeof navTo === 'function') navTo('main'); };
     $c('cl-mute').onclick = () => setMute(!muted);
@@ -258,6 +291,85 @@ window.LiveCall = (() => {
   }
   const heardMe = () => { lastAct = performance.now(); nudges = 0; };  // 내가 말하면 침묵 시계와 안부 횟수 초기화
   function toastIn(t) { note(t); clearTimeout(toastIn.t); toastIn.t = setTimeout(() => note(''), 2400); }
+  // ===== 통화 후 교정 리포트: 통화 중엔 흐름, 끝난 뒤 저렴한 텍스트 모델 1번으로 정리 =====
+  const REPORT_SYS = `You review a voice call between an English tutor and a Korean adult learner. The transcript comes from speech recognition, so ignore capitalization, punctuation, filler words and obvious recognition glitches.
+Output only JSON: {"summary":"","fixes":[{"said":"","better":"","tip":""}],"good":[""],"phrases":[{"en":"","ko":""}]}
+Rules:
+- fixes: up to 5 learner sentences with real grammar or word-choice mistakes, most useful first. "said" is what the learner said (shortened if long), "better" is a natural sentence at the learner's level that keeps their meaning, "tip" is one short Korean explanation under 40 Korean characters. Skip sentences that are already fine.
+- good: up to 2 English expressions the learner used well, quoted exactly.
+- phrases: up to 3 useful English phrases from the tutor's lines at the learner's level, with short Korean meanings.
+- summary: one warm, specific Korean sentence about how the call went.
+- Never invent anything the learner did not say. If there are no mistakes, return an empty fixes array.`;
+  const clean = (x, n) => String(x || '').replace(/[<>\n\r]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
+  const same = (a, b) => a.toLowerCase().replace(/[^a-z]/g, '') === b.toLowerCase().replace(/[^a-z]/g, '');
+  function endCall() {  // 끊기: 충분히 말했으면 리포트, 아니면 바로 닫기
+    logTime();
+    save();
+    stop();
+    const mine = lines.filter(l => l.who === 'me' && l.text.trim().split(/\s+/).length >= 2);
+    if (spoke < 30 || mine.length < 2 || typeof lite !== 'function') return close();
+    report();
+  }
+  async function report() {
+    const box = $c('call'), body = $c('rp-body');
+    box.classList.add('report');
+    $c('cl-time').textContent = '통화 정리';
+    $c('rp-review').style.display = 'none';
+    body.innerHTML = '<p class="rp-wait">통화 내용을 정리하고 있어요<br>잠시만 기다려 주세요</p>';
+    const lv = (typeof ob !== 'undefined' && ob && ob.lvl) || 0;
+    const tr = lines.map(l => `${l.who === 'me' ? 'Learner' : 'Tutor'}: ${l.text.trim()}`).join('\n').slice(-6000);  // 긴 통화는 최근 부분만
+    let j;
+    try {
+      const raw = await lite({ system_instruction: { parts: [{ text: REPORT_SYS }] }, contents: [{ role: 'user', parts: [{ text: `Learner level: ${lv || 'unknown'} of 5\nTranscript:\n${tr}` }] }],
+        generationConfig: { temperature: 0.2, maxOutputTokens: 900 } });
+      j = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    } catch (e) {
+      if (!box.classList.contains('report')) return;
+      body.innerHTML = '<p class="rp-wait">리포트를 만들지 못했어요<br>인터넷이나 사용 한도를 확인해 주세요</p>';
+      return;
+    }
+    if (!box.classList.contains('report')) return;  // 기다리는 동안 닫음
+    const fixes = (Array.isArray(j.fixes) ? j.fixes : []).map(f => ({ said: clean(f.said, 140), better: clean(f.better, 160), tip: clean(f.tip, 60) }))
+      .filter(f => f.said && f.better && !same(f.said, f.better)).slice(0, 5);
+    const good = (Array.isArray(j.good) ? j.good : []).map(g => clean(g, 80)).filter(Boolean).slice(0, 2);
+    const phrases = (Array.isArray(j.phrases) ? j.phrases : []).map(p => ({ en: clean(p.en, 60), ko: clean(p.ko, 40) })).filter(p => p.en && p.ko).slice(0, 3);
+    keepFixes(fixes);
+    try { localStorage.setItem('lastreport', JSON.stringify({ at: Date.now(), sec: spoke, summary: clean(j.summary, 120), fixes, good, phrases })); } catch (e) {}
+    paintReport(clean(j.summary, 120), fixes, good, phrases);
+  }
+  function keepFixes(fixes) {  // 복습, 튜터 메모가 쓰도록 날짜와 함께 보관 (최근 60개)
+    if (!fixes.length) return;
+    const d = new Date(), day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    try {
+      const all = JSON.parse(localStorage.getItem('callfix') || '[]');
+      fixes.forEach(f => all.push({ day, said: f.said, better: f.better, tip: f.tip }));
+      localStorage.setItem('callfix', JSON.stringify(all.slice(-60)));
+    } catch (e) {}
+  }
+  function paintReport(summary, fixes, good, phrases) {
+    const body = $c('rp-body'), esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const said = lines.filter(l => l.who === 'me').length, min = Math.max(1, Math.round(spoke / 60));
+    let h = `<p class="rp-sum">${esc(summary || '수고했어요! 오늘도 영어로 말했어요.')}</p>
+      <div class="rp-stats"><div><b>${min}분</b><small>통화</small></div><div><b>${said}</b><small>내가 한 말</small></div><div><b>${fixes.length}</b><small>고칠 문장</small></div></div>`;
+    if (fixes.length) h += '<p class="rp-h">이렇게 말하면 더 자연스러워요</p>' + fixes.map((f, i) => `<div class="rp-fix"><s>${esc(f.said)}</s><div class="bt"><span>${esc(f.better)}</span><span data-sp="${i}"></span></div>${f.tip ? `<small>${esc(f.tip)}</small>` : ''}</div>`).join('');
+    else h += '<p class="rp-h">고칠 문장이 없었어요. 아주 좋아요!</p>';
+    if (good.length) h += '<p class="rp-h">잘 쓴 표현</p><div class="rp-good">' + good.map(g => `<span>${esc(g)}</span>`).join('') + '</div>';
+    if (phrases.length) h += '<p class="rp-h">튜터가 쓴 표현, 써먹어 보세요</p>' + phrases.map((p, i) => {
+      const has = typeof findWord === 'function' && findWord(p.en);
+      return `<div class="rp-ph"><div><b>${esc(p.en)}</b><small>${esc(p.ko)}</small></div><button type="button" data-ph="${i}" class="${has ? 'done' : ''}">${has ? '저장됨' : '단어장에 저장'}</button></div>`;
+    }).join('');
+    body.innerHTML = h;
+    body.scrollTop = 0;
+    if (typeof spkBtn === 'function') body.querySelectorAll('[data-sp]').forEach(e => e.append(spkBtn(fixes[+e.dataset.sp].better)));
+    body.querySelectorAll('[data-ph]').forEach(b => b.onclick = () => {
+      const p = phrases[+b.dataset.ph];
+      if (b.classList.contains('done') || typeof vocab === 'undefined') return;
+      if (!findWord(p.en)) { vocab.push({ w: p.en, base: '', meaning: `ⓟ ${p.ko}`, exs: [], box: 1, due: addDays(dayKey, 1), src: 'call' }); saveVocab(); }
+      b.classList.add('done');
+      b.textContent = '저장됨';
+    });
+    $c('rp-review').style.display = fixes.length ? '' : 'none';  // 고칠 문장이 있을 때만 복습 버튼
+  }
   // ===== 시스템 지시문 =====
   function sys() {
     const p = (typeof profile !== 'undefined' && profile) || {}, o = (typeof ob !== 'undefined' && ob) || {};
@@ -456,7 +568,7 @@ window.LiveCall = (() => {
     stop();
     if (ctx) { ctx.close().catch(() => {}); ctx = null; }
     out = ana = null;
-    $c('call').classList.remove('on', 'first', 'wait', 'listen', 'speak', 'fail');
+    $c('call').classList.remove('on', 'first', 'wait', 'listen', 'speak', 'fail', 'report');
     $c('cl-time').textContent = '통화 준비';
     if (typeof paintMenu === 'function') paintMenu();  // 홈의 오늘 목표 바로 반영
   }
@@ -471,5 +583,5 @@ window.LiveCall = (() => {
     if (!localStorage.getItem('livenote')) { $c('call').classList.add('first'); return; }
     begin();
   }
-  return { open, close, active: () => !ended, _test: { idle: () => [lastAct, nudges], idleCheck, setAct: v => { lastAct = v; }, down, toB64, sys, pace, sendPcm, fake: on => { playing = on ? [{}] : []; gateT = 0; loud = 0; pre = []; }, echo: () => echo, ready: () => ready } };  // 검사용
+  return { open, close, active: () => !ended, _test: { endCall, report, keepFixes, setLines: v => { lines = v; }, setSpoke: v => { spoke = v; }, idle: () => [lastAct, nudges], idleCheck, setAct: v => { lastAct = v; }, down, toB64, sys, pace, sendPcm, fake: on => { playing = on ? [{}] : []; gateT = 0; loud = 0; pre = []; }, echo: () => echo, ready: () => ready } };  // 검사용
 })();

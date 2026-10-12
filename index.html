@@ -1850,6 +1850,7 @@ function recentMistakes(max = 15) {  // 최근 2주 대화에서 튜터가 고�
   const cut = new Date(); cut.setDate(cut.getDate() - 14);
   const cutKey = `${cut.getFullYear()}-${String(cut.getMonth() + 1).padStart(2, '0')}-${String(cut.getDate()).padStart(2, '0')}`;
   const days = Object.keys(chats).filter(d => chats[d].length && d >= cutKey).sort().reverse(), out = [];  // 최근 2주
+  callFixes().filter(f => f.day >= cutKey).slice(0, 6).forEach(f => out.push(`"${f.said.slice(0, 80)}" -> ${(f.tip ? f.tip + ' → ' : '→ ') + f.better}`.slice(0, 220)));  // 통화 교정 먼저
   for (const d of days) {
     const list = chats[d];
     for (let i = list.length - 1; i > 0 && out.length < max; i--) {
@@ -2765,9 +2766,10 @@ function learnedOf(list, i) {  // "영어로 뭐라고 해?"에 튜터가 알려
   if (!/[가-힣]/.test(q) || !/영어로|뭐라고|어떻게 말/.test(q) || !/이렇게 말하면/.test(ko) || !en) return null;
   return { ko: q.replace(/[을를]?\s*(영어로|뭐라고|어떻게)[\s\S]*$/, '').replace(/[\s,]+$/, '') || q, en: en.replace(/^.*?"(.+)".*$/, '$1').trim() };
 }
+const callFixes = () => { try { return JSON.parse(localStorage.getItem('callfix') || '[]').reverse(); } catch (e) { return []; } };  // 통화 후 리포트가 남긴 교정 (최근 것부터)
 function reviewMaterial() {
   const days = Object.keys(chats).filter(d => chats[d].length).sort().reverse();
-  const mistakes = [], learned = [];
+  const mistakes = callFixes().slice(0, 2).map(f => ({ said: f.said, note: `${f.tip ? f.tip + ' ' : ''}→ ${f.better}` })), learned = [];  // 통화 교정 2개 먼저
   for (const d of days) {
     const list = chats[d];
     for (let i = list.length - 1; i > 0 && (mistakes.length < 3 || learned.length < 2); i--) {  // 최근 것부터
