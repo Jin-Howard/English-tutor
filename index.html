@@ -1007,8 +1007,6 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
         background: var(--card); border: 1px dashed var(--card-line); font-size: 14px; animation: rise .18s ease both; }
   .tr b { display: block; margin-bottom: 4px; font-size: 11px; font-weight: 800; letter-spacing: .02em; color: var(--sub); }
   .tr .wait { display: inline-flex; align-items: center; height: 14px; }
-  #micalts { display: none; gap: 8px; margin: 0 12px 8px; overflow-x: auto; }
-  #micalts .malt { flex: none; white-space: nowrap; padding: 8px 14px; font-size: 13.5px; }
   .msg.notice { background: var(--notice); border: 1px solid var(--notice-line); font-size: 14px; }
   .msg.notice b { display: block; margin-bottom: 4px; }
 
@@ -1024,10 +1022,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   #act { background: var(--accent); color: var(--on-accent); }
   #cancel { display: none; background: var(--surface2); color: var(--text); }
   #wave { display: none; flex: 1; justify-content: center; }
-  #lang { flex: none; padding: 6px 10px; border: 0; border-radius: 14px; background: var(--surface2);
-          color: var(--sub); font-size: 13px; font-weight: 700; }
-  #lang.ko { background: var(--accent); color: var(--on-accent); }
-  #bar.listening #inp, #bar.listening #lang, #bar.listening #barcall { display: none; }
+  #bar.listening #inp, #bar.listening #barcall { display: none; }
   #bar.listening #cancel, #bar.listening #wave { display: flex; }
 
   /* 단어 카드 */
@@ -1063,7 +1058,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
                   border-radius: 23px; background: var(--surface); color: var(--text); font-size: 15px; outline: 0; box-shadow: var(--shadow); }
   .search input::placeholder { color: var(--sub); }
   .vitem { padding: 14px 16px; }
-  .vrow { display: flex; align-items: center; gap: 10px; }
+  .vrow { display: flex; align-items: center; gap: 8px; margin-top: 7px; }  /* 단어장 줄 (예전에 음성 말풍선 규칙과 겹쳐 적용되던 값 그대로 유지) */
   .vtxt { flex: 1; min-width: 0; cursor: pointer; }
   .vdet { padding: 2px 0 0 4px; }
   .vw { font-size: 17px; font-weight: 800; }
@@ -1093,21 +1088,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .msg.ko.enter { animation: koin .4s .2s both; }
   @keyframes koin { from { opacity: 0; transform: translateY(8px); } }
   @media (prefers-reduced-motion: reduce) { .msg.ko.enter { animation: none; } }
-  /* 음성 메시지 말풍선: 보내는 순간 파형과 길이가 진하게 뜨고, 받아쓴 문장은 아래에 채워짐 */
-  .msg.vmsg { white-space: normal; }  /* 코드 속 줄바꿈이 빈 줄로 보이지 않게 */
-  .vtx { white-space: pre-wrap; }  /* 내가 한 말이 주인공 */
-  .vtx.dim { opacity: .6; font-size: 13.5px; }
-  .vtx.wait { height: 1.45em; display: flex; align-items: center; }
-  .vrow { display: flex; align-items: center; gap: 8px; margin-top: 7px; }  /* 녹음은 아래 작은 다시 듣기 줄 */
-  .vplay { flex: none; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; padding: 0 0 0 1px; border: 0; border-radius: 50%;
            background: rgba(0, 0, 0, .1); color: var(--on-user); }
-  .vplay svg { display: block; width: 10px; height: 10px; }
-  .vwave { flex: none; display: flex; align-items: center; gap: 2px; height: 14px; }
-  .vwave i { flex: none; width: 2px; border-radius: 1px; background: currentColor; opacity: .3; transition: opacity .15s; }
-  .vwave i.on { opacity: .9; }
-  .vdur { flex: none; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; opacity: .55; }
-  .vtx.wait i { background: currentColor; opacity: .45; }
-  .vtx.wait i:first-child { margin-left: 0; }
   @keyframes blink { 0%, 80%, 100% { opacity: .2; } 40% { opacity: 1; } }
 </style>
 
@@ -1316,12 +1297,6 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     </div>
     <p class="hint only-set" id="aihint"></p>
     <p class="hint only-set" id="aiuse"></p>
-      <p class="sec only-set">음성 인식</p>
-      <div class="group only-set">
-      <div class="g-blk"><div class="g-top"><span>음성 인식 방식</span></div><div class="seg s3 full" id="asrseg"><button type="button" data-k="ai">정확하게 (AI)</button><button type="button" data-k="device">빠르게 (기기)</button></div></div>
-      <div class="g-blk"><div class="g-top"><span>음성 인식 시</span></div><div class="seg s3 full" id="micseg"><button type="button" data-k="confirm">확인 후 보내기</button><button type="button" data-k="auto">바로 보내기</button></div></div>
-      </div>
-    <p class="hint only-set" id="michint2">인식된 글자가 입력칸에 먼저 나오고, 확인하고 보내면 엉뚱한 단어가 그대로 전송되는 걸 막을 수 있어요.</p>
     </details>
     </section>
     <p class="hint" hidden id="stricthint"></p>
@@ -1344,14 +1319,12 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   <div id="modebar" class="modebar"><span id="mbtxt"><b>복습 모드</b> · 지난 대화에서 골랐어요</span><button type="button" id="revexit">끝내기</button></div>
   <div id="ugoal" class="ugoal"></div>
   <div id="chat"></div>
-  <div id="micalts"></div>
   <form id="bar">
     <button type="button" id="cancel" aria-label="취소"></button>
     <input id="inp" placeholder="영어나 한글로 입력하세요" enterkeyhint="send" autocomplete="off">
     <div id="wave"></div>
     <button type="button" id="barcall" class="callbtn" aria-label="AI 튜터와 통화하기"></button>
-    <button type="button" id="lang" aria-label="말하기 언어 전환">EN</button>
-    <button type="button" id="act" aria-label="말하기 또는 보내기"></button>
+    <button type="button" id="act" aria-label="받아쓰기 또는 보내기"></button>
   </form>
 </div>
 
@@ -1564,7 +1537,6 @@ function loadData() {  // 시작할 때 한 번, 세 파일을 동시에 받음
 }
 // 설정값: 여기만 고치면 됨
 const MAX_TURNS = 6;               // API로 보낼 최근 대화 횟수
-const SILENCE_MS = 5000;           // 이 시간 동안 말이 없으면 마이크 자동 종료
 const MODELS = { lite: 'gemini-3.5-flash-lite', pro: 'gemini-3.5-flash', max: 'gemini-3.1-pro-preview' };  // Flash-Lite: 하루 한도 넉넉함, Flash: 더 정교, Pro: 가장 정교(유료 키 전용)
 const MODEL_NAME = { lite: 'Flash-Lite', pro: 'Flash', max: 'Pro' };
 const FALLBACK = { max: 'pro', pro: 'lite', lite: 'pro' };  // 선택한 모델이 막히면 이어서 시도할 모델
@@ -1665,8 +1637,6 @@ function swap(screen, fade) {
   document.querySelectorAll('#tabs .tab[data-s]').forEach(t => t.classList.toggle('on', t.dataset.s === screen));
   stopSpeak();  // 화면을 옮기면 읽던 소리도 멈춤
   if (recCtx) stopRecord(false);  // 녹음 중이었으면 버림
-  setLoop(false);  // 다른 화면으로 가면 대화 모드 끔
-  stopMyVoice();
   if (mode !== 'chat' && screen !== 'main') exitReview();  // 복습이나 역할극 중에 다른 화면으로 가면 마무리
   if (screen === 'menu') paintMenu();
   if (screen === 'setup') applySub();
@@ -1731,23 +1701,6 @@ window.addEventListener('popstate', e => {  // 시스템 뒤로가기
 });
 
 // AI 모델 선택 표시: 선택 상태, 설명, 오늘 사용 횟수
-let asr = localStorage.getItem('asr') === 'device' ? 'device' : 'ai';  // 음성 인식: ai(제미나이가 녹음을 직접 들음, 기본) | device(브라우저 인식기)
-function paintMicSeg() {
-  document.querySelectorAll('#micseg [data-k]').forEach(b => b.classList.toggle('on', b.dataset.k === (micAuto ? 'auto' : 'confirm')));
-  document.querySelectorAll('#asrseg [data-k]').forEach(b => b.classList.toggle('on', b.dataset.k === asr));
-  $('michint2').textContent = asr === 'ai'
-    ? 'AI가 녹음을 직접 들어서 발음이 서툴러도, 영어와 한국어가 섞여도 잘 알아들어요. 말을 마치면 1~2초 뒤에 글자가 나와요. '
-      + (micAuto ? '바로 보내기는 받아쓰기와 대답을 한 번에 처리해서 사용량도 아껴요.' : '확인 후 보내기는 받아쓴 글을 먼저 보여주고, 확인하고 보내요.')
-    : '폰이 바로 받아써서 빠르지만, 발음이 서툴면 엉뚱한 단어로 바뀔 수 있어요. 한국어로 말하려면 입력칸의 EN을 눌러 한으로 바꿔 주세요.';
-  $('lang').style.display = asr === 'device' && rec ? '' : 'none';  // 언어 스위치는 기기 인식에서만 필요
-}
-$('micseg').onclick = e => {
-  const b = e.target.closest('[data-k]');
-  if (!b) return;
-  micAuto = b.dataset.k === 'auto';
-  localStorage.setItem('micauto', micAuto ? '1' : '0');
-  paintMicSeg();
-};
 let ttsRate = Math.min(1.5, Math.max(0.5, parseFloat(localStorage.getItem('ttsrate')) || 1));  // 튜터 목소리 속도 (그리는 코드보다 먼저 선언)
 function paintRate() {  // 설정과 소리 확인 화면의 조절 바를 함께 맞춤
   [['ttsrate', 'ratev'], ['p-rate', 'p-ratev']].forEach(([s, v]) => {
@@ -1781,13 +1734,6 @@ function calibRate(tm, r) {  // 소리 확인 문장을 읽은 시간으로 이 
   $('p-ratehint').textContent = `${lv ? `레벨 ${lv}에 맞춰 ` : ''}분당 약 ${RATE_WPM[lv]}단어 속도로 맞췄어요. 나중에 설정의 소리 메뉴에서 바꿀 수 있어요.`;
 }
 paintRate();
-$('asrseg').onclick = e => {
-  const b = e.target.closest('[data-k]');
-  if (!b) return;
-  asr = b.dataset.k;
-  localStorage.setItem('asr', asr);
-  paintMicSeg();
-};
 
 function paintAI() {
   document.querySelectorAll('#aiseg [data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === aiMode));
@@ -1936,7 +1882,6 @@ function fillForm() {
   paintAI();
   paintStrict();
   paintMemo();
-  paintMicSeg();
   $('lvstat').textContent = ob && ob.lvl ? `레벨 ${ob.lvl} · ${LV_NAME[ob.lvl]}` : '테스트하기';
 }
 
@@ -2894,34 +2839,11 @@ function typer(node) {  // 받은 글자를 한 번에 붙이지 않고 앞에�
     stop() { cancelAnimationFrame(raf); raf = 0; }
   };
 }
-const MISS = "Sorry, I couldn't hear you well. Could you say that again?";
 const withTimeout = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error('응답이 너무 늦어요')), ms))]);
-async function send(text, audio, vb) {
+async function send(text) {
   const m0 = mode, arr = H();
-  const ub = audio ? vb : addMsg(text, 'user');
-  if (audio) {  // 음성: 먼저 받아쓰고, 받아쓴 글로 대답 (튜터가 글로 입력했을 때와 똑같이 내 말을 정확히 앎)
-    let said = '';
-    try { said = await withTimeout(transcribe(audio, t => { if (t.trim()) setVoiceText(ub, t.trim()); }), 15000); }
-    catch (e) {
-      if (e.message !== '빈 응답') {  // 인터넷, 사용량 초과, 시간 초과는 '다시 말해 달라'가 아니라 오류로 알림
-        setVoiceText(ub, '보내지 못했어요', true);
-        setLoop(false);
-        if (mode === m0) addNotice(e);
-        return;
-      }
-    }
-    if (mode !== m0) return;
-    if (!said) {  // 정말 말이 없었으면 지어내지 않고 다시 말해 달라고 함 (요청도 쓰지 않음)
-      setVoiceText(ub, '잘 들리지 않았어요', true);
-      addAiMsg(MISS);
-      const spoke = speak(MISS, talkLoop ? loopNext : null);
-      if (talkLoop && !spoke) loopNext();
-      return;
-    }
-    setVoiceText(ub, said);
-    text = said;
-  }
-  arr.push({ role: 'user', parts: [{ text }] });  // 기록에는 소리 대신 글만 (다음 요청에 소리를 다시 안 보냄)
+  addMsg(text, 'user');
+  arr.push({ role: 'user', parts: [{ text }] });
   if (m0 === 'unit') trackUnit(text);
   const wait = el('div', 'msg ai wait');  // 튜터 입력 중 표시
   wait.innerHTML = '<i></i><i></i><i></i>';
@@ -2940,20 +2862,16 @@ async function send(text, audio, vb) {
     arr.push({ role: 'model', parts: [{ text: reply }] });
     if (m0 === 'chat') { chats[dayKey] = history; saveChats(); }
     ty.set(splitKo(reply)[0]);
-    const loop = !!audio && talkLoop;
-    if (loop) inp.placeholder = '튜터 말이 끝나면 띠링 소리 후 바로 들어요';
-    const spoke = mode === m0 && speak(splitKo(m0 === 'review' ? reply.replace(/\s*Review complete\.?/i, '') : reply)[0], loop ? loopNext : null);  // 다 써질 때까지 기다리지 않고 바로 읽기 시작
+    const spoke = mode === m0 && speak(splitKo(m0 === 'review' ? reply.replace(/\s*Review complete\.?/i, '') : reply)[0]);  // 다 써질 때까지 기다리지 않고 바로 읽기 시작
     await ty.finish();  // 다 써 내려간 다음에 완성 말풍선으로 교체
     if (mode !== m0) return;  // 그 사이 화면을 옮겼으면 저장만 하고 끝
     showReply(reply, spoke);
-    if (loop && !spoke) loopNext();  // 읽어줄 소리가 없는 기기면 바로 다시 듣기
     if (meta.finish && meta.finish !== 'STOP') {
       const why = { MAX_TOKENS: '답변이 길어서 중간에 잘렸어요', SAFETY: '안전 필터 때문에 답변이 중간에 멈췄어요' };
       addNote((why[meta.finish] || `답변이 중간에 멈췄어요 (${meta.finish})`) + '. 다시 물어봐 주세요.');
     }
   } catch (e) {
     ty.stop();
-    setLoop(false);  // 오류가 나면 대화 모드를 멈춤
     arr.pop();  // 실패한 말은 기록에서 제거 (음성이면 받아쓴 글은 말풍선에 남아 있음)
     if (mode === m0) addNotice(e);
   } finally {
@@ -2961,45 +2879,24 @@ async function send(text, audio, vb) {
   }
 }
 
-// 입력 막대: 글자 입력 + 말하기를 버튼 하나로 (말하기 언어는 위쪽 EN | 한 스위치)
+// 입력 막대: 글자 입력 + 받아쓰기를 버튼 하나로 (말로 대화하기는 통화로)
 const bar = $('bar'), inp = $('inp'), act = $('act');
 $('cancel').innerHTML = icon('<polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/>');  // 꺾인 화살표
 $('wave').innerHTML = '<span class="bars">'
   + Array.from({ length: 9 }, (_, k) => `<i style="animation-delay:${(k * 0.11).toFixed(2)}s"></i>`).join('') + '</span>';
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);  // 아이패드는 맥으로 보고됨
-const IOS_MIC = '아이폰은 설정 → Siri에서 Siri를 켜고, 설정 → 일반 → 키보드에서 받아쓰기를 켜야 말하기가 돼요.';
-const NO_SR = '이 브라우저는 기기 음성 인식을 지원하지 않아요. 설정 → 말하기에서 "정확하게 (AI)"로 바꿔 주세요.';
-let lang = 'en-US';     // 말하기 언어 (한국어는 한 번 말하면 EN으로 자동 복귀)
-let listening = false;  // 듣는 중 여부
-let heard = '';         // 확정된 말
-let pending = '';       // 확정 전인 말
-let heardAlts = [];     // 마지막 확정 구간의 다른 인식 후보(있으면)
-let silence;            // 무음 타이머
-let micAuto = localStorage.getItem('micauto') !== '0';  // 기본은 바로 전송 (직접 '확인 후 보내기'를 고른 사람만 확인 모드)
 
+let listening = false;  // 받아쓰기 녹음 중 여부
 const closeCards = () => document.querySelectorAll('.card').forEach(c => c.remove());
 
-// 말하기 언어 전환: EN <-> 한 (한국어는 한 번 쓰면 자동으로 EN 복귀)
-const setLang = l => {
-  lang = l;
-  $('lang').textContent = l === 'en-US' ? 'EN' : '한';
-  $('lang').classList.toggle('ko', l === 'ko-KR');
-};
-$('lang').onclick = () => setLang(lang === 'en-US' ? 'ko-KR' : 'en-US');
 
-// 상태에 맞게 버튼 모양 바꾸기: 비어 있으면 마이크, 글자가 있거나 듣는 중이면 보내기
+// 상태에 맞게 버튼 모양 바꾸기: 비어 있으면 마이크(받아쓰기), 글자가 있거나 녹음 중이면 보내기
 function paint() {
   bar.classList.toggle('listening', listening);
   act.innerHTML = listening || inp.value.trim() ? I_SEND : I_MIC;
 }
-inp.oninput = () => { paint(); hideMicAlts(); };
+inp.oninput = paint;
 
-// 무음이 계속되면 자동으로 듣기 끝내기
-const arm = () => {
-  clearTimeout(silence);
-  silence = setTimeout(() => { if (listening) { listening = false; rec.stop(); } }, SILENCE_MS);
-};
 
 // 마이크 허용 상태를 미리 알아 두기 (막혀 있으면 방법을 알려줌)
 const MIC_HELP = '마이크가 막혀 있어요. 브라우저의 사이트 설정(⋮ → 설정 → 사이트 설정 → 마이크)에서 이 사이트를 "허용"으로 바꿔 주세요. 카카오톡 같은 앱 안에서 열었다면 크롬에서 열어 주세요.';
@@ -3007,57 +2904,8 @@ let micState = 'unknown';
 if (navigator.permissions && navigator.permissions.query) {
   navigator.permissions.query({ name: 'microphone' }).then(p => { micState = p.state; p.onchange = () => { micState = p.state; }; }).catch(() => {});
 }
-const rec = SR ? new SR() : null;
-if (rec) {
-  rec.interimResults = true;
-  rec.onspeechstart = arm;
-  rec.maxAlternatives = 3;  // 다른 인식 후보도 함께 받아서, 잘못 알아들었을 때 골라 쓸 수 있게
-  rec.onresult = e => {
-    arm();  // 말소리가 들어오는 동안 타이머 갱신
-    pending = '';
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      const r = e.results[i];
-      if (r.isFinal) {
-        heard += ' ' + r[0].transcript;
-        heardAlts = [...new Set(Array.from(r, x => x.transcript.trim()).filter(Boolean))];  // 이번 구간의 후보들 (마지막 구간 기준)
-      } else pending += r[0].transcript;
-    }
-  };
-  rec.onend = () => {
-    heard += ' ' + pending;  // 확정 전 말도 포함
-    pending = '';
-    if (listening && !inCall()) { rec.lang = lang; return rec.start(); }  // 말이 멈춰 끊겨도 계속 듣기 (통화 중엔 멈춤: 안드로이드는 켤 때마다 알림음)
-    if (inCall()) { listening = false; heard = ''; return paint(); }
-    clearTimeout(silence);
-    const said = heard.trim();
-    heard = '';
-    if (!said) return paint();
-    if (lang === 'ko-KR') setLang('en-US');  // 한국어는 한 번만
-    if (micAuto) { paint(); return send(said); }
-    inp.value = said;  // 확인 후 보내기: 알아들은 글자를 입력칸에 먼저 보여주고, 사람이 확인해서 보냄
-    paint();
-    inp.focus();
-    showMicAlts(heardAlts.filter(a => a.toLowerCase() !== said.toLowerCase() && a.length > 1), said);
-  };
-  rec.onerror = e => {
-    if (e.error === 'no-speech' || e.error === 'aborted') return;
-    listening = false;
-    const why = { 'not-allowed': MIC_HELP, 'service-not-allowed': IOS ? IOS_MIC : MIC_HELP, 'audio-capture': '마이크를 찾을 수 없어요. 다른 앱이 마이크를 쓰고 있는지 확인해 주세요.', network: '인터넷 연결을 확인해 주세요.' }[e.error];
-    addMsg(why || '마이크 오류: ' + e.error, 'ai');
-  };
-} else {
-  $('lang').style.display = 'none';
-}
 // 취소: 말한 내용을 버리고 끝내기
-$('cancel').onclick = () => {
-  hideMicAlts();
-  setLoop(false);  // 취소하면 대화 모드도 끔
-  if (recCtx) return stopRecord(false);
-  heard = '';
-  pending = '';
-  listening = false;
-  if (rec) rec.abort();
-};
+$('cancel').onclick = () => { if (recCtx) stopRecord(false); };
 
 // ===== AI 받아쓰기: 녹음해서 제미나이에 보냄 =====
 const VOICE_QUIET_MS = 1600;   // 말을 시작한 뒤 이만큼 조용하면 자동 종료 (빠른 대화와 생각하며 쉬는 시간의 균형)
@@ -3114,10 +2962,9 @@ function stopRecord(keep, silent) {
   listening = false;
   paint();
   if (silent || (keep && !ok)) {  // 위에서 지운 voiced 대신, 지우기 전에 챙긴 ok로 판단
-    toast(talkLoop ? '말이 없어서 대화를 잠시 멈췄어요. 마이크를 누르면 이어가요' : '목소리가 들리지 않았어요. 다시 눌러서 말해 주세요', 3000);
-    setLoop(false);
+    toast('목소리가 들리지 않았어요. 다시 눌러서 말해 주세요', 3000);
   }
-  if (ok) handleVoice(toWav(bufs, rate), bufs, rate);
+  if (ok) handleVoice(toWav(bufs, rate));
   else if (voiceTo) { const f = voiceTo; voiceTo = null; f(null); }
 }
 function toWav(bufs, inRate) {  // 16kHz 모노 16비트 WAV (구간 평균으로 줄여서 소리가 뭉개지지 않게)
@@ -3139,88 +2986,10 @@ function toWav(bufs, inRate) {  // 16kHz 모노 16비트 WAV (구간 평균으�
   return v.buffer;
 }
 const toB64 = buf => new Promise(res => { const f = new FileReader(); f.onload = () => res(f.result.split(',')[1]); f.readAsDataURL(new Blob([buf])); });
-const I_PLAY = icon('<polygon points="7 4 19 12 7 20 7 4" fill="currentColor"/>', 16);
-const I_PAUSE = icon('<rect x="6" y="5" width="4" height="14" fill="currentColor"/><rect x="14" y="5" width="4" height="14" fill="currentColor"/>', 16);
-let myVoice = null;  // 지금 재생 중인 내 목소리 (한 번에 하나만)
-function stopMyVoice() { if (myVoice) { myVoice.pause(); myVoice.currentTime = 0; myVoice.onpause(); } }
-function voiceBubble(buf, bufs, rate) {  // 보낸 순간 확실히 보이는 음성 말풍선 (파형, 길이, 다시 듣기)
-  const n = bufs.reduce((a, b) => a + b.length, 0), N = 20, peaks = [];
-  let k = 0, i = 0;
-  const all = new Float32Array(n);
-  bufs.forEach(b => { all.set(b, k); k += b.length; });
-  for (; i < N; i++) {  // 구간마다 소리 크기를 재서 막대 높이로
-    const a = Math.floor(i * n / N), z = Math.floor((i + 1) * n / N);
-    let s = 0;
-    for (let j = a; j < z; j += 8) s += all[j] * all[j];
-    peaks.push(Math.sqrt(s / Math.max(1, (z - a) / 8)));
-  }
-  const sm = peaks.map((p, j) => (peaks[j - 1] ?? p) * .25 + p * .5 + (peaks[j + 1] ?? p) * .25);  // 이웃 막대와 섞어 울퉁불퉁함을 줄임
-  const top = Math.max(...sm) || 1, sec = Math.max(1, Math.round(n / rate));
-  const d = el('div', 'msg user vmsg');
-  d.innerHTML = `<div class="vtx wait"><i></i><i></i><i></i></div>
-    <div class="vrow"><button type="button" class="vplay" aria-label="내 목소리 듣기">${I_PLAY}</button>
-    <span class="vwave">${sm.map(p => `<i style="height:${Math.round(3 + 11 * p / top)}px"></i>`).join('')}</span>
-    <span class="vdur">${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}</span></div>`;
-  const au = new Audio(URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }))), btn = d.querySelector('.vplay'), bars = d.querySelectorAll('.vwave i');
-  const mark = r => bars.forEach((b, j) => b.classList.toggle('on', j < r * N));  // 재생된 만큼 막대를 진하게
-  au.ontimeupdate = () => mark(au.currentTime / (au.duration || sec));
-  au.onpause = au.onended = () => { btn.innerHTML = I_PLAY; mark(0); if (myVoice === au) myVoice = null; };
-  btn.onclick = e => {
-    e.stopPropagation();
-    if (myVoice === au) return stopMyVoice();
-    stopMyVoice();
-    stopSpeak();  // 튜터 목소리와 겹치지 않게
-    myVoice = au;
-    btn.innerHTML = I_PAUSE;
-    au.play().catch(() => au.onpause());
-  };
-  $('chat').append(d);
-  $('chat').scrollTop = $('chat').scrollHeight;
-  return d;
-}
-function setVoiceText(b, t, dim) {  // 음성 말풍선 아래에 받아쓴 문장 채우기
-  const x = b.querySelector('.vtx');
-  x.classList.remove('wait');
-  x.classList.toggle('dim', !!dim);
-  x.textContent = t;
-  $('chat').scrollTop = $('chat').scrollHeight;
-}
-// 대화 모드: 음성으로 말하면 켜짐. 튜터 말이 끝나면 띠링 소리와 함께 바로 다시 들음
-let talkLoop = false;
-function setLoop(on) {
-  talkLoop = on;
-  if (!on && !asrBusy) inp.placeholder = PH;
-}
-function chime() {  // 이제 말하세요 알림음 (두 음을 짧게)
-  return new Promise(res => {
-    try {
-      const c = new (window.AudioContext || window.webkitAudioContext)(), t = c.currentTime;
-      [[880, 0], [1320, 0.09]].forEach(([f, d]) => {
-        const o = c.createOscillator(), g = c.createGain();
-        o.type = 'sine';
-        o.frequency.value = f;
-        g.gain.setValueAtTime(0.0001, t + d);
-        g.gain.exponentialRampToValueAtTime(0.2, t + d + 0.01);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.22);
-        o.connect(g);
-        g.connect(c.destination);
-        o.start(t + d);
-        o.stop(t + d + 0.25);
-      });
-      setTimeout(() => { c.close(); res(); }, 360);
-    } catch (e) { res(); }
-  });
-}
-const inCall = () => !!(window.LiveCall && window.LiveCall.active());  // 통화 중이면 채팅 쪽 소리, 녹음은 멈춤
-function loopNext() {
-  if (!talkLoop || listening || asrBusy || $('main').style.display !== 'flex' || inCall()) return;
-  chime().then(() => { if (talkLoop && !listening && $('main').style.display === 'flex' && !inCall()) startVoice(); });
-}
-async function handleVoice(buf, bufs, rate) {
+async function handleVoice(buf) {
   const audio = { inline_data: { mime_type: 'audio/wav', data: await toB64(buf) } };
   if (voiceTo) { const f = voiceTo; voiceTo = null; return f(audio); }  // 레벨 테스트 말하기 문제로
-  if (micAuto) { setLoop(true); return send('', audio, voiceBubble(buf, bufs, rate)); }  // 바로 보내기: 받아쓰기와 대답을 요청 한 번에
-  asrBusy = true;  // 확인 후 보내기: 받아쓴 글을 입력칸에 먼저 보여줌 (가벼운 모델로 받아쓰기만)
+  asrBusy = true;  // 받아쓰기: 받아쓴 글을 입력칸에 먼저 보여주고, 확인해서 보냄 (말로 대화는 통화로)
   inp.placeholder = '받아쓰는 중...';
   try {
     const t = await transcribe(audio);
@@ -3251,48 +3020,20 @@ async function startVoice() {
   }
 }
 
-// 다른 인식 후보를 칩으로 보여줌: 누르면 그 글자로 바꿔 넣음 (짧은 한 마디일 때 가장 잘 맞음)
-function showMicAlts(alts, said) {
-  const box = $('micalts');
-  if (!alts.length) return hideMicAlts();
-  box.innerHTML = '';
-  alts.slice(0, 2).forEach(a => {
-    const b = el('button', 'pill ghost malt', a);
-    b.type = 'button';
-    b.onclick = () => { inp.value = a; hideMicAlts(); paint(); inp.focus(); };
-    box.append(b);
-  });
-  box.style.display = 'flex';
-}
-function hideMicAlts() { $('micalts').style.display = 'none'; $('micalts').innerHTML = ''; }
 
 // 버튼: 듣는 중이면 끝내고 전송 / 글자가 있으면 전송 / 비어 있으면 듣기 시작
 act.onclick = () => {
-  if (listening) {
-    if (recCtx) return stopRecord(true);  // AI 받아쓰기: 녹음 끝내고 보냄
-    listening = false;
-    return rec.stop();
-  }
+  if (listening) return stopRecord(true);  // 녹음 끝내고 받아쓰기
   if (asrBusy) return;  // 받아쓰는 중에는 기다림
   closeCards();  // 단어 카드 닫기
-  hideMicAlts();
   const t = inp.value.trim();
-  if (t) { setLoop(false); inp.value = ''; paint(); return send(t); }  // 글로 보내면 대화 모드는 끔
-  if (asr === 'device' && !rec) return addMsg(NO_SR, 'ai');
+  if (t) { inp.value = ''; paint(); return send(t); }
   if (micState === 'denied') return addMsg(MIC_HELP, 'ai');
   if (micState === 'prompt' && !sessionStorage.getItem('michint')) {  // 처음 한 번, 허용 창에서 무엇을 눌러야 하는지 안내
     sessionStorage.setItem('michint', '1');
     addMsg("마이크 허용 창이 뜨면 '허용'(또는 '사이트 방문 중 허용')을 눌러 주세요. '이번에만 허용'을 고르면 매번 물어봐요.", 'ai');
   }
-  if (asr === 'ai') return startVoice();
-  stopSpeak();
-  heard = '';
-  pending = '';
-  listening = true;
-  rec.lang = lang;
-  rec.start();
-  arm();
-  paint();
+  startVoice();
 };
 bar.onsubmit = e => {  // 키보드의 엔터(전송) 키
   e.preventDefault();
@@ -3521,9 +3262,7 @@ $('m-call').onclick = $('barcall').onclick = $('fab').onclick = () => {
   if (navigator.vibrate) navigator.vibrate(8);  // 안드로이드: 누른 느낌
   if (!apiKey) return toast('설정에서 API 키를 먼저 넣어 주세요', 2600);
   if (!window.WebSocket || !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) return toast('이 브라우저는 통화를 지원하지 않아요. 크롬이나 사파리에서 열어 주세요.', 3000);
-  setLoop(false);  // 채팅 대화 모드를 끄고, 녹음 중이면 버림 (통화와 마이크를 동시에 쓰면 알림음, 잡음이 남)
-  if (recCtx) stopRecord(false);
-  if (listening && SR) { listening = false; try { rec.abort(); } catch (e) {} paint(); }  // 기기 음성 인식도 끔
+  if (recCtx) stopRecord(false);  // 받아쓰기 녹음 중이면 버림 (통화와 마이크를 동시에 쓰지 않게)
   stopSpeak();
   const ac = new (window.AudioContext || window.webkitAudioContext)();
   ac.resume();
@@ -3769,13 +3508,13 @@ $('p-mic-ic').innerHTML = sz(I_MIC, 22);
 $('p-snd-ic').innerHTML = sz(I_SPK2, 22);
 $('pback').innerHTML = I_BACK;
 function paintPerm() {
-  const s = $('p-mic-s'), noApi = !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) || (asr === 'device' && !SR);
+  const s = $('p-mic-s'), noApi = !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
   s.className = '';
   if (inApp) { s.textContent = '앱 안에서는 어려워요. 크롬에서 열어 주세요'; s.className = 'bad'; }
-  else if (noApi) { s.textContent = asr === 'device' ? '기기 인식이 안 돼요. 설정에서 "정확하게 (AI)"로 바꿔 주세요' : '이 브라우저는 마이크를 쓸 수 없어요. 글로 입력해 주세요'; s.className = 'bad'; }
+  else if (noApi) { s.textContent = '이 브라우저는 마이크를 쓸 수 없어요. 글로 입력해 주세요'; s.className = 'bad'; }
   else if (micState === 'granted') { s.textContent = '허용됨 ✓'; s.className = 'ok'; }
   else if (micState === 'denied') { s.textContent = '막혀 있어요. 사이트 설정에서 허용으로 바꿔 주세요'; s.className = 'bad'; }
-  else s.textContent = IOS && asr === 'device' ? '아이폰 기기 인식은 Siri와 받아쓰기가 켜져 있어야 해요' : '내 말을 알아듣는 데 써요';
+  else s.textContent = '통화와 받아쓰기에 써요';
   $('p-mic-btn').style.display = micState === 'granted' || noApi || inApp ? 'none' : '';
   $('p-mic-btn').textContent = micState === 'denied' ? '방법 보기' : '허용하기';
   const micDone = micState === 'granted' || micState === 'denied' || noApi || inApp;  // 막혔거나 못 쓰는 기기면 글로만 쓰면 되니 통과
