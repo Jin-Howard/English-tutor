@@ -70,4 +70,14 @@ Created by Octanove Labs. http://www.octanove.com/
 File: tools/cefr/octanove-vocabulary-profile-c1c2-1.0.csv
 Licensed under CC BY-SA 4.0: https://creativecommons.org/licenses/by-sa/4.0/
 
-Details: tools/cefr/README.md
+Korean national curriculum basic English vocabulary (3,000 words)
+Ministry of Education Notice No. 2022-33 [Annex 14] [Table 3]
+File: tools/kice/kice-basic-3000.csv
+Public notice, not protected under Article 7 of the Korean Copyright Act.
+
+Spoken word frequency (top 20,000 of en_50k.txt, 2018)
+FrequencyWords by Hermit Dave, from OpenSubtitles 2018. https://github.com/hermitdave/FrequencyWords
+File: tools/freq/en-spoken-top20k.txt (shortened from the original)
+Licensed under CC BY-SA 4.0: https://creativecommons.org/licenses/by-sa/4.0/
+
+Details: tools/cefr/README.md, tools/kice/README.md, tools/freq/README.md

@@ -2503,8 +2503,12 @@ function recWords() {  // 오늘의 추천 단어 10개: 내 레벨 코스 단�
   const all = units.flatMap(u => (u.words || []).map(([w, ko, pos]) => ({ w, ko, pos, u })));
   return day.ws.map(w => all.find(x => x.w === w)).filter(Boolean);
 }
+function formRe(w) {  // 단어나 표현을 형태가 바뀌어도 찾음: appointment(s), rest(ed), figure(d) out, sort (this) out
+  const [h, ...t] = w.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').split(' ');
+  return new RegExp('\\b' + h.replace(/e$/, '') + '(e|es|s|ed|d|ing)?' + (t.length ? '(\\s+\\S+){0,2}?\\s+' + t.join('\\s+') : '') + '\\b', 'i');
+}
 function addRecWord(x) {  // 추천 단어 저장: 예문은 같은 상황의 문장에서
-  const re = new RegExp('\\b' + x.w.replace(/e$/, '') + '(e|es|s|ed|d|ing)?\\b', 'i');
+  const re = formRe(x.w);
   const ex = (x.u.ex || []).find(e => re.test(e[0])) || allEx().find(e => re.test(e[0])) || wexCache[x.w];
   vocab.push({ w: x.w, base: '', meaning: `${POSMARK[x.pos] || ''} ${x.ko}`.trim(), exs: ex ? [{ ex: ex[0], exko: ex[1] }] : [], box: 1, due: addDays(dayKey, 1), src: 'rec' });
 }
@@ -3378,7 +3382,7 @@ function wordPool(kind) {  // 학습 코스 단어에서 뽑음 (내 분야 상�
   for (const u of (mine.length ? mine : units)) for (const [w, ko, pos] of u.words || []) {
     if (seen.has(w)) continue;
     seen.add(w);
-    const re = new RegExp('\\b' + w.replace(/e$/, '') + '(e|es|s|ed|d|ing)?\\b', 'i');  // appointment(s), rest(ed) 처럼 형태가 바뀌어도 찾음
+    const re = formRe(w);
     const ex = (u.ex || []).find(e => re.test(e[0])) || allEx().find(e => re.test(e[0]));  // 같은 상황 예문 먼저, 없으면 앱 안 전체 문장에서
     pool.push({ w, ko, pos, ex });
   }
@@ -4607,7 +4611,7 @@ const needEx = u => Math.ceil(u.ex.length * 0.6);  // 역할극 완료에 필요
 const cu = id => (course.u[id] = course.u[id] || { used: [], turns: 0, role: false, quiz: null, tries: 0, done: false });
 const norm = t => t.toLowerCase().replace(/[’‘]/g, "'").replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim();
 const exHit = (e, text) => new RegExp(e[2], 'i').test(norm(text));
-const POSMARK = { n: 'ⓝ', v: 'ⓥ', a: 'ⓐ' };
+const POSMARK = { n: 'ⓝ', v: 'ⓥ', a: 'ⓐ', p: 'ⓟ' };  // p = 덩어리 표현
 function markStudy() {  // 오늘 공부한 날로 표시 (이번 주 학습, 연속 학습에 반영)
   const rd = revDays();
   if (!rd.includes(dayKey)) localStorage.setItem('revdays', JSON.stringify([...rd, dayKey].slice(-60)));
@@ -4707,7 +4711,7 @@ function quizExp(u, q, picked) {  // 퀴즈 해설: 정답과 그 뜻, 예문, �
     others = q.opts.filter(o => o !== q.ok).map(o => `<li><b>${escH(o)}</b> ${escH(ko(o))}</li>`).join('');
   } else {  // 보기가 한국어 뜻: 그 뜻을 가진 영어 단어, 그리고 예문
     const en = ko => (words.find(w => w[1] === ko) || [])[0] || '';
-    const re = new RegExp('\\b' + q.prompt.replace(/e$/, '') + '(e|es|s|ed|d|ing)?\\b', 'i');
+    const re = formRe(q.prompt);
     const ex = (u.ex.find(e => re.test(e[0])) || allEx().find(e => re.test(e[0])) || wexCache[q.prompt]);
     main = `<p class="qeok" data-sp="${escH(q.prompt)}"><b>${escH(q.prompt)}</b> = ${escH(q.ok)}</p>`
       + (ex ? `<p class="qeex" data-sp="${escH(ex[0])}">${escH(ex[0])}</p><p class="qeko">${escH(ex[1])}</p>` : '');
@@ -4833,7 +4837,7 @@ const INTERVALS = [1, 3, 7, 14, 30];
 const realWords = () => vocab.filter(v => !BASIC[v.w]);
 const dueWords = () => realWords().filter(v => (v.due || dayKey) <= dayKey);
 const shortMean = m => (m || '').split(' · ')[0].replace(/^[ⓐ-ⓩ]\s*/, '').trim();
-const posOf = m => ({ 'ⓝ': 'n', 'ⓥ': 'v', 'ⓐ': 'a' }[(m || '')[0]] || '');
+const posOf = m => ({ 'ⓝ': 'n', 'ⓥ': 'v', 'ⓐ': 'a', 'ⓟ': 'p' }[(m || '')[0]] || '');
 const dayDiff = k => Math.round((new Date(k + 'T00:00:00') - new Date(dayKey + 'T00:00:00')) / 864e5);
 function dueText(v) {
   const d = dayDiff(v.due || dayKey);

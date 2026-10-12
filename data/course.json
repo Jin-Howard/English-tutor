@@ -70,7 +70,8 @@
         ["Since yesterday.", "어제부터요.", "\\bsince\\b|yesterday|days? ago|this morning|last night"],
         ["Thank you, doctor.", "감사합니다, 선생님.", "thank"]
       ],
-      "words": [["sick", "아픈", "a"], ["headache", "두통", "n"], ["fever", "열", "n"], ["medicine", "약", "n"], ["doctor", "의사", "n"], ["hurt", "아프다", "v"]]
+      "words": [["sick", "아픈", "a"], ["headache", "두통", "n"], ["fever", "열", "n"], ["medicine", "약", "n"], ["doctor", "의사", "n"], ["hurt", "아프다", "v"]],
+      "situational": ["headache", "fever"]
     },
     {
       "id": "shop1",
@@ -92,6 +93,58 @@
         ["Thank you!", "감사합니다!", "thank"]
       ],
       "words": [["price", "가격", "n"], ["cheap", "싼", "a"], ["expensive", "비싼", "a"], ["buy", "사다", "v"], ["bag", "가방", "n"], ["shirt", "셔츠", "n"]]
+    },
+    {
+      "id": "school1",
+      "title": "수업 중 질문",
+      "scene": "수업 중에 모르는 걸 묻고 다시 말해 달라고 해요",
+      "cando": "수업 중에 모르는 걸 묻고 다시 말해 달라고 할 수 있어요",
+      "goals": ["학교", "일상 대화"],
+      "grammar": "Can I ~? / 명령문 (Please ~)",
+      "role": "You are a kind English teacher in a small class with a complete beginner. Explain a simple task, sometimes speak a little fast or use one new word so the learner has to ask you to repeat or explain. Use very short sentences. If the learner seems stuck or answers in Korean, give one short model sentence they can repeat, like \"Can you say that again?\"",
+      "ex": [
+        ["Excuse me, I have a question.", "저기요, 질문이 있어요.", "i have a question|can i ask (a|you a)? ?question|question"],
+        ["Can you say that again?", "다시 말해 주실 수 있어요?", "say (that|it) again|repeat (that|it)|one more time|pardon|sorry\\?"],
+        ["I don't understand.", "이해가 안 돼요.", "(don'?t|do not) (understand|get it)|i'?m (lost|confused)"],
+        ["What does this word mean?", "이 단어는 무슨 뜻이에요?", "what does .* mean|what is the meaning|meaning of"],
+        ["Please speak slowly.", "천천히 말해 주세요.", "slowly|slow down|more slowly"]
+      ],
+      "words": [["question", "질문", "n"], ["teacher", "선생님", "n"], ["class", "수업", "n"], ["mean", "뜻하다", "v"], ["understand", "이해하다", "v"], ["repeat", "반복하다, 다시 말하다", "v"]],
+      "situational": ["understand", "repeat"]
+    },
+    {
+      "id": "church1",
+      "title": "처음 온 사람 맞이",
+      "scene": "처음 온 사람을 반갑게 맞이하고 이름을 물어요",
+      "cando": "처음 온 사람을 환영하고 이름을 물을 수 있어요",
+      "goals": ["교회", "일상 대화"],
+      "grammar": "Is this your first ~? / Welcome to ~",
+      "role": "You are a visitor who has come to a church community gathering for the first time and feels a little shy. The learner is a member welcoming you. Answer very simply and ask one easy question back now and then. If the learner seems stuck or answers in Korean, give one short model sentence they can repeat, like \"Welcome!\"",
+      "ex": [
+        ["Welcome! Is this your first time here?", "환영해요! 여기 처음 오셨어요?", "welcome|first time|is this your first"],
+        ["What's your name?", "이름이 뭐예요?", "what'?s your name|what is your name|your name|may i (ask|have) your name"],
+        ["I'm happy you came.", "와 주셔서 기뻐요.", "(happy|glad) (you came|to see you|you'?re here)|thank(s| you) for coming"],
+        ["Please sit here.", "여기 앉으세요.", "sit (here|down|with)|have a seat|take a seat"],
+        ["See you next week!", "다음 주에 봐요!", "see you|next week|come again"]
+      ],
+      "words": [["welcome", "환영하다", "v"], ["first", "처음의", "a"], ["church", "교회", "n"], ["seat", "자리", "n"], ["sit", "앉다", "v"], ["week", "주", "n"]]
+    },
+    {
+      "id": "exam1",
+      "title": "짧은 개인 질문",
+      "scene": "시험관의 쉬운 질문에 한 문장으로 답해요",
+      "cando": "나에 대한 질문에 한 문장으로 답할 수 있어요",
+      "goals": ["시험 준비"],
+      "grammar": "I like ~ / I live in ~ (한 문장 답)",
+      "role": "You are a friendly speaking-test examiner. Ask very easy personal questions one at a time: name, where they live, what they do, what they like, their family. After each answer, say \"Thank you\" and ask the next question. If the learner seems stuck or answers in Korean, give one short model sentence they can repeat, like \"I live in Seoul.\"",
+      "ex": [
+        ["My name is Mina.", "제 이름은 미나예요.", "my name is|call me|i'?m called"],
+        ["I live in Seoul.", "저는 서울에 살아요.", "i live in|i live|my (home|house) is in|i am from|i'?m from"],
+        ["I'm a nurse.", "저는 간호사예요.", "(i'?m|i am) an? [a-z]+|i work (as|at|in)"],
+        ["I like reading books.", "저는 책 읽는 걸 좋아해요.", "i (like|love|enjoy)"],
+        ["I have two sisters.", "저는 여동생이 두 명 있어요.", "i('?ve| have) (a|an|one|two|three|four|\\d+)|there are .* in my family"]
+      ],
+      "words": [["city", "도시", "n"], ["like", "좋아하다", "v"], ["family", "가족", "n"], ["sister", "자매, 여동생", "n"], ["book", "책", "n"], ["read", "읽다", "v"]]
     }
   ],
   "2": [
@@ -120,7 +173,8 @@
         ["weekend", "주말", "n"],
         ["friendly", "친절한", "a"],
         ["nervous", "긴장한", "a"]
-      ]
+      ],
+      "situational": ["hometown", "hobby"]
     },
     {
       "id": "cafe",
@@ -148,7 +202,7 @@
         ["sweet", "달콤한", "a"],
         ["bitter", "쓴", "a"]
       ],
-      "situational": ["straw", "bitter"]
+      "situational": ["straw", "bitter", "menu"]
     },
     {
       "id": "route",
@@ -176,7 +230,7 @@
         ["block", "블록, 구역", "n"],
         ["nearby", "근처의", "a"]
       ],
-      "situational": ["nearby"]
+      "situational": ["nearby", "crosswalk", "landmark"]
     },
     {
       "id": "clinic",
@@ -204,7 +258,7 @@
         ["swollen", "부은", "a"],
         ["dizzy", "어지러운", "a"]
       ],
-      "situational": ["rest", "symptom", "prescription", "pharmacy", "insurance", "swollen"]
+      "situational": ["rest", "symptom", "prescription", "pharmacy", "insurance", "swollen", "allergy", "dizzy"]
     },
     {
       "id": "shop",
@@ -232,7 +286,91 @@
         ["stylish", "세련된", "a"],
         ["tight", "꽉 끼는", "a"]
       ],
-      "situational": ["wrap", "stylish"]
+      "situational": ["wrap", "stylish", "cashier", "coupon"]
+    },
+    {
+      "id": "school2",
+      "title": "과제와 일정 확인",
+      "scene": "숙제와 시험이 언제인지 묻고 확인해요",
+      "cando": "숙제와 시험 날짜를 묻고 확인할 수 있어요",
+      "goals": ["학교"],
+      "grammar": "When is ~? / will (미래)",
+      "role": "You are a classmate after class. The learner wants to check homework and test dates. Give dates and details, and sometimes give unclear information so they have to ask again or confirm. Ask one simple question at a time. If the learner seems stuck, offer a short model sentence.",
+      "ex": [
+        ["When is the homework due?", "숙제 언제까지예요?", "when is .* due|due (date|when)|deadline|when (is|do) (we|i) (have to|need to) (hand|turn|submit)"],
+        ["Is the test on Friday?", "시험이 금요일이에요?", "is (the|our) (test|exam|quiz) on|when is the (test|exam|quiz)|(test|exam|quiz) (is )?on"],
+        ["What pages do we need to read?", "몇 쪽을 읽어야 해요?", "what pages|which pages|which chapter|what (do|should) we (need to )?read"],
+        ["I'll send you my notes.", "내 노트 보내 줄게.", "(i'?ll|i will) send|send you (my|the) notes|share (my|the) notes"],
+        ["Can I borrow your pen?", "펜 좀 빌려도 돼?", "can i borrow|could i borrow|lend me|can i use your"],
+        ["Thanks, that really helps.", "고마워, 정말 도움 돼.", "(that|it) (really )?helps|thanks|thank you|helpful"]
+      ],
+      "words": [
+        ["homework", "숙제", "n"],
+        ["due", "~까지인", "a"],
+        ["test", "시험", "n"],
+        ["page", "쪽", "n"],
+        ["note", "노트, 메모", "n"],
+        ["check", "확인하다", "v"],
+        ["subject", "과목", "n"],
+        ["semester", "학기", "n"]
+      ],
+      "situational": ["semester"]
+    },
+    {
+      "id": "church2",
+      "title": "모임 안내",
+      "scene": "예배와 모임 시간, 장소를 알려 줘요",
+      "cando": "예배와 모임 시간, 장소를 알려 줄 수 있어요",
+      "goals": ["교회"],
+      "grammar": "시간과 장소 전치사 at, on, in",
+      "role": "You are a newcomer at a church who wants to join services and small groups. Ask the learner when and where things happen, and whether you can bring a friend or child. Ask one simple question at a time. If the learner seems stuck, offer a short model sentence.",
+      "ex": [
+        ["The service starts at eleven.", "예배는 11시에 시작해요.", "starts? at|begins? at|at (eleven|ten|nine|\\d+)"],
+        ["We meet every Sunday.", "우리는 매주 일요일에 모여요.", "we meet|every (sunday|week|wednesday|friday|saturday)|on (sunday|wednesday|friday|saturday)s?"],
+        ["The small group is on the second floor.", "소모임은 2층에서 해요.", "on the (first|second|third|\\w+) floor|(upstairs|downstairs)|in (room|the hall)"],
+        ["You can bring your kids.", "아이들을 데려오셔도 돼요.", "you can bring|feel free to bring|bring (your|a)"],
+        ["Lunch is after the service.", "점심은 예배 끝나고 있어요.", "after the (service|meeting)|lunch is|we (have|eat) lunch"],
+        ["Let me show you where it is.", "어디인지 보여 드릴게요.", "let me show you|i'?ll show you|i can show you|follow me"]
+      ],
+      "words": [
+        ["service", "예배", "n"],
+        ["kid", "아이", "n"],
+        ["floor", "층", "n"],
+        ["bring", "데려오다, 가져오다", "v"],
+        ["lunch", "점심", "n"],
+        ["group", "모임, 그룹", "n"],
+        ["every", "매~", "a"],
+        ["start", "시작하다", "v"]
+      ],
+      "situational": ["service"]
+    },
+    {
+      "id": "exam2",
+      "title": "사진 묘사",
+      "scene": "사진 속 사람, 장소, 하는 일을 설명해요",
+      "cando": "사진 속 사람과 장소를 설명할 수 있어요",
+      "goals": ["시험 준비"],
+      "grammar": "현재진행 (is ~ing) / There is ~",
+      "role": "You are a speaking-test examiner. Describe a simple everyday photo in one sentence (for example, a park, a cafe, an office), then ask the learner to describe what they see: people, place, actions, weather. Ask one short follow-up question at a time. If the learner seems stuck, offer a short model sentence.",
+      "ex": [
+        ["This is a picture of a park.", "이건 공원 사진이에요.", "this is a (picture|photo) of|in this (picture|photo)|the (picture|photo) shows"],
+        ["A man is walking his dog.", "한 남자가 개를 산책시키고 있어요.", "(is|are) [a-z]+ing"],
+        ["There are two women on the bench.", "벤치에 여자 두 명이 있어요.", "there (is|are)"],
+        ["On the left, I can see a tree.", "왼쪽에 나무가 보여요.", "on the (left|right)|in the (middle|background|front|center)|i can see"],
+        ["It looks sunny and warm.", "화창하고 따뜻해 보여요.", "it looks|(looks|seems) (like|sunny|warm|cold|busy|happy)"],
+        ["They look happy.", "그들은 행복해 보여요.", "(they|he|she) (look|looks|seem|seems)"]
+      ],
+      "words": [
+        ["picture", "사진, 그림", "n"],
+        ["bench", "벤치", "n"],
+        ["left", "왼쪽", "n"],
+        ["right", "오른쪽", "n"],
+        ["middle", "가운데", "n"],
+        ["look", "~해 보이다", "v"],
+        ["sunny", "화창한", "a"],
+        ["wear", "입고 있다", "v"]
+      ],
+      "situational": ["bench", "sunny"]
     }
   ],
   "3": [
@@ -266,7 +404,7 @@
         ["relax", "쉬다", "v"],
         ["prefer", "더 좋아하다", "v"]
       ],
-      "situational": ["colleague"]
+      "situational": ["colleague", "outgoing"]
     },
     {
       "id": "cafe3",
@@ -298,7 +436,7 @@
         ["replace", "바꾸다", "v"],
         ["recommend", "추천하다", "v"]
       ],
-      "situational": ["lid"]
+      "situational": ["lid", "refill", "syrup", "mild"]
     },
     {
       "id": "route3",
@@ -353,7 +491,7 @@
         ["worse", "더 나쁜", "a"],
         ["recover", "회복하다", "v"]
       ],
-      "situational": ["throat", "dose", "injection"]
+      "situational": ["throat", "dose", "injection", "checkup"]
     },
     {
       "id": "shop3",
@@ -384,6 +522,93 @@
         ["damaged", "손상된", "a"],
         ["return", "반품하다", "v"],
         ["afford", "살 여유가 있다", "v"]
+      ],
+      "situational": ["refund", "warranty"]
+    },
+    {
+      "id": "school3",
+      "title": "조별 과제",
+      "scene": "조원들과 역할을 나누고 진행 상황을 말해요",
+      "cando": "조별 과제의 역할을 나누고 진행 상황을 말할 수 있어요",
+      "goals": ["학교", "직장"],
+      "grammar": "현재완료 (I've finished ~) / Could you handle ~?",
+      "role": "You are a teammate on a group project. Talk about who does what, what has been done, and what is still left. At some point, mention that one part is behind schedule so the learner has to suggest a plan. If the learner seems stuck, give only the first two or three words of a possible answer as a hint, not the whole sentence.",
+      "ex": [
+        ["Could you handle the slides?", "슬라이드 맡아 줄 수 있어?", "could you (handle|take care of|do|make)|can you (handle|take care of)|in charge of"],
+        ["I've already finished the research part.", "나는 조사 부분 벌써 끝냈어.", "(i'?ve|i have) (already )?(finished|done|completed)"],
+        ["We still need someone to write the report.", "아직 보고서 쓸 사람이 필요해.", "still need|we need someone|someone (to|should)"],
+        ["How about we split it into three parts?", "세 부분으로 나누는 건 어때?", "how about|split|divide|why don'?t we"],
+        ["Let's meet online on Thursday.", "목요일에 온라인으로 만나자.", "let'?s (meet|talk|have a call)|meet (online|on)"],
+        ["I'm a bit behind, but I'll catch up.", "조금 밀렸는데 따라잡을게.", "behind|catch up|(i'?ll|i will) (finish|get it done)"]
+      ],
+      "words": [
+        ["project", "과제, 프로젝트", "n"],
+        ["research", "조사", "n"],
+        ["report", "보고서", "n"],
+        ["split", "나누다", "v"],
+        ["handle", "맡다, 처리하다", "v"],
+        ["progress", "진행 상황", "n"],
+        ["role", "역할", "n"],
+        ["fall behind", "뒤처지다", "p"]
+      ],
+      "situational": ["project"]
+    },
+    {
+      "id": "church3",
+      "title": "소모임 근황 나누기",
+      "scene": "소모임에서 한 주 동안 있었던 일을 나눠요",
+      "cando": "한 주 동안 있었던 일과 기분을 나눌 수 있어요",
+      "goals": ["교회", "일상 대화"],
+      "grammar": "과거시제 + 감정 (It was ~, I felt ~)",
+      "role": "You are a member of a small community group. Everyone shares how their week went. Share your own week briefly, ask the learner about theirs, and react with empathy or excitement. Ask follow-up questions about feelings and details. If the learner seems stuck, give only the first two or three words of a possible answer as a hint, not the whole sentence.",
+      "ex": [
+        ["How was your week?", "한 주 어떻게 지냈어요?", "how was your (week|weekend|day)|how have you been|how did your week go"],
+        ["It was really busy at work.", "회사 일이 정말 바빴어요.", "it was (really |so |pretty )?(busy|tough|hard|good|great|fine)"],
+        ["I felt a bit tired, but I'm okay now.", "좀 피곤했는데 지금은 괜찮아요.", "i felt|i was (tired|stressed|happy|sad)|i'?m (okay|ok|fine|better) now"],
+        ["My mom was in the hospital.", "엄마가 병원에 계셨어요.", "was in the hospital|(got|was) sick|had surgery"],
+        ["That's great to hear!", "그거 정말 좋은 소식이네요!", "(that'?s|that is) (great|good|wonderful) to hear|glad to hear|happy for you"],
+        ["I'll keep you in my prayers.", "기도할게요.", "(i'?ll|i will) (keep you in my prayers|pray for you)|praying for you|thinking of you"]
+      ],
+      "words": [
+        ["stressed", "스트레스 받은", "a"],
+        ["excited", "신난", "a"],
+        ["share", "나누다", "v"],
+        ["worry", "걱정하다", "v"],
+        ["pray", "기도하다", "v"],
+        ["news", "소식", "n"],
+        ["hear", "듣다", "v"],
+        ["feel", "느끼다", "v"]
+      ]
+    },
+    {
+      "id": "exam3",
+      "title": "경험 말하기",
+      "scene": "경험을 이유 두 개와 함께 말해요",
+      "cando": "경험을 이유 두 개와 함께 말할 수 있어요",
+      "goals": ["시험 준비"],
+      "grammar": "과거시제 + because / First ~, Second ~",
+      "role": "You are a speaking-test examiner. Ask the learner to describe a past experience (a trip, a hard day, a gift, a person who helped them) and give two reasons or details. Ask one follow-up question each time. If the learner seems stuck, give only the first two or three words of a possible answer as a hint, not the whole sentence.",
+      "ex": [
+        [
+          "Last year, I traveled to Jeju with my friends.",
+          "작년에 친구들이랑 제주도에 여행 갔어요.",
+          "(last|this) (year|month|summer|week)|(\\d+ )?(years?|months?) ago|i (went|traveled|travelled|visited)"
+        ],
+        ["It was special for two reasons.", "두 가지 이유로 특별했어요.", "two reasons|(for|because of) (two|a few) reasons|there are two reasons"],
+        ["First, the weather was perfect.", "첫째, 날씨가 완벽했어요.", "first(ly)?|to begin with|the first reason"],
+        ["Second, I tried a lot of new food.", "둘째, 새로운 음식을 많이 먹어 봤어요.", "second(ly)?|also|another reason|in addition"],
+        ["I loved it because it was so relaxing.", "정말 편안해서 너무 좋았어요.", "because|since|so (i|it)"],
+        ["I'd love to go back someday.", "언젠가 다시 가고 싶어요.", "(i'?d|i would) (love|like) to|want to go back|someday|again"]
+      ],
+      "words": [
+        ["detail", "세부 내용", "n"],
+        ["reason", "이유", "n"],
+        ["special", "특별한", "a"],
+        ["perfect", "완벽한", "a"],
+        ["trip", "여행", "n"],
+        ["memory", "기억, 추억", "n"],
+        ["travel", "여행하다", "v"],
+        ["favorite", "가장 좋아하는", "a"]
       ]
     }
   ],
@@ -418,13 +643,13 @@
       ],
       "words": [
         ["challenge", "도전 과제", "n"],
-        ["consensus", "합의, 의견 일치", "n"],
+        ["depend on", "~에 달려 있다", "p"],
         ["perspective", "관점", "n"],
         ["impression", "인상", "n"],
         ["objective", "객관적인", "a"],
         ["reliable", "믿을 만한", "a"],
         ["persuade", "설득하다", "v"],
-        ["concede", "(마지못해) 인정하다", "v"]
+        ["see your point", "무슨 말인지 알겠어요", "p"]
       ]
     },
     {
@@ -453,7 +678,7 @@
       ],
       "words": [
         ["catering", "출장 음식", "n"],
-        ["quantity", "수량", "n"],
+        ["work for", "~에게 괜찮다, 맞다", "p"],
         ["deadline", "마감 시간", "n"],
         ["deposit", "선금", "n"],
         ["invoice", "청구서", "n"],
@@ -461,7 +686,7 @@
         ["confirm", "확정하다", "v"],
         ["arrange", "준비하다", "v"]
       ],
-      "situational": ["invoice"]
+      "situational": ["invoice", "catering"]
     },
     {
       "id": "route4",
@@ -488,15 +713,16 @@
         ["Thanks, that saves me a lot of trouble.", "덕분에 수고를 많이 덜었어요.", "saves? me|lifesaver|that helps a lot|really helpful"]
       ],
       "words": [
-        ["stopover", "경유, 도중 체류", "n"],
+        ["make it", "제시간에 도착하다", "p"],
         ["standby", "대기 (탑승)의", "a"],
         ["platform", "승강장", "n"],
         ["connection", "환승편", "n"],
         ["alternative", "대안", "n"],
         ["packed", "꽉 찬, 붐비는", "a"],
-        ["punctual", "시간을 잘 지키는", "a"],
+        ["on time", "제시간에", "p"],
         ["cancel", "취소하다", "v"]
-      ]
+      ],
+      "situational": ["standby"]
     },
     {
       "id": "clinic4",
@@ -534,8 +760,9 @@
         ["chronic", "만성의", "a"],
         ["temporary", "일시적인", "a"],
         ["monitor", "지켜보다", "v"],
-        ["persist", "(증상이) 계속되다", "v"]
-      ]
+        ["side effect", "부작용", "p"]
+      ],
+      "situational": ["chronic"]
     },
     {
       "id": "shop4",
@@ -562,10 +789,103 @@
         ["tracking", "배송 조회", "n"],
         ["compensation", "보상", "n"],
         ["policy", "규정", "n"],
-        ["faulty", "결함 있는", "a"],
+        ["sort out", "해결하다, 처리하다", "p"],
         ["urgent", "급한", "a"],
         ["dispute", "이의 제기, 분쟁", "n"],
         ["resolve", "해결하다", "v"]
+      ]
+    },
+    {
+      "id": "school4",
+      "title": "선생님과 상담",
+      "scene": "마감 연장이나 성적에 대해 정중히 문의해요",
+      "cando": "마감 연장이나 성적 문의를 정중히 할 수 있어요",
+      "goals": ["학교"],
+      "grammar": "Would it be possible to ~? / I was wondering if ~",
+      "role": "You are a professor during office hours. The learner wants an extension or has a question about a grade. Be polite but a little strict: ask why they need it, what they have done so far, and suggest a compromise. Speak naturally. Do not give hints unless the learner asks for help; instead, ask follow-up questions so they explain in longer sentences.",
+      "ex": [
+        [
+          "I was wondering if I could get an extension.",
+          "마감을 연장해 주실 수 있는지 여쭤보려고요.",
+          "i was wondering if|wondering whether|(get|have) an extension|extend the deadline"
+        ],
+        ["Would it be possible to submit it by Monday?", "월요일까지 내도 될까요?", "would it be possible|is it possible|could i (submit|hand|turn)"],
+        ["I've been sick for most of the week.", "이번 주 대부분 아팠어요.", "(i'?ve|i have) been (sick|ill|unwell)|i was (sick|ill)|(fever|flu|covid)"],
+        [
+          "Could you explain how my grade was calculated?",
+          "제 성적이 어떻게 계산됐는지 설명해 주실 수 있어요?",
+          "could you explain|how (my|the) grade|why i got|how .* (calculated|graded)"
+        ],
+        ["I'd appreciate any feedback on my essay.", "제 에세이에 대해 의견 주시면 감사하겠어요.", "(i'?d|i would) appreciate|any feedback|comments on"],
+        ["That makes sense. Thank you for your time.", "이해됐어요. 시간 내 주셔서 감사합니다.", "(that|it) makes sense|thank(s| you) for your time|i understand"]
+      ],
+      "words": [
+        ["extension", "연장", "n"],
+        ["submit", "제출하다", "v"],
+        ["grade", "성적", "n"],
+        ["essay", "에세이, 과제 글", "n"],
+        ["office hours", "교수 면담 시간", "p"],
+        ["professor", "교수", "n"],
+        ["make sense", "이해가 되다", "p"],
+        ["turn in", "제출하다", "p"]
+      ]
+    },
+    {
+      "id": "church4",
+      "title": "봉사 일정 조율",
+      "scene": "봉사 일정을 바꿔 달라고 부탁하고 조율해요",
+      "cando": "봉사 일정을 바꿔 달라고 정중히 부탁할 수 있어요",
+      "goals": ["교회", "직장"],
+      "grammar": "Could you ~ instead? / I'm afraid ~",
+      "role": "You are the volunteer coordinator at a church. The learner cannot make their assigned volunteer shift and needs to swap or reschedule. You are friendly but busy: say the other dates are partly full, ask who could cover, and agree on a solution together. Speak naturally. Do not give hints unless the learner asks for help; instead, ask follow-up questions so they explain in longer sentences.",
+      "ex": [
+        ["I'm afraid I can't make it this Sunday.", "죄송하지만 이번 일요일엔 못 갈 것 같아요.", "i'?m afraid|(can'?t|cannot|won'?t be able to) make it|can'?t come"],
+        ["Could I switch to next week instead?", "대신 다음 주로 바꿔도 될까요?", "switch|swap|change (my|the) (shift|day)|instead"],
+        ["Is anyone free to cover for me?", "혹시 대신해 줄 수 있는 분 있어요?", "cover (for )?me|cover my|anyone (free|available)|fill in"],
+        ["I'm happy to do two shifts next month.", "다음 달에 두 번 하는 건 괜찮아요.", "(i'?m|i am) happy to|i don'?t mind|i can (do|take)"],
+        ["Sorry for the short notice.", "급하게 말씀드려서 죄송해요.", "short notice|last minute|sorry for (the|this)"],
+        ["Just let me know what works best.", "어떤 게 제일 좋은지 알려 주세요.", "let me know|what works (best|for you)|whatever works"]
+      ],
+      "words": [
+        ["volunteer", "봉사하다, 자원봉사자", "v"],
+        ["shift", "근무 차례", "n"],
+        ["team", "팀", "n"],
+        ["switch", "바꾸다", "v"],
+        ["remind", "다시 알려 주다", "v"],
+        ["cover for", "대신 해 주다", "p"],
+        ["short notice", "갑작스러운 연락", "p"],
+        ["let me know", "알려 주세요", "p"]
+      ]
+    },
+    {
+      "id": "exam4",
+      "title": "의견과 근거",
+      "scene": "질문에 의견을 말하고 예시로 뒷받침해요",
+      "cando": "의견을 말하고 예시로 뒷받침할 수 있어요",
+      "goals": ["시험 준비"],
+      "grammar": "I believe ~ because ~ / For example ~",
+      "role": "You are a speaking-test examiner. Ask opinion questions such as \"Is it better to work from home or at the office?\" or \"Should children have smartphones?\" Ask the learner to give an opinion, two reasons and an example, then push back once with the opposite view. Speak naturally. Do not give hints unless the learner asks for help; instead, ask follow-up questions so they explain in longer sentences.",
+      "ex": [
+        ["In my opinion, working from home is better.", "제 생각엔 재택근무가 더 나아요.", "in my opinion|i (think|believe|feel)|personally"],
+        ["The main reason is that it saves time.", "가장 큰 이유는 시간이 절약된다는 거예요.", "the main reason|the (first|biggest) reason|one reason is"],
+        ["For example, I don't have to commute for an hour.", "예를 들어, 한 시간씩 출퇴근할 필요가 없어요.", "for example|for instance|such as|like when"],
+        ["On top of that, I can focus better at home.", "게다가 집에서 더 집중할 수 있어요.", "on top of that|in addition|besides|also|what'?s more"],
+        ["That said, it can feel a bit lonely.", "그렇긴 해도 좀 외로울 수 있어요.", "that said|having said that|however|on the other hand|but"],
+        [
+          "Overall, I'd still choose working from home.",
+          "전체적으로 보면 그래도 재택근무를 고를 거예요.",
+          "overall|all in all|in conclusion|(i'?d|i would) (still )?(choose|go with|prefer)"
+        ]
+      ],
+      "words": [
+        ["opinion", "의견", "n"],
+        ["example", "예시", "n"],
+        ["save", "절약하다", "v"],
+        ["focus", "집중하다", "v"],
+        ["office", "사무실", "n"],
+        ["benefit", "이점", "n"],
+        ["on top of that", "게다가", "p"],
+        ["that said", "그렇긴 해도", "p"]
       ]
     }
   ],
@@ -593,12 +913,12 @@
       "words": [
         ["acquaintance", "아는 사람", "n"],
         ["gathering", "모임", "n"],
-        ["anecdote", "일화", "n"],
-        ["rapport", "친밀감", "n"],
+        ["catch up", "밀린 얘기를 나누다", "p"],
+        ["speaking of which", "말 나온 김에", "p"],
         ["awkward", "어색한", "a"],
         ["hilarious", "아주 웃긴", "a"],
         ["mingle", "어울리다", "v"],
-        ["reminisce", "추억하다", "v"]
+        ["it's been ages", "정말 오랜만이야", "p"]
       ]
     },
     {
@@ -627,13 +947,13 @@
       ],
       "words": [
         ["feedback", "피드백", "n"],
-        ["aroma", "향", "n"],
+        ["the only thing is", "딱 하나 아쉬운 건", "p"],
         ["texture", "식감", "n"],
         ["signature", "대표 메뉴", "n"],
-        ["overpriced", "너무 비싼", "a"],
+        ["worth it", "그만한 가치가 있는", "p"],
         ["subtle", "은은한", "a"],
         ["enhance", "더 좋게 하다, 살리다", "v"],
-        ["tactful", "말을 요령 있게 하는", "a"]
+        ["don't get me wrong", "오해하지 마", "p"]
       ]
     },
     {
@@ -658,14 +978,15 @@
       ],
       "words": [
         ["itinerary", "여행 일정", "n"],
-        ["picturesque", "그림 같은", "a"],
+        ["can't go wrong", "실패할 일이 없다", "p"],
         ["atmosphere", "분위기", "n"],
         ["attraction", "명소", "n"],
         ["authentic", "진짜 그대로의", "a"],
-        ["breathtaking", "숨 막히게 멋진", "a"],
-        ["immerse", "푹 빠지다, 몰입하다", "v"],
+        ["show around", "구경시켜 주다", "p"],
+        ["if I were you", "내가 너라면", "p"],
         ["worthwhile", "~할 가치가 있는", "a"]
-      ]
+      ],
+      "situational": ["itinerary"]
     },
     {
       "id": "clinic5",
@@ -695,12 +1016,13 @@
         ["sample", "검체", "n"],
         ["vein", "정맥", "n"],
         ["bruise", "멍", "n"],
-        ["apprehensive", "불안해하는, 걱정하는", "a"],
+        ["nothing to worry about", "걱정할 것 없다", "p"],
         ["routine", "일상적인", "a"],
         ["sterile", "멸균된", "a"],
         ["faint", "기절하다", "v"],
         ["reassure", "안심시키다", "v"]
-      ]
+      ],
+      "situational": ["sterile"]
     },
     {
       "id": "shop5",
@@ -719,7 +1041,7 @@
         ["Deal! I'll take it.", "좋아요! 살게요.", "\\bdeal\\b|i'?ll take it|sounds fair|fair enough"]
       ],
       "words": [
-        ["concession", "양보", "n"],
+        ["meet halfway", "서로 한발씩 양보하다", "p"],
         ["budget", "예산", "n"],
         ["reasonable", "합리적인, 적당한", "a"],
         ["secondhand", "중고의", "a"],
@@ -727,7 +1049,102 @@
         ["flawless", "흠 없는", "a"],
         ["haggle", "흥정하다", "v"],
         ["firm", "(가격이) 확정된, 고정된", "a"]
+      ],
+      "situational": ["secondhand", "negotiable", "haggle"]
+    },
+    {
+      "id": "school5",
+      "title": "수업 토론",
+      "scene": "토론에서 상대 의견을 인정하면서 반박해요",
+      "cando": "다른 의견을 인정하면서 근거를 들어 반박할 수 있어요",
+      "goals": ["학교", "직장"],
+      "grammar": "I see your point, but ~ / Wouldn't you agree that ~?",
+      "role": "You are a classmate in a seminar discussion who confidently argues the opposite side of a topic (for example, whether AI should be allowed for homework). Make strong points, interrupt now and then, and challenge the learner's evidence. Speak like a native speaker at natural speed, using common idioms and phrasal verbs. Never give hints; if the learner sounds unnatural, keep the discussion flowing and let the KO line handle corrections.",
+      "ex": [
+        [
+          "I see your point, but I'm not sure that's the whole picture.",
+          "무슨 말인지는 알겠는데, 그게 전부는 아닌 것 같아.",
+          "i see (your|what you'?re saying)|i get your point|fair point|that'?s (not )?the whole picture"
+        ],
+        ["Can I jump in here for a second?", "잠깐 내가 끼어들어도 될까?", "jump in|can i (add|say) something|let me (add|jump)|if i (could|may) (add|jump)"],
+        [
+          "The thing is, the data says otherwise.",
+          "문제는, 데이터는 다르게 말한다는 거야.",
+          "the thing is|the problem is|says otherwise|the (data|evidence|research) (says|shows)"
+        ],
+        ["Let's not lose sight of the main issue.", "핵심 문제를 놓치지 말자.", "lose sight of|the main (issue|point)|get back to|stay on (topic|track)"],
+        ["Wouldn't you agree that it depends on how it's used?", "어떻게 쓰느냐에 달렸다는 건 동의하지 않아?", "wouldn'?t you agree|don'?t you think|it depends on"],
+        ["Fair enough, we'll have to agree to disagree.", "그래 알았어, 서로 생각이 다른 걸로 하자.", "fair enough|agree to disagree|let'?s leave it (there|at that)"]
+      ],
+      "words": [
+        ["argue", "주장하다", "v"],
+        ["evidence", "근거, 증거", "n"],
+        ["point", "요점, 주장", "n"],
+        ["jump in", "끼어들다", "p"],
+        ["the thing is", "문제는", "p"],
+        ["lose sight of", "~을 놓치다", "p"],
+        ["fair enough", "그래 알았어, 일리 있어", "p"],
+        ["agree to disagree", "서로 다른 의견을 인정하다", "p"]
       ]
+    },
+    {
+      "id": "church5",
+      "title": "위로와 격려",
+      "scene": "힘든 일을 겪는 사람을 공감하며 위로해요",
+      "cando": "힘든 일을 겪는 사람에게 공감하며 위로할 수 있어요",
+      "goals": ["교회", "일상 대화"],
+      "grammar": "공감 표현 (I can only imagine ~) / 완곡한 제안 (If you ever want to ~)",
+      "role": "You are a member of the learner's church community who just lost their job and feels discouraged. Share your feelings slowly and honestly. React naturally to how well the learner listens, comforts and offers help; if they give advice too quickly, say you just need someone to listen. Speak like a native speaker at natural speed. Never give hints; if the learner sounds unnatural, keep the conversation flowing and let the KO line handle corrections.",
+      "ex": [
+        ["I'm so sorry you're going through this.", "이런 일을 겪고 있다니 정말 마음이 아파요.", "(i'?m|i am) (so )?sorry|going through|sorry to hear"],
+        ["I can only imagine how hard it must be.", "얼마나 힘들지 짐작조차 어려워요.", "can only imagine|must be (hard|tough|difficult)|i can imagine"],
+        ["Take all the time you need.", "시간 충분히 가져요.", "take (all )?the time|no rush|take your time"],
+        ["If you ever want to talk, I'm here.", "얘기하고 싶을 땐 언제든 여기 있을게요.", "if you (ever )?(want|need) to talk|i'?m (always )?here (for you)?|here for you"],
+        ["You don't have to go through it alone.", "혼자 견디지 않아도 돼요.", "(don'?t|do not) have to .* alone|you'?re not alone|not alone"],
+        ["Let me know if there's anything I can do.", "내가 할 수 있는 게 있으면 알려 줘요.", "anything i can do|let me know if|how can i help"]
+      ],
+      "words": [
+        ["comfort", "위로하다", "v"],
+        ["encourage", "격려하다", "v"],
+        ["imagine", "상상하다", "v"],
+        ["alone", "혼자", "a"],
+        ["go through", "(힘든 일을) 겪다", "p"],
+        ["be there for", "곁에 있어 주다", "p"],
+        ["hang in there", "힘내요, 버텨요", "p"],
+        ["take your time", "천천히 해도 돼요", "p"]
+      ]
+    },
+    {
+      "id": "exam5",
+      "title": "장단점과 해결책",
+      "scene": "두 입장을 비교하고 해결책을 제안해요",
+      "cando": "두 입장의 장단점을 비교하고 해결책을 제안할 수 있어요",
+      "goals": ["시험 준비", "직장"],
+      "grammar": "On the one hand ~ / The best solution would be ~",
+      "role": "You are a speaking-test examiner for an advanced test. Present a problem (for example, traffic in big cities, too much screen time, high housing costs) and ask the learner to compare two approaches and propose a solution. Challenge one weak point in their answer. Speak like a native speaker at natural speed. Never give hints; if the learner sounds unnatural, keep the conversation flowing and let the KO line handle corrections.",
+      "ex": [
+        ["On the one hand, public transport is cheaper.", "한편으로는, 대중교통이 더 저렴해요.", "on the one hand|one advantage|the upside"],
+        ["On the other hand, it can be really crowded.", "반면에, 정말 붐빌 수 있어요.", "on the other hand|the downside|however|one drawback"],
+        ["It all comes down to cost and convenience.", "결국 비용과 편리함의 문제예요.", "comes down to|boils down to|it depends on|the key (is|factor)"],
+        [
+          "The best solution would be to expand bus routes.",
+          "가장 좋은 해결책은 버스 노선을 늘리는 거예요.",
+          "the best (solution|way|option) would be|i would (suggest|recommend)|we should"
+        ],
+        ["That way, fewer people would need to drive.", "그러면 운전해야 하는 사람이 줄어들 거예요.", "that way|as a result|this would|so that"],
+        ["Of course, it wouldn't happen overnight.", "물론 하루아침에 되진 않겠죠.", "overnight|of course|it (would|will) take time|in the long run"]
+      ],
+      "words": [
+        ["advantage", "장점", "n"],
+        ["drawback", "단점", "n"],
+        ["solution", "해결책", "n"],
+        ["convenience", "편리함", "n"],
+        ["expand", "늘리다, 확장하다", "v"],
+        ["come down to", "결국 ~의 문제이다", "p"],
+        ["in the long run", "길게 보면", "p"],
+        ["public transport", "대중교통", "p"]
+      ],
+      "situational": ["drawback"]
     }
   ]
 }

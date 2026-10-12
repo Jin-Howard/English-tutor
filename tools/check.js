@@ -8,10 +8,11 @@ const C = json('..', 'data', 'course.json'), T = json('..', 'data', 'leveltest.j
 // ===== 규격 =====
 // 앱 목표 범위 A1~B2: L1 A1, L2 A2, L3 B1, L4 B1+~B2, L5 B2 (상급은 C1 단어까지 허용)
 const LV = { 1: { cefr: 1, max: 1, ex: 5, w: 6 }, 2: { cefr: 2, max: 2, ex: 6, w: 8 }, 3: { cefr: 3, max: 3, ex: 6, w: 8 }, 4: { cefr: 4, max: 4, ex: 6, w: 8 }, 5: { cefr: 4, max: 5, ex: 6, w: 8 } };
-const BAND_MAX = [0, 1, 2, 3, 4, 5];  // 레벨 테스트 단계 → 허용 등급
+const BAND_MAX = [0, 1, 2, 3, 4, 5];
+const FREQ_MAX = [0, 2000, 4000, 7000, 10000, 15000];  // 레벨별 구어 빈도 순위 상한 (말하기 앱: 자주 쓰는 말 우선)  // 레벨 테스트 단계 → 허용 등급
 const CEFR = ['', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const GOALS = ['일상 대화', '여행', '직장', '시험 준비', '병원', '학교', '교회'];
-const POS = { n: 1, v: 1, a: 1 };
+const POS = { n: 1, v: 1, a: 1, p: 1 };  // p = 덩어리 표현 (figure out, on second thought)
 const ROLE_MAX = 500, CANDO_MAX = 40;
 const SENT_PLUS = 1;  // 문장 속 단어는 목표보다 한 단계 위까지 허용 (i+1: 조금 어려운 입력이 실력을 올림)  // 역할극 지시문은 매 대화마다 전송 → 토큰 상한
 
@@ -48,6 +49,29 @@ function lemmas(t) {
   rules.forEach(([re, s]) => { if (re.test(t)) { const b = t.replace(re, s); c.push(b); if (/(.)\1$/.test(b)) c.push(b.slice(0, -1)); } });
   return c;
 }
+// 구어 빈도: tools/freq/ 영화, 드라마 자막 기반 순위 (출처 tools/freq/README.md)
+const FREQ = {};
+fs.readFileSync(file('freq', 'en-spoken-top20k.txt'), 'utf8').split('\n').forEach((l, i) => { const w = l.split(' ')[0]; if (w && !FREQ[w]) FREQ[w] = i + 1; });
+// 교육부 2022 개정 기본 어휘 3,000 (tools/kice/): 1 = 초등 권장 800, 2 = 중고 공통 1,200, 3 = 그 외 1,000
+const KICE = {};
+fs.readFileSync(file('kice', 'kice-basic-3000.csv'), 'utf8').split(/\r?\n/).slice(1).forEach(l => {
+  if (!l.trim()) return;
+  const m = l.match(/^([^,]*),(\d),([^,]*),([^,]*),/);
+  if (!m) return;
+  const t = +m[2];
+  [m[1], ...m[3].split('|'), ...m[4].split('|')].filter(Boolean).forEach(w => { const k = w.toLowerCase(); KICE[k] = Math.min(KICE[k] || 9, t); });
+});
+const KICE_N = ['', '초등', '중고 공통', '그 외'];
+const DERIV = [[/ly$/, ''], [/ness$/, ''], [/ful$/, ''], [/less$/, ''], [/ment$/, ''], [/ity$/, ''], [/able$/, ''], [/ation$/, 'e'], [/ation$/, ''], [/ion$/, ''], [/ive$/, 'e'], [/ive$/, ''], [/er$/, ''], [/or$/, ''], [/ist$/, ''], [/ous$/, '']];
+const kiceOf = w => {  // 대표형 + 굴절 + 지침의 파생 접사까지 (단어군 기준)
+  const c = lemmas(w.toLowerCase());
+  c.slice().forEach(x => DERIV.forEach(([re, sfx]) => { if (re.test(x)) c.push(x.replace(re, sfx)); }));
+  return Math.min(...c.map(x => KICE[x] || 9)) % 9;
+};
+const rankOf = w => {  // 표현은 들어 있는 단어 중 가장 드문 것 기준
+  const ts = w.toLowerCase().replace(/[’']/g, "'").split(/\s+/);
+  return Math.max(...ts.map(t => Math.min(...[...lemmas(t), t.replace(/'.*$/, '')].map(x => FREQ[x] || 99999))));
+};
 const lvOf = w => Math.min(...lemmas(w.toLowerCase()).map(x => dict[x] || 9)) % 9;  // 원형 후보 중 가장 쉬운 등급, 없으면 0
 // 문장 속 단어 중 허용 등급을 넘는 것 (고유명사, 숫자, 이미 가르치는 단어 제외)
 function hardWords(sentence, max, allowed) {
@@ -89,7 +113,7 @@ else if (m[1] !== NORM_SRC) add('err', 'index.html', 'norm 함수가 검사기�
 
 // ===== 1) 커리큘럼 =====
 const testWords = new Set(T.words.flat().filter(Boolean).map(w => w[0]));
-const ids = new Set(), wordSeen = {}, lenByLv = {}, wordLvStat = {};
+const ids = new Set(), wordSeen = {}, lenByLv = {}, wordLvStat = {}, kiceStat = {};
 for (const [lv, us] of Object.entries(C)) {
   const spec = LV[lv];
   if (!spec) { add('err', `레벨 ${lv}`, '규격에 없는 레벨'); continue; }
@@ -130,7 +154,11 @@ for (const [lv, us] of Object.entries(C)) {
       if (!w || !ko || !POS[pos]) add('err', at2, '[영어, 뜻, 품사 n/v/a] 형식 아님');
       if (wordSeen[w]) add('warn', at2, `중복 (${wordSeen[w]})`); else wordSeen[w] = at;
       if (testWords.has(w)) add('info', at2, '레벨 테스트 단어와 겹침 (재시험 때 점수가 부풀 수 있음)');
-      const c = w.includes(' ') ? 0 : lvOf(w);
+      if (rankOf(w) > FREQ_MAX[lv] && !situ.has(w)) add('warn', at2, `대화에서 드묾: 구어 빈도 ${rankOf(w) > 20000 ? '2만위 밖' : rankOf(w) + '위'} (L${lv} 상한 ${FREQ_MAX[lv]}위) → 더 흔한 말, 덩어리 표현, 또는 상황 필수면 situational`);
+      const kt = w.includes(' ') ? 0 : kiceOf(w);
+      (kiceStat[lv] = kiceStat[lv] || []).push(kt);
+      if (!kt && +lv <= 2) add('info', at2, '교육부 기본 어휘 3,000 밖 (입문, 초급은 기본 어휘 위주 권장)');
+      const c = w.includes(' ') ? Math.max(0, ...w.split(/\s+/).map(lvOf)) : lvOf(w);  // 표현은 가장 어려운 단어 기준
       (wordLvStat[lv] = wordLvStat[lv] || []).push(c);
       if (!c) add('info', at2, 'CEFR 목록에 없음 → 직접 판단');
       else if (c > spec.max && !situ.has(w)) add('warn', at2, `어려움: ${CEFR[c]} (레벨 목표 ${CEFR[spec.cefr]}) → 상황 필수면 situational에 추가`);
@@ -162,6 +190,8 @@ console.log('== 레벨별 지표 ==');
 Object.keys(lenByLv).forEach(lv => {
   const ws = wordLvStat[lv].filter(Boolean);
   console.log(`L${lv} (목표 ${CEFR[LV[lv].cefr]}): 표현 평균 ${avg(lenByLv[lv])}단어, 단어 평균 CEFR ${avg(ws)} (A1=1 … C1=5), 목록 없음 ${wordLvStat[lv].length - ws.length}개`);
+  const k = kiceStat[lv], pc = n => Math.round(k.filter(x => x === n).length / k.length * 100);
+  console.log(`    교육부 기본 어휘: 초등 ${pc(1)}% · 중고 공통 ${pc(2)}% · 그 외 ${pc(3)}% · 목록 밖 ${pc(0)}%`);
 });
 for (const k of ['err', 'warn', 'info']) {
   console.log(`\n== ${{ err: '오류', warn: '경고', info: '참고' }[k]} ${out[k].length}건 ==`);
