@@ -3,6 +3,16 @@
 const fs = require('fs'), path = require('path');
 const file = (...p) => path.join(__dirname, ...p);  // 어디서 실행해도 같은 파일을 찾음
 const json = (...p) => JSON.parse(fs.readFileSync(file(...p), 'utf8'));
+// 필요한 파일이 저장소에 다 있는지 먼저 확인 (없으면 알아보기 쉬운 말로 알려 주고 실패)
+const NEED = [['..', 'index.html'], ['..', 'data', 'course.json'], ['..', 'data', 'leveltest.json'], ['cefr-overrides.json'],
+  ['cefr', 'cefrj-vocabulary-profile-1.5.csv'], ['cefr', 'octanove-vocabulary-profile-c1c2-1.0.csv'], ['kice', 'kice-basic-3000.csv'], ['freq', 'en-spoken-top20k.txt']];
+const missing = NEED.filter(p => !fs.existsSync(file(...p))).map(p => path.relative(file('..'), file(...p)));
+if (missing.length) {
+  console.log('== 오류: 검사에 필요한 파일이 없어요 ==');
+  missing.forEach(m => console.log('- ' + m + '  → 이 파일(폴더째)을 저장소에 올려 주세요'));
+  console.log(`::error::검사에 필요한 파일이 없어요: ${missing.join(', ')}`);  // GitHub 화면 맨 위에 바로 보이게
+  process.exit(1);
+}
 const C = json('..', 'data', 'course.json'), T = json('..', 'data', 'leveltest.json');
 
 // ===== 규격 =====
@@ -197,4 +207,5 @@ for (const k of ['err', 'warn', 'info']) {
   console.log(`\n== ${{ err: '오류', warn: '경고', info: '참고' }[k]} ${out[k].length}건 ==`);
   out[k].forEach(x => console.log('- ' + x));
 }
+if (out.err.length) console.log(`::error::교재 오류 ${out.err.length}건. 첫 오류: ${out.err[0]}`);  // GitHub 화면 맨 위에 바로 보이게
 process.exit(out.err.length ? 1 : 0);
