@@ -184,7 +184,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   #menu { background: var(--home-bg); }
   #menu .hd { border-bottom-color: transparent; background: var(--home-bg); }
   #menu .pad { padding-top: 6px; }
-  .hello { padding: 4px 4px 18px; }
+  .hello { padding: 4px 0 18px; }
   .hello .gh { margin: 0 0 4px; font-size: 14px; font-weight: 700; color: var(--sub); }
   .hello h1 { margin: 0; font-size: clamp(18px, 5vw, 21px); line-height: 1.35; font-weight: 800; letter-spacing: -.5px; word-break: keep-all; }  /* 한 줄로 */
   .today { display: flex; align-items: center; gap: 12px; margin-top: 14px; }  /* 오늘의 목표: 통화 시간 */
@@ -340,7 +340,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .tab .ti-ic svg { display: block; }
   .tab.on { color: var(--text); }
   .tab.on .ti-ic { background: var(--accent-soft); color: var(--accent-text); }
-  .tab.fab { margin-top: -20px; gap: 7px; color: var(--text); }
+  .tab.fab { margin-top: -25px; gap: 12px; color: var(--text); }  /* 버튼 흰 테두리(6px) 밖으로 글자까지 6px */
   .fab .fab-ic { display: flex; align-items: center; justify-content: center; width: 58px; height: 58px; border-radius: 50%; line-height: 0;
                  background: var(--accent); color: var(--on-accent); box-shadow: 0 0 0 6px var(--bg), 0 6px 14px rgba(0, 0, 0, .22); }
   .fab .fab-ic svg { display: block; }
@@ -491,7 +491,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .banner.accent { border-style: solid; border-color: var(--accent-line); background: var(--accent-soft); }
 
   /* 설정 화면 */
-  .sec { display: flex; align-items: center; gap: 8px; margin: 24px 4px 8px; font-size: 13px; font-weight: 700; color: var(--sub); }
+  .sec { display: flex; align-items: center; gap: 8px; margin: 24px 0 8px; font-size: 13px; font-weight: 700; color: var(--sub); }
   .sec:first-of-type { margin-top: 6px; }
   .group { border: 1px solid var(--line); border-radius: 22px; background: var(--surface); overflow: hidden; box-shadow: var(--shadow); }
   .group > * + * { border-top: 1px solid var(--line); }
@@ -601,19 +601,18 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   #coach { position: fixed; inset: 0; z-index: 85; display: none; pointer-events: none; }
   #coach.open { display: block; }
   #coachdim { position: absolute; inset: 0; background: rgba(0, 0, 0, .58); pointer-events: auto; animation: cfade .3s ease-out; }
-  #coachring { position: absolute; border: 3px solid var(--accent); border-radius: 30px; box-sizing: border-box;
-               box-shadow: 0 0 0 6px rgba(255, 212, 59, .22); animation: ringin .3s .4s both; }
+  #coachring { position: absolute; border: 2.5px solid var(--accent); box-sizing: border-box; animation: ringin .3s .4s both; }  /* 구멍과 같은 크기, 바깥 번짐 없음 */
   #coachtip { position: absolute; left: 16px; right: 16px; max-width: 460px; margin: 0 auto; padding: 16px 18px 12px; box-sizing: border-box;
               border-radius: 20px; background: var(--surface); color: var(--text); box-shadow: 0 14px 36px rgba(0, 0, 0, .28); pointer-events: auto;
               animation: ctip .35s .5s both; }
   #coachtip::before { content: ''; position: absolute; left: 50%; top: -7px; width: 14px; height: 14px; background: var(--surface); transform: translateX(-50%) rotate(45deg); }
   #coachtip.up::before { top: auto; bottom: -7px; }
-  #coachtip b { display: block; margin-bottom: 4px; font-size: 16px; font-weight: 800; }
+  #coachtip b { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 16px; font-weight: 800; }
+  #coachtip .cstep { padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-text); font-size: 12px; }
   #coachtip p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--sub); }
   #coachtip p em { font-style: normal; font-weight: 800; color: var(--text); }
   .coaching .savebar { visibility: hidden; }  /* 안내 중에는 고정 저장 버튼이 조명 안으로 끼어들지 않게 */
   .coaching[data-coach="tour"] #keyopen { background: var(--surface2); color: var(--sub); }  /* 누를 버튼 하나만 강조 */
-  .coachpulse { animation: cpulse 1.4s .8s ease-out infinite; }
   #tourbtn.coachpulse { background: var(--accent); color: var(--on-accent); }
   @keyframes cfade { from { opacity: 0; } }
   @keyframes ctip { from { opacity: 0; transform: translateY(8px); } }
@@ -669,6 +668,11 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   #setup.list.sub .slist, #setup.list.sub #ver, #setup.list.sub .copyr { display: none; }
   #setup.list:not(.needsave) .savebar, #setup.list .spg .sec.head, #setup.list #infohead, #setup.list #keyhead, #setup.list .advsum { display: none; }
   #setup.list #info { margin-top: 0; }
+  #setup .spg .group + .group, #setup .spg .group + .hint + .group { margin-top: 12px; }  /* 카드끼리 붙지 않게 */
+  #setup.list .spg > .sec:not(.head) { margin-top: 0; }  /* 제목 바로 아래 */
+  #setup.list .spg .adv { margin-top: 0; }
+  .profcard + .sec { margin-top: 24px; }
+  #setup .group + .sec.head + .group { margin-top: 12px; }  /* 제목이 숨겨진 경우에도 카드 간격 유지 (API 키 화면) */
   #sback { visibility: hidden; }
   .profcard { display: flex; align-items: center; gap: 14px; width: 100%; box-sizing: border-box; margin: 4px 0 0; padding: 16px; border: 0; border-radius: 22px;
               background: var(--accent-soft); text-align: left; }
@@ -683,7 +687,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .slist .g-row .val { font-size: 14px; }
   .srow .seg.full { width: auto; }
   .srow .seg button { padding: 6px 11px; font-size: 13px; }
-  .savenote { margin: 18px 0 0; font-size: 12.5px; color: var(--sub); text-align: center; }
+
   .kstat.ok { color: var(--ok); }
   .kstat.bad, .kstat.warn { color: var(--danger); }
 
@@ -1215,7 +1219,6 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
         <button type="button" class="g-row" data-go="share"><span class="sl"><span class="sic" data-i="share"></span>친구에게 소개</span><span class="val"><span class="chev"></span></span></button>
         <button type="button" class="g-row" data-go="adv"><span class="sl"><span class="sic" data-i="gear"></span>고급 설정</span><span class="val"><span class="chev"></span></span></button>
       </div>
-      <p class="savenote">바꾸면 바로 저장돼요</p>
     </div>
 
     <!-- 들어간 화면들. 처음 설정 때는 API 키와 내 정보만 한 화면에 나옴 -->
@@ -1232,7 +1235,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
           <li><i>3</i><span>이 앱으로 돌아와 아래 <b>붙여넣기</b>를 눌러요.</span></li>
         </ol>
         <button type="button" id="keyopen" class="pill wide">Google AI Studio 열기</button>
-        <p class="hint">AI Studio에서 새로 만든 키를 써야 해요. 예전 방식으로 만든 키는 막혔을 수 있어요. 결제 수단을 등록하지 않으면 무료 한도 안에서만 쓰이고, 한도를 넘으면 앱이 알려줘요. 무료 등급에서는 대화 내용이 구글 서비스 개선에 쓰일 수 있으니, 개인정보는 알려주지 않는 게 좋아요.</p>
+        <p class="hint">AI Studio에서 새로 만든 키를 쓰세요. 결제 수단이 없으면 무료 한도 안에서만 쓰여요. 무료 등급에서는 대화가 구글 서비스 개선에 쓰일 수 있으니 개인정보는 말하지 마세요.</p>
       </div>
     </div>
     <p class="sec head">API 키</p>
@@ -1277,7 +1280,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
       <div class="g-blk" id="memobody"></div>
       <div class="memoact"><button type="button" id="memonew" class="pill ghost">지금 새로 만들기</button><button type="button" id="memoclr" class="pill ghost">모두 지우기</button></div>
     </div>
-    <p class="hint only-set">하루 한 번, 최근 대화에서 튜터가 고쳐 준 내용으로 만들어요. 틀린 항목은 ×를 눌러 지우면 다시 만들 때 빠져요. 이 메모는 대화할 때 튜터에게 함께 전달돼요.</p>
+    <p class="hint only-set">튜터가 고쳐 준 내용으로 하루 한 번 만들고, 대화할 때 튜터에게 전달돼요. 틀린 항목은 ×로 지우세요.</p>
     </section>
     <section class="spg only-set" data-sp="alarm">
     <div class="group">
@@ -1285,7 +1288,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
       <div class="g-blk"><div class="g-top"><span>반복</span><span class="val" id="dayssum"></span></div><div class="days" id="days"></div></div>
       <div class="g-blk">
         <button type="button" id="calbtn" class="pill wide"><span class="cal-ic"></span>캘린더에 알림 추가</button>
-        <p class="hint">파일을 내려받아 열고 저장하면, 정해진 시각에 폰이 알려줘요. 바꾸거나 끄려면 캘린더에서 그 일정을 지우고 다시 추가하세요.</p>
+        <p class="hint">파일을 열어 캘린더에 저장하면 그 시각에 알려줘요. 바꾸려면 캘린더에서 지우고 다시 추가하세요.</p>
       </div>
     </div>
     </section>
@@ -1297,20 +1300,20 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
         <button type="button" id="ratetest" class="pill wide ghost">들어보기</button>
       </div>
     </div>
-    <p class="hint only-set">튜터 대답, 단어 발음, 오늘의 표현 등 앱의 모든 영어 읽기에 적용돼요. 1.0배보다 낮추면 통화할 때도 튜터가 천천히 말해요.</p>
+    <p class="hint only-set">앱의 모든 영어 읽기에 적용돼요. 1.0배보다 낮추면 통화도 천천히 말해요.</p>
     </section>
     <section class="spg only-set" data-sp="share">
     <div class="group">
       <div class="g-blk">
         <div class="shrow"><button type="button" id="sharebtn" class="pill"><span class="ic"></span>링크 보내기</button><button type="button" id="qrbtn" class="pill ghost"><span class="ic"></span>QR 코드</button></div>
-        <p class="hint">카카오톡으로 보내도 친구 폰에서 크롬으로 바로 열려요. 옆에 있다면 QR을 폰 카메라로 찍게 해 주세요.</p>
+        <p class="hint">카카오톡으로 보내도 크롬으로 열려요. 옆에 있다면 QR을 찍게 해 주세요.</p>
       </div>
     </div>
     </section>
     <section class="spg only-set" data-sp="adv">
     <details class="adv only-set" id="adv">
       <summary class="advsum"><span>고급 설정</span><span class="chev"></span></summary>
-      <p class="hint">잘 모르겠다면 그대로 두세요. 기본값이 가장 잘 맞아요.</p>
+      
       <p class="sec only-set">AI 모델</p>
     <div class="group only-set">
       <div class="g-blk"><div class="seg s3 full" id="aiseg"><button type="button" data-m="lite">Flash-Lite</button><button type="button" data-m="pro">Flash</button><button type="button" data-m="max">Pro<i class="crown"></i></button></div></div>
@@ -1426,7 +1429,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
       <div class="prate" id="p-ratebox">
         <div class="g-top"><span>튜터 목소리 속도</span><b id="p-ratev" class="ratev">1.0배</b></div>
         <div class="raterow"><span>느리게</span><input type="range" id="p-rate" min="0.5" max="1.5" step="0.1" value="1" aria-label="튜터 목소리 속도"><span>빠르게</span></div>
-        <p class="prhint" id="p-ratehint">익숙해지면 설정 → 튜터 목소리에서 언제든 바꿀 수 있어요.</p>
+        <p class="prhint" id="p-ratehint">나중에 설정의 소리 메뉴에서 바꿀 수 있어요.</p>
         <button type="button" id="p-ratetest" class="pill wide ghost">이 속도로 다시 듣기</button>
       </div></div>
     </div>
@@ -1781,12 +1784,12 @@ const RATE_WPM = [140, 110, 125, 140, 150, 160];
 function calibRate(tm, r) {  // 소리 확인 문장을 읽은 시간으로 이 폰 목소리의 실제 속도를 재서 레벨에 맞는 배속으로 맞춤
   const lv = (ob && ob.lvl) || 0, sec = tm.t0 && tm.t1 ? (tm.t1 - tm.t0) / 1000 : 0;
   if (localStorage.getItem('ttsrate_user') || sec < 1.2) {  // 직접 바꿨거나 제대로 못 쟀으면 그대로
-    $('p-ratehint').textContent = '익숙해지면 설정 → 튜터 목소리에서 언제든 바꿀 수 있어요.';
+    $('p-ratehint').textContent = '나중에 설정의 소리 메뉴에서 바꿀 수 있어요.';
     return;
   }
   const wpmAt1 = SAMPLE.split(/\s+/).length / sec * 60 / r;
   setRate(RATE_WPM[lv] / wpmAt1);
-  $('p-ratehint').textContent = `${lv ? `레벨 ${lv}에 맞춰 ` : ''}분당 약 ${RATE_WPM[lv]}단어 속도로 맞췄어요. 익숙해지면 설정 → 튜터 목소리에서 언제든 바꿀 수 있어요.`;
+  $('p-ratehint').textContent = `${lv ? `레벨 ${lv}에 맞춰 ` : ''}분당 약 ${RATE_WPM[lv]}단어 속도로 맞췄어요. 나중에 설정의 소리 메뉴에서 바꿀 수 있어요.`;
 }
 paintRate();
 $('asrseg').onclick = e => {
@@ -4479,13 +4482,14 @@ const COACH = {
 let coachStep = '', coachT0 = 0, pasteNext = false;
 function coachPlace() {  // 비출 곳에 맞춰 어두운 막에 구멍을 뚫고, 말풍선은 공간 넓은 쪽에
   if (!coachOn() || !COACH[coachStep]) return;
-  const r = COACH[coachStep].el().getBoundingClientRect(), W = innerWidth, H = innerHeight, pad = 8;
+  const el = COACH[coachStep].el(), r = el.getBoundingClientRect(), W = innerWidth, H = innerHeight, pad = 6;
   const k = Math.max(0, 1 - (performance.now() - coachT0) / 450);
   const e = pad + k * k * 160;  // 처음 0.45초는 구멍이 크게 시작해 대상 쪽으로 좁혀짐
-  const rad = Math.min(26, r.height / 2 + pad);  // 버튼은 알약 모양, 카드는 둥근 네모
-  const x = r.left - e, y = r.top - e, w = r.width + e * 2, h = r.height + e * 2, q = Math.min(rad + e * 0.3, w / 2, h / 2);
+  const tr = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 14;  // 모서리가 없는 줄(목록 한 칸)은 14로
+  const rad = Math.min(tr + pad, (r.height + pad * 2) / 2);  // 동심 둥글기: 바깥 모서리 = 대상 모서리 + 간격
+  const x = r.left - e, y = r.top - e, w = r.width + e * 2, h = r.height + e * 2, q = Math.min(rad + (e - pad), w / 2, h / 2);
   $('coachdim').style.clipPath = `path(evenodd, 'M0 0H${W}V${H}H0Z M${x + q} ${y}H${x + w - q}A${q} ${q} 0 0 1 ${x + w} ${y + q}V${y + h - q}A${q} ${q} 0 0 1 ${x + w - q} ${y + h}H${x + q}A${q} ${q} 0 0 1 ${x} ${y + h - q}V${y + q}A${q} ${q} 0 0 1 ${x + q} ${y}Z')`;
-  Object.assign($('coachring').style, { left: r.left - pad + 'px', top: r.top - pad + 'px', width: r.width + pad * 2 + 'px', height: r.height + pad * 2 + 'px', borderRadius: rad + 'px' });
+  Object.assign($('coachring').style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', borderRadius: q + 'px' });  // 구멍과 같은 사각형, 같은 모서리
   const tip = $('coachtip'), th = tip.offsetHeight, below = H - r.bottom - pad - 18, above = r.top - pad - 18;
   const down = below >= th || below >= above;
   tip.classList.toggle('up', !down);
@@ -4497,7 +4501,8 @@ function openCoach(step) {
   if (!c || !scr) return;
   document.querySelectorAll('.coachpulse').forEach(x => x.classList.remove('coachpulse'));
   coachStep = step;
-  $('coachtip').querySelector('b').textContent = c.t;
+  const flow = ['tour', 'studio', 'paste'].includes(step) ? ['tour', 'studio', 'paste'] : ['mic', 'snd'];
+  $('coachtip').querySelector('b').innerHTML = `<span class="cstep">${flow.indexOf(step) + 1}/${flow.length}</span>${escH(c.t)}`;  // 몇 단계 중 몇 번째인지
   $('coachtip').querySelector('p').innerHTML = c.p;
   if (step === 'tour' || step === 'studio') $('guide').classList.add('open');
   if (step === 'paste') $('keyacc').classList.add('open');  // 붙여넣기 안내 때는 키 칸을 펼침
