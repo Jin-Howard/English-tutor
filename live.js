@@ -3,10 +3,13 @@
 window.LiveCall = (() => {
   const MODEL = 'models/gemini-3.8-live';
   const URL_WS = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=';
+  const WAIT_MS = [1300, 1600, 1300, 1100, 900, 800];  // 레벨별: 말이 끝났다고 보기까지 기다리는 침묵 (0 = 레벨 모름, 최대 2000)
   const IN_RATE = 16000, OUT_RATE = 24000, LONG_SEC = 15 * 60;  // 음성 세션은 약 15분이 한계라 그 전에 안내
-  const JITTER = 0.15;   // 말 시작 때 모아 두는 시간 (인터넷 지연에도 끊김 없이)
+  const JITTER = 0.3, REBUF = 0.15;  // 말 시작 때 / 조각이 늦게 왔을 때 모아 두는 시간 (인터넷이 출렁여도 말이 뚝뚝 끊기지 않게)
   const FADE = 0.03;     // 끊을 때 소리를 줄이는 시간 (뚝 소리 방지)
-  const GATE = 0.035, HOLD = 500;  // 튜터가 말하는 동안은 이 크기 이상만 보냄 (에코 줄이기), 넘으면 0.5초 유지
+  // 튜터가 말하는 동안 스피커 소리가 마이크로 다시 들어가면, 서버가 내가 말한 줄 알고 튜터 말을 끊음.
+  // 그래서 튜터가 말하는 중엔 '울림 크기'를 계속 재고, 그보다 확실히 큰 소리가 잠깐 이어질 때만 내 말로 보고 보냄
+  const GATE_MIN = 0.06, GATE_X = 3, SUSTAIN = 3, HOLD = 700, PRE = 6;  // 최소 크기, 울림의 몇 배, 연속 조각 수(40ms씩), 유지 ms, 앞부분 보존 조각 수
   // 마이크 처리기: 오디오 전용 스레드에서 16kHz로 줄이고 40ms씩 묶어 보냄
   const WORKLET = `class Cap extends AudioWorkletProcessor {
     constructor() { super(); this.r = sampleRate / ${IN_RATE}; this.acc = 0; this.sum = 0; this.n = 0; this.e = 0; this.m = 0; this.out = new Int16Array(640); this.k = 0; }
@@ -36,9 +39,10 @@ window.LiveCall = (() => {
     'Level 4: natural speed; common idioms are fine.',
     'Level 5: native speed with idioms and nuance; do not simplify.'];
 
-  let spoke = 0, ws, ctx, stream, src, node, sink, out, ana, raf, timer, wake = null, attempt = 0, rest = null, gateT = 0, meT = 0, wantLat = false, lat = [];
+  let spoke = 0, ws, ctx, stream, src, node, sink, out, ana, raf, timer, wake = null, attempt = 0, rest = null, gateT = 0, echo = 0, loud = 0, pre = [], under = 0, cuts = 0, meT = 0, wantLat = false, lat = [];
   let ready = false, ended = true, muted = false, t0 = 0, playAt = 0, playing = [], lines = [], tokens = 0;
   const $c = id => document.getElementById(id);
+  const DEBUG = /[?&]debug/.test(location.search);  // 주소 끝에 ?debug 를 붙이면 통화 진단 숫자 표시
 
   // ===== 화면 =====
   const CSS = `
@@ -48,7 +52,7 @@ window.LiveCall = (() => {
   #call .cl-top { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 12px; }
   #call .cl-top b { font-size: 19px; font-weight: 800; }
   #call .cl-top span { font-size: 14px; color: var(--sub); font-variant-numeric: tabular-nums; }
-  #call .cl-orb { position: relative; width: 156px; height: 156px; margin: 44px 0 38px; }
+  #call .cl-orb { cursor: pointer; position: relative; width: 156px; height: 156px; margin: 44px 0 38px; }
   #call .cl-orb::before { content: ''; position: absolute; inset: -14px; border-radius: 50%; background: var(--accent);
                           opacity: calc(.18 + var(--lv, 0) * .5); transform: scale(calc(1 + var(--lv, 0) * .1)); transition: transform .08s, opacity .08s; }  /* 목소리에 반응하는 테두리 */
   #call .cl-orb .face { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; background: var(--today-bg, var(--accent-soft)); }
@@ -65,12 +69,12 @@ window.LiveCall = (() => {
   #call .cl-cap p.ai { color: var(--text); }
   #call .cl-cap p.old { opacity: .45; }
   #call .cl-note { min-height: 20px; margin: 10px 0; font-size: 13px; line-height: 1.5; color: var(--sub); text-align: center; text-wrap: pretty; }
-  #call .cl-btns { display: flex; gap: 28px; }
+  #call .cl-btns { display: flex; gap: 22px; }
   #call .cl-btns button { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; border: 0; background: none; color: var(--sub); font-size: 13px; font-weight: 600; }
   #call .cl-btns span { display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: var(--surface2); color: var(--text); }
   #call #cl-end span { background: var(--danger); color: #fff; }
-  #call #cl-mute.on span { background: var(--text); color: var(--bg); }
-  #call.fail #cl-mute, #call.wait #cl-mute { visibility: hidden; }  /* 연결 전, 끊긴 뒤엔 음소거 의미 없음 */
+  #call #cl-mute.on span, #call #cl-slow.on span { background: var(--text); color: var(--bg); }
+  #call.fail #cl-mute, #call.wait #cl-mute, #call.fail #cl-slow, #call.wait #cl-slow { visibility: hidden; }  /* 연결 전, 끊긴 뒤엔 음소거 의미 없음 */
   #call .cl-first { display: none; width: 100%; max-width: 420px; margin-top: 24px; text-align: center; }
   #call.first .cl-first { display: block; }
   #call.first .cl-orb, #call.first .cl-state, #call.first .cl-cap, #call.first .cl-btns { display: none; }
@@ -83,6 +87,7 @@ window.LiveCall = (() => {
   #call .cl-fail button.go { background: var(--accent); color: var(--on-accent); }`;
   const I_MIC = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>';
   const I_MUTE = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M9 9v2a3 3 0 0 0 5 2.2M15 9.3V5a3 3 0 0 0-5.7-1.3M5 11a7 7 0 0 0 11.5 5.3M19 11a7 7 0 0 1-.6 2.8M12 18v4"/></svg>';
+  const I_SLOW = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>';  // 시계
   const I_END = '<svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 9c-3.3 0-6.3.9-8.7 2.4-.6.4-.9 1.1-.7 1.8l.6 2c.2.7 1 1.1 1.7.9l2.9-.9c.6-.2 1-.8.9-1.4l-.2-1.6c1.1-.4 2.3-.6 3.5-.6s2.4.2 3.5.6l-.2 1.6c-.1.6.3 1.2.9 1.4l2.9.9c.7.2 1.5-.2 1.7-.9l.6-2c.2-.7-.1-1.4-.7-1.8C18.3 9.9 15.3 9 12 9z"/></svg>';
 
   function mount() {
@@ -106,6 +111,7 @@ window.LiveCall = (() => {
       <p class="cl-note" id="cl-note"></p>
       <div class="cl-fail"><button type="button" id="cl-text">글로 대화하기</button><button type="button" id="cl-again" class="go">다시 걸기</button></div>
       <div class="cl-btns">
+        <button type="button" id="cl-slow"><span>${I_SLOW}</span>천천히</button>
         <button type="button" id="cl-mute"><span>${I_MIC}</span>음소거</button>
         <button type="button" id="cl-end"><span>${I_END}</span>끊기</button>
       </div>`;
@@ -116,6 +122,13 @@ window.LiveCall = (() => {
     $c('cl-again').onclick = () => { logTime(); stop(); begin(); };
     $c('cl-text').onclick = () => { close(); if (typeof navTo === 'function') navTo('main'); };
     $c('cl-mute').onclick = () => setMute(!muted);
+    $c('cl-slow').onclick = () => setSlow(!slow);
+    d.querySelector('.cl-orb').onclick = () => {  // 튜터가 말할 때 누르면 바로 멈추고 내 말을 들음 (시끄러운 곳에서 끼어들기)
+      if (!playing.length) return;
+      flush();
+      gateT = performance.now() + 4000;
+      setState('listen');
+    };
   }
   function setMute(on) {
     muted = on;
@@ -125,7 +138,8 @@ window.LiveCall = (() => {
   const setState = s => {
     const box = $c('call');
     ['wait', 'listen', 'speak', 'fail'].forEach(k => box.classList.toggle(k, k === s));
-    $c('cl-state').textContent = { wait: '연결하는 중이에요', listen: '듣고 있어요', speak: '튜터가 말하는 중', fail: '통화가 끊겼어요' }[s];
+    $c('cl-state').textContent = { wait: '연결하는 중이에요', listen: '듣고 있어요', speak: '튜터가 말하는 중 · 눌러서 끼어들기', fail: '통화가 끊겼어요' }[s];
+    if (DEBUG) $c('cl-lat').textContent = `${lat.length ? '반응 ' + lat[lat.length - 1] + '초 · ' : ''}끊김 ${under} · 끼어듦 ${cuts} · 울림 ${echo.toFixed(3)}`;
   };
   const note = t => { $c('cl-note').textContent = t || ''; };
 
@@ -189,7 +203,7 @@ window.LiveCall = (() => {
     for (let i = 0; i < n; i++) { let v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); if (v >= 0x8000) v -= 0x10000; ch[i] = v / 32768; }
     const now = ctx.currentTime, gap = playAt < now + 0.01;
     if (gap) {  // 새 말 시작이거나 조각이 늦게 옴: 잠깐 모았다가 재생, 첫 3ms는 부드럽게 시작 (틱 방지)
-      playAt = now + (playing.length ? 0.06 : JITTER);
+      if (playing.length) { under++; playAt = now + REBUF; } else playAt = now + JITTER;  // under: 진단용 끊김 횟수
       const f = Math.min(n, Math.round(OUT_RATE * 0.003));
       for (let i = 0; i < f; i++) ch[i] *= i / f;
     }
@@ -217,6 +231,20 @@ window.LiveCall = (() => {
     out.gain.setValueAtTime(1, t + FADE + 0.02);
   }
 
+  // ===== 말하기 속도: Live 음성은 배속 값이 없어 지시문으로 조절 (재생 속도를 바꾸면 목소리 높이가 변함) =====
+  let slow = false;
+  function pace() {
+    const r = typeof ttsRate === 'number' ? ttsRate : 1;
+    if (r >= 1) return '';  // 기본은 자연스러운 속도
+    return `Speaking pace: about ${Math.max(50, Math.round(100 * r))}% of a native speaker's normal speed. Articulate every word and pause briefly between sentences. Keep this pace for the whole call.`;
+  }
+  function setSlow(on) {  // 통화 중 '더 천천히' 버튼
+    slow = on;
+    $c('cl-slow').classList.toggle('on', on);
+    if (!ready || !ws || ws.readyState !== 1) return;
+    const t = on ? 'From now on, speak even more slowly and clearly, with longer pauses. Just say okay and continue.' : 'You can go back to the earlier pace now. Just say okay and continue.';
+    ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: t }] }], turnComplete: true } }));
+  }
   // ===== 시스템 지시문 =====
   function sys() {
     const p = (typeof profile !== 'undefined' && profile) || {}, o = (typeof ob !== 'undefined' && ob) || {};
@@ -228,6 +256,7 @@ window.LiveCall = (() => {
       'If the learner speaks Korean, reply in simple English and help them say it in English.',
       o.lvl ? `Learner level ${o.lvl} of 5. ${LIVE_RULE[o.lvl]}` : 'Learner level unknown: start simple and adjust to the learner.',
       `Learner goals: ${goals}.`,
+      pace(),
       typeof memoNotes === 'function' ? memoNotes() : ''
     ].filter(Boolean).join('\n');
   }
@@ -240,7 +269,11 @@ window.LiveCall = (() => {
     ws.onopen = () => {
       const setup = { model: MODEL, generationConfig: { responseModalities: ['AUDIO'] }, systemInstruction: { parts: [{ text: sys() }] },
         inputAudioTranscription: {}, outputAudioTranscription: {} };
-      if (attempt === 0) setup.contextWindowCompression = { slidingWindow: {} };  // 긴 통화에서 앞부분을 정리해 용량 확보 (거부되면 빼고 재시도)
+      if (attempt === 0) {  // 선택 옵션: 서버가 거부하면 빼고 한 번 더 연결
+        setup.contextWindowCompression = { slidingWindow: {} };  // 긴 통화에서 앞부분을 정리해 용량 확보
+        const lv = (typeof ob !== 'undefined' && ob && ob.lvl) || 0;
+        setup.realtimeInputConfig = { automaticActivityDetection: { endOfSpeechSensitivity: 'END_SENSITIVITY_LOW', silenceDurationMs: WAIT_MS[lv] } };  // 생각하며 멈춰도 끊지 않게
+      }
       ws.send(JSON.stringify({ setup }));
     };
     ws.onmessage = async e => {
@@ -257,7 +290,7 @@ window.LiveCall = (() => {
       if (m.usageMetadata) tokens = Math.max(tokens, m.usageMetadata.totalTokenCount || 0);  // 실측용
       const c = m.serverContent;
       if (c) {
-        if (c.interrupted) { flush(); closeLine(); setState('listen'); }
+        if (c.interrupted) { cuts++; flush(); closeLine(); setState('listen'); }
         ((c.modelTurn && c.modelTurn.parts) || []).forEach(p => { if (p.inlineData && /audio/.test(p.inlineData.mimeType || '')) play(p.inlineData.data); });
         if (c.inputTranscription && c.inputTranscription.text) { cap('me', c.inputTranscription.text); meT = performance.now(); wantLat = true; }  // 내 말 마지막 시각 → 튜터 첫 소리까지 = 반응 시간
         if (c.outputTranscription && c.outputTranscription.text) cap('ai', c.outputTranscription.text);
@@ -282,12 +315,25 @@ window.LiveCall = (() => {
   function sendPcm(b64, lv) {  // 튜터가 말하는 중엔 큰 소리(내 목소리)만 보냄: 스피커 소리가 다시 들어가는 에코 줄이기
     micLv = muted ? 0 : lv;
     if (!ready || muted || !ws || ws.readyState !== 1) return;
-    const now = performance.now();
-    if (playing.length) {
-      if (lv > GATE) gateT = now + HOLD;
-      else if (now > gateT) return;
+    const now = performance.now(), send = d => ws.send(JSON.stringify({ realtimeInput: { audio: { data: d, mimeType: 'audio/pcm;rate=16000' } } }));
+    if (playing.length && now > gateT) {
+      const th = Math.max(GATE_MIN, echo * GATE_X);
+      loud = lv > th ? loud + 1 : 0;
+      if (loud < SUSTAIN) {  // 아직 울림으로 봄: 보내지 않고 울림 크기만 학습, 앞부분은 잠깐 보관
+        if (lv <= th) echo = echo * .9 + lv * .1;
+        pre.push(b64);
+        if (pre.length > PRE) pre.shift();
+        return;
+      }
+      gateT = now + HOLD;  // 내 목소리로 판단: 보관해 둔 앞부분부터 보냄 (첫 음절이 잘리지 않게)
+      pre.push(b64);
+      pre.forEach(send);
+      pre = [];
+      return;
     }
-    ws.send(JSON.stringify({ realtimeInput: { audio: { data: b64, mimeType: 'audio/pcm;rate=16000' } } }));
+    if (playing.length && lv > Math.max(GATE_MIN, echo * GATE_X)) gateT = now + HOLD;  // 말하는 동안 계속 열어 둠
+    if (!playing.length) { echo *= .98; loud = 0; pre = []; }
+    send(b64);
   }
   async function startMic() {
     stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
@@ -343,8 +389,10 @@ window.LiveCall = (() => {
   }
 
   async function begin() {
-    ended = false; attempt = 0; spoke = 0; lines = []; tokens = 0; playAt = 0; lat = []; meT = 0; wantLat = false;
+    ended = false; attempt = 0; spoke = 0; echo = 0; loud = 0; pre = []; under = 0; cuts = 0; lines = []; tokens = 0; playAt = 0; lat = []; meT = 0; wantLat = false;
     setMute(false);
+    slow = false;
+    $c('cl-slow').classList.remove('on');
     $c('cl-lat').textContent = '';
     if (!out) {  // 튜터 소리 → 볼륨(페이드용) → 분석기(테두리용) → 스피커
       out = ctx.createGain();
@@ -375,7 +423,7 @@ window.LiveCall = (() => {
   function save() {  // 통화 후 교정 리포트(다음 단계)를 위해 마지막 통화 기록 저장
     const sec = spoke;
     if (!lines.length) return;
-    try { localStorage.setItem('lastcall', JSON.stringify({ at: Date.now(), sec, tokens, lat, lines: lines.map(l => ({ who: l.who, text: l.text.trim() })) })); } catch (e) {}
+    try { localStorage.setItem('lastcall', JSON.stringify({ at: Date.now(), sec, tokens, lat, under, cuts, lines: lines.map(l => ({ who: l.who, text: l.text.trim() })) })); } catch (e) {}
   }
   function logTime() {  // 날짜별 통화 시간 (홈의 오늘 목표, 연속 학습에 씀). 최근 60일만 보관
     if (!t0 || !ready) return;
@@ -411,5 +459,5 @@ window.LiveCall = (() => {
     if (!localStorage.getItem('livenote')) { $c('call').classList.add('first'); return; }
     begin();
   }
-  return { open, close, _test: { down, toB64, sys, sendPcm, fake: on => { playing = on ? [{}] : []; gateT = 0; }, ready: () => ready } };  // 검사용
+  return { open, close, active: () => !ended, _test: { down, toB64, sys, pace, sendPcm, fake: on => { playing = on ? [{}] : []; gateT = 0; loud = 0; pre = []; }, echo: () => echo, ready: () => ready } };  // 검사용
 })();

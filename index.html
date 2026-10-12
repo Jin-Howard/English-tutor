@@ -230,11 +230,16 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .hero .go svg { width: 16px; height: 16px; }
   .talktop { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }  /* 레벨 칩과 글로 대화를 한 줄에 */
   .talktop .lvchip { margin-bottom: 0; }
-  .chatpill { display: inline-flex; align-items: center; gap: 4px; height: 27px; margin-left: auto; padding: 0 11px 0 9px; border: 0; border-radius: 999px;
-              background: rgba(255, 255, 255, .7); color: var(--sub); font-size: 12px; font-weight: 800; }  /* 보조 동작: 레벨 칩과 같은 모양 */
-  .chatpill .ic { display: flex; line-height: 0; }
-  :root[data-theme="dark"] .chatpill, :root:not([data-theme]) .chatpill { background: rgba(255, 212, 59, .12); }
-  .talkcard .gart { pointer-events: auto; cursor: pointer; }  /* 캐릭터를 눌러도 통화 */
+  .ctarow { position: relative; z-index: 1; display: flex; gap: 8px; margin-top: 18px; }
+  .cta { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; height: 50px; padding: 0 12px; border: 0; border-radius: 16px;
+         font-size: 15px; font-weight: 800; letter-spacing: -.2px; white-space: nowrap; }
+  .cta .ic { display: flex; line-height: 0; }
+  .cta.main { background: #111111; color: #FFFFFF; box-shadow: 0 6px 16px rgba(0, 0, 0, .16); }  /* 통화: 가장 진하게 */
+  .cta.sub { background: rgba(255, 255, 255, .78); color: #111111; }  /* 채팅: 옅게 */
+  :root[data-theme="dark"] .cta.main, :root:not([data-theme]) .cta.main { background: var(--accent); color: #111111; box-shadow: none; }
+  :root[data-theme="dark"] .cta.sub, :root:not([data-theme]) .cta.sub { background: rgba(255, 255, 255, .08); color: var(--text); }
+  .talkcard .gart { top: 10px; right: 8px; bottom: auto; width: 96px; pointer-events: auto; cursor: pointer; }  /* 캐릭터는 오른쪽 위, 눌러도 통화 */
+  .talkcard .tsub { margin-bottom: 0; }
   .callbtn { flex: none; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; padding: 0; border: 0; border-radius: 50%;
              background: var(--surface); color: var(--text); box-shadow: var(--shadow); }  /* 통화하기 */
   #bar .callbtn { width: 40px; height: 40px; background: var(--surface2); box-shadow: none; }
@@ -1129,17 +1134,13 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     </section>
     <section class="talkcard">
       <img class="gart" id="gart" src="img/art.webp" alt="" decoding="async">
-      <div class="talktop">
-        <span class="lvchip" id="m-eyebrow"></span>
-        <button type="button" id="m-chat" class="chatpill"><span class="ic"></span><span id="m-chat-t">글로 대화</span></button>
-      </div>
+      <div class="talktop"><span class="lvchip" id="m-eyebrow"></span></div>
       <h2>튜터에게 전화 걸기</h2>
       <p class="tsub">전화하듯 바로 말해요</p>
-      <button type="button" id="m-call" class="hero">
-        <span class="hic"></span>
-        <span class="ht"><b>통화하기</b></span>
-        <span class="go"></span>
-      </button>
+      <div class="ctarow">  <!-- 주 동작(통화)과 보조 동작(채팅)을 같은 크기로 나란히, 진하기로만 구분 -->
+        <button type="button" id="m-call" class="cta main"><span class="ic"></span>통화하기</button>
+        <button type="button" id="m-chat" class="cta sub"><span class="ic"></span><span id="m-chat-t">채팅하기</span></button>
+      </div>
     </section>
     <div id="install" class="banner">
       <button type="button" id="install-go" class="in-main">
@@ -1296,7 +1297,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
         <button type="button" id="ratetest" class="pill wide ghost">들어보기</button>
       </div>
     </div>
-    <p class="hint only-set">튜터 대답, 단어 발음, 오늘의 표현 등 앱의 모든 영어 읽기에 적용돼요.</p>
+    <p class="hint only-set">튜터 대답, 단어 발음, 오늘의 표현 등 앱의 모든 영어 읽기에 적용돼요. 1.0배보다 낮추면 통화할 때도 튜터가 천천히 말해요.</p>
     </section>
     <section class="spg only-set" data-sp="share">
     <div class="group">
@@ -3219,9 +3220,10 @@ function chime() {  // 이제 말하세요 알림음 (두 음을 짧게)
     } catch (e) { res(); }
   });
 }
+const inCall = () => !!(window.LiveCall && window.LiveCall.active());  // 통화 중이면 채팅 쪽 소리, 녹음은 멈춤
 function loopNext() {
-  if (!talkLoop || listening || asrBusy || $('main').style.display !== 'flex') return;
-  chime().then(() => { if (talkLoop && !listening && $('main').style.display === 'flex') startVoice(); });
+  if (!talkLoop || listening || asrBusy || $('main').style.display !== 'flex' || inCall()) return;
+  chime().then(() => { if (talkLoop && !listening && $('main').style.display === 'flex' && !inCall()) startVoice(); });
 }
 async function handleVoice(buf, bufs, rate) {
   const audio = { inline_data: { mime_type: 'audio/wav', data: await toB64(buf) } };
@@ -3331,8 +3333,8 @@ const I_CHECK = icon('<polyline points="20 6 9 17 4 12"/>', 16).replace('stroke-
 const TAB_ICONS = { menu: I_HOME, vocab: I_BOOK, hist: I_CLOCK, setup: I_SLIDERS };
 document.querySelectorAll('#tabs .tab[data-s]').forEach(t => t.querySelector('.ti-ic').innerHTML = sz(TAB_ICONS[t.dataset.s], 24));
 $('fab').querySelector('.fab-ic').innerHTML = sz(I_WAVE, 28);
-$('m-call').querySelector('.hic').innerHTML = sz(I_PHONE, 22);
-$('m-chat').querySelector('.ic').innerHTML = sz(I_CHAT, 14);
+$('m-call').querySelector('.ic').innerHTML = sz(I_PHONE, 19);
+$('m-chat').querySelector('.ic').innerHTML = sz(I_CHAT, 19);
 $('barcall').innerHTML = sz(I_PHONE, 20);
 $('m-rev').querySelector('.ic').innerHTML = sz(I_REV, 22);
 $('m-course').querySelector('.ic').innerHTML = sz(I_BOOK, 22);
@@ -3491,7 +3493,7 @@ function paintMenu() {
   $('m-eyebrow').textContent = ob && ob.lvl ? `레벨 ${ob.lvl}${profile && profile.field ? ' · ' + profile.field.split(',')[0].trim() : ''}` : '';  // 무엇을 연습할지
   $('m-eyebrow').style.display = ob && ob.lvl ? '' : 'none';
   $('w-goal').textContent = (ob && ob.days) || 5;
-  $('m-chat-t').textContent = (chats[dayKey] || []).length ? '대화 이어서' : '글로 대화';
+  $('m-chat-t').textContent = (chats[dayKey] || []).length ? '채팅 이어서' : '채팅하기';
   const cs = courseStats(), rec = recUnit(), dueN = dueWords().length;
   $('m-course-sub').textContent = rec ? `${rec.title} ${unitStatus(rec) === 'progress' ? '이어서 하기' : '시작하기'} · ${cs.done}/${cs.total}` : `레벨 ${cs.lv} 코스 완료 · ${cs.done}/${cs.total}`;
   $('m-course-bar').style.width = Math.round(cs.done / cs.total * 100) + '%';
@@ -3528,6 +3530,9 @@ $('m-call').onclick = $('barcall').onclick = $('fab').onclick = () => {
   if (navigator.vibrate) navigator.vibrate(8);  // 안드로이드: 누른 느낌
   if (!apiKey) return toast('설정에서 API 키를 먼저 넣어 주세요', 2600);
   if (!window.WebSocket || !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) return toast('이 브라우저는 통화를 지원하지 않아요. 크롬이나 사파리에서 열어 주세요.', 3000);
+  setLoop(false);  // 채팅 대화 모드를 끄고, 녹음 중이면 버림 (통화와 마이크를 동시에 쓰면 알림음, 잡음이 남)
+  if (recCtx) stopRecord(false);
+  stopSpeak();
   const ac = new (window.AudioContext || window.webkitAudioContext)();
   ac.resume();
   loadLive().then(() => window.LiveCall.open(ac)).catch(() => { ac.close(); toast('통화 기능을 불러오지 못했어요. 인터넷을 확인해 주세요.', 2600); });
