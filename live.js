@@ -461,6 +461,7 @@ Rules:
     send(b64);
   }
   async function startMic() {
+    if (typeof setAudioSession === 'function') setAudioSession('play-and-record');  // 통화 채널: 볼륨 버튼이 통화 소리에 적용
     stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
     await ctx.resume();
     src = ctx.createMediaStreamSource(stream);
@@ -569,6 +570,7 @@ Rules:
     save();
     stop();
     if (ctx) { ctx.close().catch(() => {}); ctx = null; }
+    if (typeof setAudioSession === 'function') setAudioSession('playback');  // 통화가 끝나면 다시 미디어 채널
     out = ana = null;
     $c('call').classList.remove('on', 'first', 'wait', 'listen', 'speak', 'fail', 'report');
     $c('cl-time').textContent = '통화 준비';

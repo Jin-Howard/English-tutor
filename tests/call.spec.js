@@ -115,3 +115,20 @@ test('채팅 화면에서 통화를 열어도 받아쓰기 녹음은 꺼짐', as
   await expect(page.locator('#call')).toHaveClass(/\bon\b/);
   expect(await page.evaluate(() => [listening, !!recCtx])).toEqual([false, false]);
 });
+
+test('소리 채널: 평소 미디어, 통화와 받아쓰기 중엔 녹음용', async ({ page }) => {
+  await page.addInitScript(() => { window.__as = []; Object.defineProperty(navigator, 'audioSession', { value: { set type(t) { window.__as.push(t); this._t = t; }, get type() { return this._t; } } }); });
+  await seed(page);
+  await fakeLive(page);
+  await open(page);
+  expect(await page.evaluate(() => navigator.audioSession.type)).toBe('playback');
+  await page.click('#m-call');
+  await expect.poll(() => page.evaluate(() => navigator.audioSession.type)).toBe('play-and-record');
+  await page.click('#cl-end');
+  await expect.poll(() => page.evaluate(() => navigator.audioSession.type)).toBe('playback');
+  await page.click('#m-chat');
+  await page.click('#act');
+  await expect.poll(() => page.evaluate(() => navigator.audioSession.type)).toBe('play-and-record');
+  await page.click('#act');
+  await expect.poll(() => page.evaluate(() => navigator.audioSession.type)).toBe('playback');
+});

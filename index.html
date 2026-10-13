@@ -187,14 +187,14 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .hello { padding: 4px 0 18px; }
   .hello .gh { margin: 0 0 4px; font-size: 14px; font-weight: 700; color: var(--sub); }
   .hello h1 { margin: 0; font-size: clamp(18px, 5vw, 21px); line-height: 1.35; font-weight: 800; letter-spacing: -.5px; word-break: keep-all; }  /* 한 줄로 */
-  .today { display: flex; align-items: center; gap: 12px; margin-top: 14px; }  /* 오늘의 목표: 통화 시간 */
-  .today .ring { --p: 0; position: relative; flex: none; width: 40px; height: 40px; border-radius: 50%;
+  .goalbar { display: flex; align-items: center; gap: 12px; margin-top: 14px; }  /* 오늘의 목표: 통화 시간 (이번 주 '.dy.today'와 이름이 겹치지 않게) */
+  .goalbar .ring { --p: 0; position: relative; flex: none; width: 40px; height: 40px; border-radius: 50%;
                  background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--surface2) 0); }
-  .today .ring i { position: absolute; inset: 5px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--bg); color: var(--sub); line-height: 0; }
-  .today .ring.full i { color: var(--accent-text); }
-  .today .tt { display: flex; flex-direction: column; gap: 2px; }
-  .today b { font-size: 15px; font-weight: 800; }
-  .today small { font-size: 13px; color: var(--sub); }
+  .goalbar .ring i { position: absolute; inset: 5px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--bg); color: var(--sub); line-height: 0; }
+  .goalbar .ring.full i { color: var(--accent-text); }
+  .goalbar .tt { display: flex; flex-direction: column; gap: 2px; }
+  .goalbar b { font-size: 15px; font-weight: 800; }
+  .goalbar small { font-size: 13px; color: var(--sub); }
   .wkempty { margin: -4px 0 14px; font-size: 13px; color: var(--sub); text-align: center; }
   .talkcard { position: relative; margin: 0 0 12px; padding: 22px 20px 20px; border-radius: 28px; background: var(--today-bg); overflow: hidden; isolation: isolate; }
   .talkcard::before { content: ''; position: absolute; right: -40px; bottom: -50px; z-index: -1; width: 230px; height: 230px; border-radius: 50%;
@@ -230,9 +230,9 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
   .hero .go svg { width: 16px; height: 16px; }
   .talktop { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }  /* 레벨 칩과 글로 대화를 한 줄에 */
   .talktop .lvchip { margin-bottom: 0; }
-  .ctarow { position: relative; z-index: 1; display: flex; gap: 8px; margin-top: 18px; }
-  .cta { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; height: 50px; padding: 0 12px; border: 0; border-radius: 16px;
-         font-size: 15px; font-weight: 800; letter-spacing: -.2px; white-space: nowrap; }
+  .ctarow { position: relative; z-index: 1; display: flex; gap: 8px; margin-top: 18px; }  /* 제목, 설명과 같은 왼쪽 선에서 시작 */
+  .cta { flex: none; display: flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 18px 0 15px; border: 0; border-radius: 999px;
+         font-size: 14.5px; font-weight: 800; letter-spacing: -.2px; white-space: nowrap; }
   .cta .ic { display: flex; line-height: 0; }
   .cta.main { background: var(--accent); color: #111111; box-shadow: 0 6px 14px rgba(230, 170, 0, .3); }  /* 통화: 카드와 같은 노란 계열로 조화, 그림자로 구분 */
   .cta.sub { background: rgba(255, 255, 255, .78); color: #111111; }  /* 채팅: 옅게 */
@@ -1115,7 +1115,7 @@ document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark
     <section class="hello">
       <p class="gh" id="g-en"></p>
       <h1 id="g-ko"></h1>
-      <div class="today" id="today">
+      <div class="goalbar" id="today">
         <span class="ring" id="t-ring"><i></i></span>
         <span class="tt"><b id="t-main"></b><small id="t-sub"></small></span>
       </div>
@@ -2004,6 +2004,11 @@ function speakNow(text, onEnd, timing) {  // onEnd: 끝까지 읽었을 때만 �
   return true;
 }
 // 영어 음성 고르기 (폰마다 목록이 늦게 채워질 수 있음)
+// 소리 채널: 아이폰 사파리는 기본이 '효과음' 채널이라, 볼륨 버튼이 앱 소리 대신 벨소리 크기를 바꾸고 무음 모드면 소리가 꺼짐.
+// 앱 소리를 '미디어' 채널로 지정해서 앱을 쓰는 동안 볼륨 버튼이 앱 소리에 먼저 적용되게 함 (iOS 17 이상, 지원 안 하면 그냥 넘어감)
+function setAudioSession(t) { try { if (navigator.audioSession) navigator.audioSession.type = t; } catch (e) {} }
+setAudioSession('playback');
+addEventListener('pageshow', () => { setAudioSession('auto'); setAudioSession('playback'); });  // 다시 열었을 때 채널이 풀려 있으면 다시 지정
 let enVoice = null, ttsWarned = false;
 const NOVELTY = /^(Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Good News|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Eddy|Flo|Grandma|Grandpa|Reed|Rocko|Sandy|Shelley)\b/i;
 function loadVoices() {
@@ -2919,6 +2924,7 @@ async function startRecord() {
   vFirst = vLast = -1;
   noiseFloor = 1;
   voiced = false;
+  setAudioSession('play-and-record');  // 녹음하는 동안은 녹음용 채널
   recCtx = new (window.AudioContext || window.webkitAudioContext)();  // 누른 순간 만들어야 아이폰에서도 소리가 켜짐
   const ctx = recCtx;
   const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
@@ -2957,6 +2963,7 @@ function stopRecord(keep, silent) {
   if (recStream) recStream.getTracks().forEach(t => t.stop());
   recCtx.close();
   recCtx = recSrc = recNode = recStream = null;
+  setAudioSession('playback');  // 녹음이 끝나면 다시 미디어 채널
   recBufs = [];  // 쓴 녹음은 바로 버림
   voiced = false;
   listening = false;

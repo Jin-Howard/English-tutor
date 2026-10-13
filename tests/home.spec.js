@@ -38,3 +38,20 @@ test('채팅하기는 채팅 화면을 연다', async ({ page }) => {
   await expect(page.locator('#inp')).toBeVisible();
   await expect(page.locator('#barcall')).toBeVisible();
 });
+
+test('이번 주: 오늘 동그라미가 다른 날과 같은 줄', async ({ page }) => {
+  await seed(page);
+  await open(page);
+  const tops = await page.evaluate(() => [...document.querySelectorAll('#w-dots .dy i')].map(i => Math.round(i.getBoundingClientRect().top)));
+  expect(new Set(tops).size).toBe(1);
+});
+
+test('통화하기, 채팅하기는 글 줄에 맞춘 크기 (카드를 꽉 채우지 않음)', async ({ page }) => {
+  await seed(page);
+  await open(page);
+  const [card, call, chat] = await Promise.all(['.talkcard', '#m-call', '#m-chat'].map(s => page.locator(s).boundingBox()));
+  expect(call.height).toBe(44);
+  expect(call.x).toBe(chat.x - call.width - 8);  // 나란히, 간격 8
+  expect(call.width + chat.width).toBeLessThan(card.width * 0.75);
+  expect(Math.round(call.x)).toBe(Math.round((await page.locator('.talkcard h2').boundingBox()).x));  // 제목과 같은 왼쪽 선
+});
