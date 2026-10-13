@@ -1,0 +1,4 @@
+# 테스트 도구가 만드는 파일 (저장소에 올리지 않음)
+node_modules/
+test-results/
+playwright-report/
