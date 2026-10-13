@@ -390,7 +390,7 @@ Rules:
   function connect() {
     ready = false;
     setState('wait');
-    ws = new WebSocket(URL_WS + encodeURIComponent(apiKey));
+    const sock = ws = new WebSocket(URL_WS + encodeURIComponent(apiKey));
     ws.onopen = () => {
       const setup = { model: MODEL, generationConfig: { responseModalities: ['AUDIO'] }, systemInstruction: { parts: [{ text: sys() }] },
         inputAudioTranscription: {}, outputAudioTranscription: {} };
@@ -402,6 +402,7 @@ Rules:
     ws.onmessage = async e => {
       let m;
       try { m = JSON.parse(typeof e.data === 'string' ? e.data : await e.data.text()); } catch (x) { return; }  // 서버는 글자도 이진 프레임으로 보냄
+      if (ws !== sock || ended) return;  // 끊긴 뒤 늦게 도착한 조각은 버림 (끊김 안내가 '듣고 있어요'로 덮이지 않게)
       if (m.setupComplete) {
         ready = true;
         t0 = Date.now();
@@ -427,6 +428,7 @@ Rules:
       const why = /api key|permission|unauth/i.test(e.reason) ? 'API 키를 확인해 주세요.' : /quota|exhaust|rate/i.test(e.reason) ? '사용 한도에 걸렸어요. 잠시 뒤 다시 걸어 주세요.'
         : ready ? '연결이 끊겼어요. 인터넷을 확인하고 다시 걸어 주세요.' : '통화를 연결하지 못했어요.';
       logTime();
+      ws = null;
       stopAudio();
       setState('fail');
       note(why + (e.reason ? ` (${e.reason.slice(0, 80)})` : ''));
