@@ -1,0 +1,31 @@
+# 화면 자동 테스트: 앱 파일이 바뀌어 올라오면 폰 화면 크기로 홈, 레벨 테스트, 설정, 채팅, 통화, 리포트, 오프라인을 검사
+name: 화면 테스트
+on:
+  push:
+    paths: ['index.html', 'live.js', 'sw.js', 'data/**', 'tests/**', 'playwright.config.js', 'package.json', 'package-lock.json', '.github/workflows/e2e.yml']
+  pull_request:
+    paths: ['index.html', 'live.js', 'sw.js', 'data/**', 'tests/**']
+  workflow_dispatch:  # Actions 탭에서 직접 실행 버튼
+permissions:
+  contents: read
+jobs:
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium  # 테스트용 크롬 (버전은 package-lock.json에 고정)
+      - run: npx playwright test
+        env:
+          CI: 'true'
+      - uses: actions/upload-artifact@v7  # 실패하면 화면 기록을 내려받을 수 있게
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
