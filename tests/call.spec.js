@@ -133,7 +133,7 @@ test('소리 채널: 평소 미디어, 통화와 받아쓰기 중엔 녹음용',
   await expect.poll(() => page.evaluate(() => navigator.audioSession.type)).toBe('playback');
 });
 
-test('잡음 차단: 고립된 짧은 잡음은 지우고 말소리는 남김', async ({ page }) => {
+test('잡음 차단: 고립된 잡음, 말 중간 삑은 줄이고 말소리와 자음은 남김', async ({ page }) => {
   await startCall(page);
   const r = await page.evaluate(() => {
     const R = 24000, gate = LiveCall._test.gate;
@@ -144,12 +144,21 @@ test('잡음 차단: 고립된 짧은 잡음은 지우고 말소리는 남김', 
       beepAfterSpeech: kept([['vowel', 400, 0.3, 180], ['q', 100], ['tone', 100, 0.3, 3000], ['q', 100]]),
       shortWord: kept([['q', 100], ['vowel', 120, 0.2, 200], ['q', 100], ['vowel', 300, 0.3, 180]]),
       longSpeech: kept([['vowel', 800, 0.3, 150]]),
+      midBeep: (() => { const o = []; const add = (ms, fn) => { const n = Math.round(ms * R / 1000); for (let i = 0; i < n; i++) o.push(fn(i, n)); };
+        const v = (i, n) => 0.25 * Math.sin(2 * Math.PI * 180 * i / R) * (0.6 + 0.4 * Math.sin(Math.PI * i / n));
+        add(300, v); add(20, i => 0.25 * Math.sin(2 * Math.PI * 180 * i / R) + 0.6 * Math.sin(2 * Math.PI * 4000 * i / R)); add(300, v);
+        const ch = Float32Array.from(o), e0 = ch.reduce((s, x) => s + x * x, 0); gate(ch, true, false); return Math.round(ch.reduce((s, x) => s + x * x, 0) / e0 * 100); })(),
+      fricative: kept([['vowel', 200, 0.3, 180], ['noise', 60, 0.08], ['vowel', 200, 0.3, 180]]),
+      finalT: kept([['vowel', 300, 0.3, 180], ['q', 50], ['noise', 20, 0.06], ['q', 100]]),
     };
   });
   expect(r.noiseAfterSpeech).toBeLessThan(80);
   expect(r.beepAfterSpeech).toBeLessThan(80);
   expect(r.shortWord).toBe(100);
   expect(r.longSpeech).toBe(100);
+  expect(r.midBeep).toBeLessThan(90);   // 말 중간 '삑'은 낮춤
+  expect(r.fricative).toBe(100);        // s 같은 자음은 그대로
+  expect(r.finalT).toBe(100);           // 끝 자음 t 터짐도 그대로
 });
 
 test('튜터 지시문: 막힐 때 "이 말 하고 싶었어?", 물어보면 "한번 해 볼래?"', async ({ page }) => {

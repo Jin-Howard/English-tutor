@@ -230,7 +230,7 @@ window.LiveCall = (() => {
   // ===== 재생: 받은 조각을 빈틈없이 이어 붙임 =====
   // 3.8 세대 음성은 문장, 턴 경계에 50~150ms 잡음(삐익, 지직)이 섞여 올 수 있음 (구글 포럼 보고, AI Studio는 재생 쪽에서 걸러 냄).
   // 그래서 받은 소리를 10ms 단위로 보고, 조용한 구간 사이에 고립된 짧고 거친 덩어리는 지움
-  const FR = 240, QUIET = 0.004, LOUD = 0.012, MAXB = 15, GAPF = 4;  // 10ms 한 칸, 조용함/소리 기준, 덩어리 최대 15칸(150ms), 앞뒤 조용함 4칸(40ms)
+  const FR = 240, QUIET = 0.004, LOUD = 0.012, MINB = 4, MAXB = 15, GAPF = 4;  // 10ms 한 칸, 조용함/소리 기준, 덩어리 4~15칸(40~150ms: 더 짧은 건 t, k 같은 자음일 수 있음), 앞뒤 조용함 4칸(40ms)
   function frames(ch) {
     const out = [];
     for (let k = 0; k + FR <= ch.length; k += FR) {
@@ -248,11 +248,29 @@ window.LiveCall = (() => {
       let j = i; while (j < fs.length && fs[j].rms >= QUIET) j++;  // 덩어리 [i, j)
       let before = i === 0 && fresh ? GAPF : 0; for (let k = i - 1; k >= 0 && fs[k].rms < QUIET; k--) before++;
       let after = 0; for (let k = j; k < fs.length && fs[k].rms < QUIET; k++) after++;
-      if (j - i <= MAXB && before >= GAPF && noisy(fs.slice(i, j))) {
+      if (j - i >= MINB && j - i <= MAXB && before >= GAPF && noisy(fs.slice(i, j))) {
         if (after >= GAPF) { ch.fill(0, i * FR, Math.min(ch.length, j * FR)); cut++; }  // 앞뒤가 조용한 고립 덩어리: 바로 지움
         else if (j === fs.length && atEnd) tail = [i * FR, ch.length];
       }
       i = j;
+    }
+    // 말소리 한가운데 튀는 짧은 '삑': 양옆 말소리보다 2배 이상 크고 훨씬 거친 10~20ms 칸은 양옆 크기로 낮춤
+    for (let i = 2; i < fs.length - 3; i++) {
+      const left = (fs[i - 2].rms + fs[i - 1].rms) / 2, lz = (fs[i - 2].zcr + fs[i - 1].zcr) / 2;
+      const two = fs[i + 1].rms > left * 2 && fs[i + 1].zcr >= 0.2;  // 20ms짜리면 오른쪽 비교는 한 칸 건너서
+      const r0 = two ? i + 2 : i + 1;
+      if (r0 + 1 >= fs.length) continue;
+      const right = (fs[r0].rms + fs[r0 + 1].rms) / 2, rz = (fs[r0].zcr + fs[r0 + 1].zcr) / 2;
+      const side = (left + right) / 2, sz = (lz + rz) / 2;
+      const spike = f => f.rms >= 0.1 && f.rms >= side * 2 && f.zcr >= 0.2 && f.zcr >= sz * 4;  // 양옆보다 2배 크고 훨씬 거침 (s 같은 자음은 옆 모음보다 작아서 제외)
+      if (Math.min(left, right) < LOUD || !spike(fs[i])) continue;
+      const k = two ? 2 : 1, g = side / fs[i].rms;
+      for (let n = i * FR; n < Math.min(ch.length, (i + k) * FR); n++) {  // 칸 가장자리는 부드럽게 (딸깍 방지)
+        const e = Math.min(n - i * FR, (i + k) * FR - 1 - n, 48) / 48;
+        ch[n] *= 1 - (1 - g) * e;
+      }
+      cut++;
+      i += k;
     }
     return { cut, tail };
   }
