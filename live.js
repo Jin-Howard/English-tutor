@@ -3,7 +3,7 @@
 window.LiveCall = (() => {
   const MODEL = 'models/gemini-3.8-live';
   const URL_WS = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=';
-  const IDLE_SEC = 15, IDLE_MAX = 2;  // 침묵 안부: 몇 초 뒤, 연속 몇 번까지
+  const IDLE_SEC = 15, IDLE_MAX = 2, IDLE_END = 90;  // 침묵 안부: 몇 초 뒤, 연속 몇 번까지 / 이만큼 말이 없으면 통화 자동 종료 (비용 절약)
   const IN_RATE = 16000, OUT_RATE = 24000, LONG_SEC = 15 * 60;  // 음성 세션은 약 15분이 한계라 그 전에 안내
   const JITTER = 0.15, REBUF = 0.15;  // 말 시작 때 / 조각이 늦게 왔을 때 모아 두는 시간 (인터넷이 출렁여도 말이 뚝뚝 끊기지 않게)
   const FADE = 0.03;     // 끊을 때 소리를 줄이는 시간 (뚝 소리 방지)
@@ -39,7 +39,7 @@ window.LiveCall = (() => {
     'Level 4: natural speed; common idioms are fine.',
     'Level 5: native speed with idioms and nuance; do not simplify.'];
 
-  let spoke = 0, ws, ctx, stream, src, node, sink, out, ana, raf, timer, wake = null, attempt = 0, rest = null, lastAct = 0, nudges = 0, gateT = 0, echo = 0, loud = 0, pre = [], under = 0, cuts = 0, meT = 0, wantLat = false, lat = [];
+  let spoke = 0, ws, ctx, stream, src, node, sink, out, ana, raf, timer, wake = null, attempt = 0, rest = null, lastChunk = null, gated = 0, lastAct = 0, nudges = 0, gateT = 0, echo = 0, loud = 0, pre = [], under = 0, cuts = 0, meT = 0, wantLat = false, lat = [];
   let ready = false, ended = true, muted = false, t0 = 0, playAt = 0, playing = [], lines = [], tokens = 0;
   const $c = id => document.getElementById(id);
   const DEBUG = /[?&]debug/.test(location.search);  // 주소 끝에 ?debug 를 붙이면 통화 진단 숫자 표시
@@ -163,8 +163,10 @@ window.LiveCall = (() => {
       setState('listen');
     };
   }
+  let mutedAt = 0;
   function setMute(on) {
     muted = on;
+    mutedAt = performance.now();
     $c('cl-mute').classList.toggle('on', on);
     $c('cl-mute').innerHTML = `<span>${on ? I_MUTE : I_MIC}</span>${on ? '음소거 중' : '음소거'}`;
   }
@@ -172,7 +174,7 @@ window.LiveCall = (() => {
     const box = $c('call');
     ['wait', 'listen', 'speak', 'fail'].forEach(k => box.classList.toggle(k, k === s));
     $c('cl-state').textContent = { wait: '연결하는 중이에요', listen: '듣고 있어요', speak: '튜터가 말하는 중 · 눌러서 끼어들기', fail: '통화가 끊겼어요' }[s];
-    if (DEBUG) $c('cl-lat').textContent = `${lat.length ? '반응 ' + lat[lat.length - 1] + '초 · ' : ''}끊김 ${under} · 끼어듦 ${cuts} · 울림 ${echo.toFixed(3)}`;
+    if (DEBUG) $c('cl-lat').textContent = `${lat.length ? '반응 ' + lat[lat.length - 1] + '초 · ' : ''}끊김 ${under} · 끼어듦 ${cuts} · 잡음 ${gated} · 울림 ${echo.toFixed(3)}`;
   };
   const note = t => { $c('cl-note').textContent = t || ''; };
 
@@ -226,6 +228,34 @@ window.LiveCall = (() => {
   };
 
   // ===== 재생: 받은 조각을 빈틈없이 이어 붙임 =====
+  // 3.8 세대 음성은 문장, 턴 경계에 50~150ms 잡음(삐익, 지직)이 섞여 올 수 있음 (구글 포럼 보고, AI Studio는 재생 쪽에서 걸러 냄).
+  // 그래서 받은 소리를 10ms 단위로 보고, 조용한 구간 사이에 고립된 짧고 거친 덩어리는 지움
+  const FR = 240, QUIET = 0.004, LOUD = 0.012, MAXB = 15, GAPF = 4;  // 10ms 한 칸, 조용함/소리 기준, 덩어리 최대 15칸(150ms), 앞뒤 조용함 4칸(40ms)
+  function frames(ch) {
+    const out = [];
+    for (let k = 0; k + FR <= ch.length; k += FR) {
+      let e = 0, z = 0;
+      for (let i = k; i < k + FR; i++) { e += ch[i] * ch[i]; if (i > k && (ch[i] >= 0) !== (ch[i - 1] >= 0)) z++; }
+      out.push({ rms: Math.sqrt(e / FR), zcr: z / FR });
+    }
+    return out;
+  }
+  const noisy = seg => { let r = 0, z = 0; seg.forEach(f => { r = Math.max(r, f.rms); z += f.zcr; }); return z / seg.length > 0.2 || r > 0.15; };  // 말소리(모음)는 부드럽고, 잡음은 거칠거나 갑자기 큼
+  function gate(ch, atEnd, fresh) {  // 고립된 잡음 덩어리를 0으로. atEnd: 조각 끝에 붙은 덩어리 위치를 돌려줌 (턴이 끝나면 지움). fresh: 말 시작 조각 (앞이 조용함)
+    const fs = frames(ch); let cut = 0, tail = null;
+    for (let i = 0; i < fs.length; i++) {
+      if (fs[i].rms < LOUD) continue;
+      let j = i; while (j < fs.length && fs[j].rms >= QUIET) j++;  // 덩어리 [i, j)
+      let before = i === 0 && fresh ? GAPF : 0; for (let k = i - 1; k >= 0 && fs[k].rms < QUIET; k--) before++;
+      let after = 0; for (let k = j; k < fs.length && fs[k].rms < QUIET; k++) after++;
+      if (j - i <= MAXB && before >= GAPF && noisy(fs.slice(i, j))) {
+        if (after >= GAPF) { ch.fill(0, i * FR, Math.min(ch.length, j * FR)); cut++; }  // 앞뒤가 조용한 고립 덩어리: 바로 지움
+        else if (j === fs.length && atEnd) tail = [i * FR, ch.length];
+      }
+      i = j;
+    }
+    return { cut, tail };
+  }
   function play(b64) {
     let bin = atob(b64);
     if (rest !== null) { bin = rest + bin; rest = null; }  // 조각이 샘플 중간에서 잘려 오면 다음 조각과 이어 붙임 (지직 방지)
@@ -234,6 +264,8 @@ window.LiveCall = (() => {
     if (!n) return;
     const buf = ctx.createBuffer(1, n, OUT_RATE), ch = buf.getChannelData(0);
     for (let i = 0; i < n; i++) { let v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); if (v >= 0x8000) v -= 0x10000; ch[i] = v / 32768; }
+    const g = gate(ch, true, !playing.length && playAt < ctx.currentTime + 0.01);  // 말 시작 조각이면 맨 앞 잡음도 지움
+    gated += g.cut;
     const now = ctx.currentTime, gap = playAt < now + 0.01;
     if (gap) {  // 새 말 시작이거나 조각이 늦게 옴: 잠깐 모았다가 재생, 첫 3ms는 부드럽게 시작 (틱 방지)
       if (playing.length) { under++; playAt = now + REBUF; } else playAt = now + JITTER;  // under: 진단용 끊김 횟수
@@ -244,11 +276,21 @@ window.LiveCall = (() => {
     s.buffer = buf;
     s.connect(out);
     s.start(playAt);
+    lastChunk = g.tail ? { at: playAt + g.tail[0] / OUT_RATE, end: playAt + buf.duration } : null;  // 턴이 끝나면 끝 덩어리를 소리 줄여 지움
     playAt += buf.duration;
     playing.push(s);
     s.onended = () => { playing = playing.filter(x => x !== s); if (!playing.length && !ended && ready) { setState('listen'); lastAct = performance.now(); } };
     if (wantLat && meT) { wantLat = false; const d = (performance.now() - meT) / 1000; lat.push(+d.toFixed(2)); $c('cl-lat').textContent = `반응 약 ${d.toFixed(1)}초`; }
     setState('speak');
+  }
+  function muteTail() {  // 턴 마지막 조각 끝의 잡음 덩어리: 아직 재생 전이면 그 구간만 볼륨 0
+    const t = lastChunk; lastChunk = null;
+    if (!t || !ctx || !out || t.at < ctx.currentTime + 0.01) return;
+    out.gain.setValueAtTime(1, t.at - 0.004);
+    out.gain.linearRampToValueAtTime(0, t.at);
+    out.gain.setValueAtTime(0, t.end);
+    out.gain.linearRampToValueAtTime(1, t.end + 0.01);
+    gated++;
   }
   function flush(soft) {  // 끼어들거나 끊으면 튜터 말을 멈춤. 0.03초 동안 줄인 뒤 멈춰서 뚝 소리가 안 남
     const list = playing;
@@ -279,7 +321,12 @@ window.LiveCall = (() => {
     ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: t }] }], turnComplete: false } }));  // 다음 대답부터 적용, 지금 말은 그대로
     toastIn(on ? '다음 대답부터 천천히 말해요' : '다음 대답부터 원래 속도로 말해요');
   }
-  function idleCheck() {  // 튜터 말이 끝난 뒤 조용하면 먼저 안부 (음소거 중이면 일부러 조용한 거라 안 함)
+  function idleCheck() {  // 튜터 말이 끝난 뒤 조용하면 먼저 안부 (음소거 중이면 일부러 조용한 거라 안 함). 오래 조용하면 자동 종료
+    if (lastAct && !playing.length && !ended && performance.now() - lastAct >= IDLE_END * 1000) {
+      endCall();
+      if (typeof toast === 'function') toast('대화가 없어서 통화를 마쳤어요', 3000);
+      return;
+    }
     if (!lastAct || playing.length || muted || nudges >= IDLE_MAX || !ws || ws.readyState !== 1) return;
     if (performance.now() - lastAct < IDLE_SEC * 1000) return;
     nudges++;
@@ -377,8 +424,9 @@ Rules:
     return [
       'You are a warm, encouraging English conversation tutor on a voice call with a Korean adult learner.',
       'Speak only English. Keep each turn short (1 to 3 sentences) and usually end with a question, so the learner talks more than you.',
-      'Do not stop the conversation to correct mistakes. If a mistake hides the meaning, naturally recast the correct form in your reply. A correction report is given after the call.',
-      'If the learner speaks Korean, reply in simple English and help them say it in English.',
+      'Do not stop the conversation for small mistakes. If a mistake hides the meaning, naturally recast the correct form in your reply. A correction report is given after the call.',
+      'When the learner struggles to find a word, pauses, uses a vague word or mixes in Korean, offer what they probably meant as a short check, like "Did you mean a refund?" or "Oh, you mean you were late?", then let them go on.',
+      'When the learner asks how to say something, in Korean or English (for example "이거 영어로 뭐라고 해?"), give one natural way to say it, then invite them to try: "You can say, I\'d like a refund. Want to try saying it?" In that turn ask nothing else. Wait for their try, react warmly in a few words (recast gently if needed), and only then continue the conversation.',
       o.lvl ? `Learner level ${o.lvl} of 5. ${LIVE_RULE[o.lvl]}` : 'Learner level unknown: start simple and adjust to the learner.',
       `Learner goals: ${goals}.`,
       pace(),
@@ -418,7 +466,7 @@ Rules:
         ((c.modelTurn && c.modelTurn.parts) || []).forEach(p => { if (p.inlineData && /audio/.test(p.inlineData.mimeType || '')) play(p.inlineData.data); });
         if (c.inputTranscription && c.inputTranscription.text) { heardMe(); cap('me', c.inputTranscription.text); meT = performance.now(); wantLat = true; }  // 내 말 마지막 시각 → 튜터 첫 소리까지 = 반응 시간
         if (c.outputTranscription && c.outputTranscription.text) cap('ai', c.outputTranscription.text);
-        if (c.turnComplete) closeLine();
+        if (c.turnComplete) { closeLine(); muteTail(); }
       }
       if (m.goAway) note('통화 시간이 거의 끝났어요. 끊고 다시 걸면 이어서 할 수 있어요.');
     };
@@ -515,16 +563,19 @@ Rules:
   }
 
   async function begin() {
-    ended = false; attempt = 0; spoke = 0; lastAct = 0; nudges = 0; echo = 0; loud = 0; pre = []; under = 0; cuts = 0; lines = []; tokens = 0; playAt = 0; lat = []; meT = 0; wantLat = false;
+    ended = false; attempt = 0; spoke = 0; lastAct = 0; nudges = 0; gated = 0; lastChunk = null; echo = 0; loud = 0; pre = []; under = 0; cuts = 0; lines = []; tokens = 0; playAt = 0; lat = []; meT = 0; wantLat = false;
     setMute(false);
     slow = false;
     $c('cl-slow').classList.remove('on');
     $c('cl-lat').textContent = '';
     if (!out) {  // 튜터 소리 → 볼륨(페이드용) → 분석기(테두리용) → 스피커
       out = ctx.createGain();
+      const lim = ctx.createDynamicsCompressor();  // 리미터: 남은 큰 잡음이 귀 아프지 않게 눌러 줌
+      lim.threshold.value = -6; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.002; lim.release.value = 0.1;
       ana = ctx.createAnalyser();
       ana.fftSize = 512;
-      out.connect(ana);
+      out.connect(lim);
+      lim.connect(ana);
       ana.connect(ctx.destination);
     }
     drawCap();
@@ -537,6 +588,7 @@ Rules:
       $c('cl-time').textContent = `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
       if (sec === LONG_SEC) note('15분이 지났어요. 한 번 끊고 다시 걸면 더 안정적이에요.');
       idleCheck();
+      if (muted && !ended && performance.now() - mutedAt > IDLE_END * 1000) { endCall(); if (typeof toast === 'function') toast('음소거가 오래 이어져서 통화를 마쳤어요', 3000); }  // 음소거로 방치해도 통화가 계속 열려 있지 않게
     }, 1000);
     try { await startMic(); meter(); }
     catch (e) {
@@ -550,7 +602,7 @@ Rules:
   function save() {  // 통화 후 교정 리포트(다음 단계)를 위해 마지막 통화 기록 저장
     const sec = spoke;
     if (!lines.length) return;
-    try { localStorage.setItem('lastcall', JSON.stringify({ at: Date.now(), sec, tokens, lat, under, cuts, lines: lines.map(l => ({ who: l.who, text: l.text.trim() })) })); } catch (e) {}
+    try { localStorage.setItem('lastcall', JSON.stringify({ at: Date.now(), sec, tokens, lat, under, cuts, gated, lines: lines.map(l => ({ who: l.who, text: l.text.trim() })) })); } catch (e) {}
   }
   function logTime() {  // 날짜별 통화 시간 (홈의 오늘 목표, 연속 학습에 씀). 최근 60일만 보관
     if (!t0 || !ready) return;
@@ -587,5 +639,5 @@ Rules:
     if (!localStorage.getItem('livenote')) { $c('call').classList.add('first'); return; }
     begin();
   }
-  return { open, close, active: () => !ended, _test: { endCall, report, keepFixes, setLines: v => { lines = v; }, setSpoke: v => { spoke = v; }, idle: () => [lastAct, nudges], idleCheck, setAct: v => { lastAct = v; }, down, toB64, sys, pace, sendPcm, fake: on => { playing = on ? [{}] : []; gateT = 0; loud = 0; pre = []; }, echo: () => echo, ready: () => ready } };  // 검사용
+  return { open, close, active: () => !ended, _test: { gate, idleEnd: () => IDLE_END, endState: () => ended, setMuted: (on, ago) => { setMute(on); mutedAt = performance.now() - ago; }, endCall, report, keepFixes, setLines: v => { lines = v; }, setSpoke: v => { spoke = v; }, idle: () => [lastAct, nudges], idleCheck, setAct: v => { lastAct = v; }, down, toB64, sys, pace, sendPcm, fake: on => { playing = on ? [{}] : []; gateT = 0; loud = 0; pre = []; }, echo: () => echo, ready: () => ready } };  // 검사용
 })();

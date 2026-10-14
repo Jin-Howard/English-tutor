@@ -132,3 +132,45 @@ test('소리 채널: 평소 미디어, 통화와 받아쓰기 중엔 녹음용',
   await page.click('#act');
   await expect.poll(() => page.evaluate(() => navigator.audioSession.type)).toBe('playback');
 });
+
+test('잡음 차단: 고립된 짧은 잡음은 지우고 말소리는 남김', async ({ page }) => {
+  await startCall(page);
+  const r = await page.evaluate(() => {
+    const R = 24000, gate = LiveCall._test.gate;
+    const mk = parts => { const o = []; for (const [t, ms, amp, f] of parts) { const n = Math.round(ms * R / 1000); for (let i = 0; i < n; i++) o.push(t === 'noise' ? amp * (Math.sin(i * 12.9898) * 43758.5453 % 1) : t === 'vowel' ? amp * Math.sin(2 * Math.PI * f * i / R) * Math.sin(Math.PI * i / n) : t === 'tone' ? amp * Math.sin(2 * Math.PI * f * i / R) : 0); } return Float32Array.from(o); };
+    const kept = (parts, fresh) => { const ch = mk(parts), e0 = ch.reduce((s, v) => s + v * v, 0); gate(ch, true, fresh); return Math.round(ch.reduce((s, v) => s + v * v, 0) / e0 * 100); };
+    return {
+      noiseAfterSpeech: kept([['vowel', 400, 0.3, 180], ['q', 120], ['noise', 80, 0.4], ['q', 100]]),
+      beepAfterSpeech: kept([['vowel', 400, 0.3, 180], ['q', 100], ['tone', 100, 0.3, 3000], ['q', 100]]),
+      shortWord: kept([['q', 100], ['vowel', 120, 0.2, 200], ['q', 100], ['vowel', 300, 0.3, 180]]),
+      longSpeech: kept([['vowel', 800, 0.3, 150]]),
+    };
+  });
+  expect(r.noiseAfterSpeech).toBeLessThan(80);
+  expect(r.beepAfterSpeech).toBeLessThan(80);
+  expect(r.shortWord).toBe(100);
+  expect(r.longSpeech).toBe(100);
+});
+
+test('튜터 지시문: 막힐 때 "이 말 하고 싶었어?", 물어보면 "한번 해 볼래?"', async ({ page }) => {
+  await startCall(page);
+  const sys = await page.waitForFunction(() => window.__ws[0] && window.__ws[0].setup).then(() => page.evaluate(() => window.__ws[0].setup.systemInstruction.parts[0].text));
+  expect(sys).toContain('Did you mean');
+  expect(sys).toContain('Want to try saying it?');
+  expect(sys).toContain('ask nothing else');
+});
+
+test('90초 동안 말이 없으면 통화 자동 종료', async ({ page }) => {
+  await startCall(page);
+  await page.waitForFunction(() => LiveCall._test.ready());
+  await page.evaluate(() => { LiveCall._test.fake(false); LiveCall._test.setAct(performance.now() - LiveCall._test.idleEnd() * 1000 - 1000); LiveCall._test.idleCheck(); });
+  await expect(page.locator('#call')).not.toHaveClass(/\bon\b/);  // 짧은 통화라 리포트 없이 닫힘
+  await expect(page.locator('#toast, .toast').first()).toContainText('대화가 없어서');
+});
+
+test('음소거로 오래 두면 통화 자동 종료', async ({ page }) => {
+  await startCall(page);
+  await page.waitForFunction(() => LiveCall._test.ready());
+  await page.evaluate(() => LiveCall._test.setMuted(true, LiveCall._test.idleEnd() * 1000 + 1000));
+  await expect(page.locator('#call')).not.toHaveClass(/\bon\b/, { timeout: 3000 });
+});
