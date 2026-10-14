@@ -75,9 +75,26 @@ Ministry of Education Notice No. 2022-33 [Annex 14] [Table 3]
 File: tools/kice/kice-basic-3000.csv
 Public notice, not protected under Article 7 of the Korean Copyright Act.
 
+Plus Jakarta Sans (Version 2.071, subset of Latin characters used by the app)
+Copyright 2020 The Plus Jakarta Sans Project Authors (https://github.com/tokotype/PlusJakartaSans)
+File: fonts/pjs.woff2
+Licensed under the SIL Open Font License, Version 1.1: fonts/OFL.txt
+
 Spoken word frequency (top 20,000 of en_50k.txt, 2018)
 FrequencyWords by Hermit Dave, from OpenSubtitles 2018. https://github.com/hermitdave/FrequencyWords
 File: tools/freq/en-spoken-top20k.txt (shortened from the original)
 Licensed under CC BY-SA 4.0: https://creativecommons.org/licenses/by-sa/4.0/
 
 Details: tools/cefr/README.md, tools/kice/README.md, tools/freq/README.md
+
+--------------------------------------------------------------------------
+
+Images: img/art.webp (robot character) and img/avatar.webp (tutor profile)
+were created by the author with AI image tools (OpenAI ChatGPT and Google Gemini).
+img/key-list.jpg and img/app-paste.jpg are screenshots of Google AI Studio and
+this app, used only to show users how to get an API key.
+
+이미지: 로봇 캐릭터(img/art.webp)와 튜터 프로필(img/avatar.webp)은 저작자가
+AI 이미지 도구(OpenAI ChatGPT, Google Gemini)로 만들었습니다.
+API 키 안내 이미지(img/key-list.jpg, img/app-paste.jpg)는 사용 안내를 위한
+Google AI Studio와 이 앱의 화면 캡처입니다.
